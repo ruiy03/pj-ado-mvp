@@ -1,3 +1,12 @@
+<!-- for GitHub Copilot review rule
+  - Review comments should be written in Japanese.
+  - Add the following prefixes to your review comments.
+    [MUST] → should be fixed
+    [IMO] → in my opinion
+    [NITS] → nitpick
+    [ASK] → question
+-->
+
 ## 関連Issue
 <!-- 関連するIssueがあれば記載してください -->
 Closes #
@@ -31,3 +40,12 @@ Closes #
 
 ## 補足事項
 <!-- その他、レビュアーに伝えたいことがあれば記載してください -->
+
+<!-- for GitHub Copilot review rule
+  - Review comments should be written in Japanese.
+  - Add the following prefixes to your review comments.
+    [MUST] → should be fixed
+    [IMO] → in my opinion
+    [NITS] → nitpick
+    [ASK] → question
+-->

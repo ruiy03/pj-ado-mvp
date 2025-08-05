@@ -37,3 +37,6 @@ next-env.d.ts
 
 # Jetbrains
 .idea
+
+# Claude Code
+.claude
