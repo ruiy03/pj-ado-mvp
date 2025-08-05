@@ -1,0 +1,92 @@
+name: バグ報告
+description: バグを報告するためのフォーム
+title: "[Bug]: "
+labels: [bug]
+assignees: ruiy03
+  - # ここに自分のGitHubユーザー名を入力
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグを報告してください。詳細な情報があると修正しやすくなります。
+  
+  - type: input
+    id: bug-title
+    attributes:
+      label: バグの概要
+      description: バグの簡潔な説明を入力してください
+      placeholder: 例：ログイン後にページが正しく表示されない
+    validations:
+      required: true
+  
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 詳細な説明
+      description: バグの詳細を説明してください
+      placeholder: どのような問題が発生しているか詳しく説明してください
+    validations:
+      required: true
+  
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 再現手順
+      description: バグが発生する手順を順番に記載してください
+      placeholder: |
+        1. ○○ページにアクセス
+        2. ○○ボタンをクリック
+        3. ○○を入力
+        4. エラーが発生
+    validations:
+      required: true
+  
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期待する動作
+      description: 本来どのように動作すべきかを説明してください
+      placeholder: 正常に動作した場合、どうなるはずかを記載してください
+    validations:
+      required: true
+  
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: 実際の動作
+      description: 実際にどのような動作をするかを説明してください
+      placeholder: 現在どのような問題が発生しているかを記載してください
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 重要度
+      description: このバグの重要度を選択してください
+      options:
+        - Critical（致命的）
+        - High（高）
+        - Medium（中）- Default
+        - Low（低）
+      default: 2
+    validations:
+      required: true
+  
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: エラーログ・スクリーンショット
+      description: エラーメッセージやスクリーンショットがあれば貼り付けてください
+      placeholder: エラーログやスクリーンショットをここに貼り付けてください
+    validations:
+      required: false
+  
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: 追加情報
+      description: その他の関連情報があれば記載してください
+      placeholder: 他に気づいた点や関連する情報があれば記載してください
+    validations:
+      required: false
