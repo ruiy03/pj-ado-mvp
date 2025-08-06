@@ -29,6 +29,7 @@ git commit -m "[コミットメッセージ]"
 
 ### 2. PRテンプレート選択
 - pj-ado-mvpリポジトリの`.github/PULL_REQUEST_TEMPLATE.md`を使用
+- テンプレート内の注釈用の特殊文字をエスケープしない
 
 ### 3. PR作成
 **PRタイトル**：`[簡潔な説明]`
