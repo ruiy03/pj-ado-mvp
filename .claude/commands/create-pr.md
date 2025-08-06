@@ -37,7 +37,6 @@ git commit -m "[コミットメッセージ]"
 **設定項目**：
 - base branch: `main`
 - Labels: 関連するラベル
-- Assignees: 自分
 
 ### 4. PR作成後の確認
 ```bash
