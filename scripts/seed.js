@@ -34,7 +34,9 @@ async function seed() {
     console.log('Database seeded successfully!');
     console.log('Test credentials:');
     console.log('Email: test@example.com');
-    console.log('Password: 123456');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Password: 123456');
+    }
     
   } catch (error) {
     console.error('Error seeding database:', error);
