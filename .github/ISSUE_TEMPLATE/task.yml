@@ -1,6 +1,5 @@
 name: タスク
 description: 開発タスクを管理するためのフォーム
-title: "[Task]: "
 labels: ["task"]
 assignees: ruiy03
   - # ここに自分のGitHubユーザー名を入力

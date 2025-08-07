@@ -1,6 +1,5 @@
 name: バグ報告
 description: バグを報告するためのフォーム
-title: "[Bug]: "
 labels: [bug]
 assignees: ruiy03
   - # ここに自分のGitHubユーザー名を入力
