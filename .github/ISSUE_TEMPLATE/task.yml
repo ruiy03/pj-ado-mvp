@@ -1,15 +1,14 @@
 name: タスク
 description: 開発タスクを管理するためのフォーム
-title: "[Task]: "
-labels: ["task"]
-assignees: ruiy03
-  - # ここに自分のGitHubユーザー名を入力
+labels: [ enhancement ]
+assignees:
+  - ruiy03
 body:
   - type: markdown
     attributes:
       value: |
         新しい開発タスクを作成します。必要な情報を入力してください。
-  
+
   - type: input
     id: task-title
     attributes:
@@ -18,7 +17,7 @@ body:
       placeholder: 例：ログイン機能の実装
     validations:
       required: true
-  
+
   - type: textarea
     id: task-description
     attributes:
@@ -28,7 +27,7 @@ body:
         何を実装/修正するか、どのような要件があるかなど...
     validations:
       required: true
-  
+
   - type: dropdown
     id: priority
     attributes:
@@ -41,7 +40,7 @@ body:
       default: 1
     validations:
       required: true
-  
+
   - type: dropdown
     id: category
     attributes:
@@ -58,7 +57,7 @@ body:
         - Other
     validations:
       required: true
-  
+
   - type: textarea
     id: acceptance-criteria
     attributes:
@@ -70,7 +69,7 @@ body:
         - [ ] ドキュメントを更新する
     validations:
       required: true
-  
+
   - type: textarea
     id: notes
     attributes:
@@ -79,7 +78,7 @@ body:
       placeholder: 参考資料のURL、注意点など...
     validations:
       required: false
-  
+
   - type: input
     id: related-issues
     attributes:
