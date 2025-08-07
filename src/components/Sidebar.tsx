@@ -1,15 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import {usePathname} from 'next/navigation';
 
 const menuItems = [
-  { href: '/dashboard', label: 'ダッシュボード', icon: '📊' },
-  { href: '/ad-templates', label: '広告テンプレート', icon: '📝' },
-  { href: '/url-templates', label: 'URLテンプレート', icon: '🔗' },
-  { href: '/ads', label: '広告管理', icon: '🎨' },
-  { href: '/article-ad-mapping', label: '記事と広告の紐付け', icon: '🔗' },
-  { href: '/accounts', label: 'アカウント管理', icon: '👥' },
+  {href: '/dashboard', label: 'ダッシュボード', icon: '📊'},
+  {href: '/ad-templates', label: '広告テンプレート', icon: '📝'},
+  {href: '/url-templates', label: 'URLテンプレート', icon: '🔗'},
+  {href: '/ads', label: '広告管理', icon: '🎨'},
+  {href: '/article-ad-mapping', label: '記事と広告の紐付け', icon: '🔗'},
+  {href: '/accounts', label: 'アカウント管理', icon: '👥'},
 ];
 
 export default function Sidebar() {

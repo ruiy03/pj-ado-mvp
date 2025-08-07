@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js project bootstrapped with `create-next-app`, using the App Router and TypeScript. The project uses Tailwind CSS for styling and is configured to use Turbopack for development.
+This is a Next.js project bootstrapped with `create-next-app`, using the App Router and TypeScript. The project uses
+Tailwind CSS for styling and is configured to use Turbopack for development.
 
 ## Development Commands
 
@@ -16,9 +17,9 @@ This is a Next.js project bootstrapped with `create-next-app`, using the App Rou
 ## Project Structure
 
 - `src/app/` - Next.js App Router directory containing:
-  - `layout.tsx` - Root layout with Geist font configuration
-  - `page.tsx` - Home page component
-  - `globals.css` - Global Tailwind CSS styles
+    - `layout.tsx` - Root layout with Geist font configuration
+    - `page.tsx` - Home page component
+    - `globals.css` - Global Tailwind CSS styles
 - `public/` - Static assets (SVG icons, images)
 - TypeScript configuration with path alias `@/*` mapping to `./src/*`
 

@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type {Metadata} from "next";
+import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 
@@ -19,22 +19,22 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
-}: Readonly<{
+                                     children,
+                                   }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 ml-64 p-8 bg-gray-50 min-h-screen">
-            {children}
-          </main>
-        </div>
-      </body>
+    <body
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
+    <div className="flex">
+      <Sidebar/>
+      <main className="flex-1 ml-64 p-8 bg-gray-50 min-h-screen">
+        {children}
+      </main>
+    </div>
+    </body>
     </html>
   );
 }

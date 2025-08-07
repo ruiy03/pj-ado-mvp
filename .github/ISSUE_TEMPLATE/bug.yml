@@ -1,6 +1,6 @@
 name: バグ報告
 description: バグを報告するためのフォーム
-labels: [bug]
+labels: [ bug ]
 assignees:
   - ruiy03
 body:
@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         バグを報告してください。詳細な情報があると修正しやすくなります。
-  
+
   - type: input
     id: bug-title
     attributes:
@@ -17,7 +17,7 @@ body:
       placeholder: 例：ログイン後にページが正しく表示されない
     validations:
       required: true
-  
+
   - type: textarea
     id: bug-description
     attributes:
@@ -26,7 +26,7 @@ body:
       placeholder: どのような問題が発生しているか詳しく説明してください
     validations:
       required: true
-  
+
   - type: textarea
     id: reproduction-steps
     attributes:
@@ -39,7 +39,7 @@ body:
         4. エラーが発生
     validations:
       required: true
-  
+
   - type: textarea
     id: expected-behavior
     attributes:
@@ -48,7 +48,7 @@ body:
       placeholder: 正常に動作した場合、どうなるはずかを記載してください
     validations:
       required: true
-  
+
   - type: textarea
     id: actual-behavior
     attributes:
@@ -57,7 +57,7 @@ body:
       placeholder: 現在どのような問題が発生しているかを記載してください
     validations:
       required: true
-  
+
   - type: dropdown
     id: severity
     attributes:
@@ -71,7 +71,7 @@ body:
       default: 2
     validations:
       required: true
-  
+
   - type: textarea
     id: error-logs
     attributes:
@@ -80,7 +80,7 @@ body:
       placeholder: エラーログやスクリーンショットをここに貼り付けてください
     validations:
       required: false
-  
+
   - type: textarea
     id: additional-info
     attributes:
