@@ -6,7 +6,7 @@
 
 ## 実行手順
 1. **Issueテンプレート選択**
-    - pj-ado-mvpリポジトリの`.github/ISSUE_TEMPLATE/`から適切なテンプレートを選択
+   - pj-ado-mvpリポジトリの @.github/ISSUE_TEMPLATE? から適切なテンプレートを選択
     - 利用可能なテンプレート：bug.md / task.md など
     - テンプレートが見つからない場合は標準形式で作成
 
