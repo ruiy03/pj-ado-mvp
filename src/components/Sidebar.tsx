@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
+import { logout } from '@/lib/actions';
 
 const menuItems = [
   {href: '/dashboard', label: 'ダッシュボード', icon: '📊'},
@@ -17,9 +18,9 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-gray-900 text-white h-screen fixed left-0 top-0">
-      <div className="p-6">
+      <div className="p-6 flex flex-col h-full">
         <h1 className="text-xl font-bold mb-8">広告管理システム</h1>
-        <nav>
+        <nav className="flex-1">
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.href}>
@@ -38,6 +39,15 @@ export default function Sidebar() {
             ))}
           </ul>
         </nav>
+        
+        <div className="mt-auto pt-4">
+          <form action={logout}>
+            <button className="flex items-center gap-3 p-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white w-full">
+              <span className="text-lg">🚪</span>
+              <span>ログアウト</span>
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
   );

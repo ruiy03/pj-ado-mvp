@@ -1,5 +1,8 @@
+import ProtectedPage from '@/components/ProtectedPage';
+
 export default function UrlTemplates() {
   return (
+    <ProtectedPage>
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">URLテンプレート管理</h1>
@@ -21,5 +24,6 @@ export default function UrlTemplates() {
         </div>
       </div>
     </div>
+    </ProtectedPage>
   );
 }
