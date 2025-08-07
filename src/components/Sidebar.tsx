@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import { logout } from '@/lib/actions';
+import {useEffect, useState} from 'react';
+import {logout} from '@/lib/actions';
 
 const menuItems = [
   {href: '/dashboard', label: 'ダッシュボード', icon: '📊'},
@@ -15,6 +16,11 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   return (
     <aside className="w-64 bg-gray-900 text-white h-screen fixed left-0 top-0">
@@ -27,7 +33,7 @@ export default function Sidebar() {
                 <Link
                   href={item.href}
                   className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    pathname === item.href
+                    isHydrated && pathname === item.href
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   }`}
@@ -39,10 +45,11 @@ export default function Sidebar() {
             ))}
           </ul>
         </nav>
-        
+
         <div className="mt-auto pt-4">
           <form action={logout}>
-            <button className="flex items-center gap-3 p-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white w-full">
+            <button
+              className="flex items-center gap-3 p-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white w-full cursor-pointer">
               <span className="text-lg">🚪</span>
               <span>ログアウト</span>
             </button>
