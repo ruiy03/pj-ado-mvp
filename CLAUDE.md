@@ -14,19 +14,24 @@ NextAuth.js for authentication.
 - **Build**: `npm run build` - Creates production build
 - **Start production**: `npm start` - Starts production server
 - **Lint**: `npm run lint` - Runs ESLint with Next.js TypeScript rules
+- **Test**: `npm test` - Runs Jest test suites for components and utilities
+- **Test (watch mode)**: `npm run test:watch` - Runs tests in watch mode for development
 - **Database setup**: `node scripts/seed.js` - Creates users table and seeds test user (test@example.com / 123456)
 
 ## Architecture Overview
 
-### Authentication System
+### Authentication & Authorization System
 
-The application uses NextAuth.js v5 (beta) with credential-based authentication:
+The application uses NextAuth.js v5 (beta) with credential-based authentication and role-based authorization:
 
 - **Authentication config**: `auth.config.ts` and `auth.ts` handle NextAuth setup
 - **Middleware**: `middleware.ts` protects routes except public files and login
 - **Database**: Uses Neon PostgreSQL with bcrypt for password hashing
 - **Session management**: Server-side session checking in layout for conditional UI
 - **Protected components**: `ProtectedPage.tsx` redirects unauthenticated users to `/login`
+- **Role-based access**: Two-tier system with `admin` (level 2) and `editor` (level 1) roles
+- **Authorization helpers**: `src/lib/authorization.ts` provides role checking utilities (`hasMinimumRole`, `isAdmin`, `canEdit`, `withAuthorization`)
+- **User management**: Full CRUD operations restricted to admin users only
 
 ### Application Structure
 
@@ -42,8 +47,10 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication:
 - `src/components/Sidebar.tsx` - Fixed sidebar with menu items, active state, and logout functionality
 - `src/components/ProtectedPage.tsx` - Wrapper component for route protection
 - `src/components/LoginForm.tsx` - Authentication form component
-- `src/lib/definitions.ts` - TypeScript interfaces (User model)
+- `src/lib/definitions.ts` - TypeScript interfaces (User model with role field)
 - `src/lib/actions.ts` - Server actions for authentication operations
+- `src/lib/user-actions.ts` - Server actions for user CRUD operations with role-based authorization
+- `src/lib/authorization.ts` - Role checking utilities and permission helpers
 - `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
 - `middleware.ts` - Route protection middleware
 
@@ -51,8 +58,18 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication:
 
 Uses Neon PostgreSQL with the following structure:
 
-- **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `created_at`
+- **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
 - **Test credentials**: test@example.com / 123456 (seeded via `scripts/seed.js`)
+
+### Testing Setup
+
+The application uses Jest with React Testing Library for unit and component testing:
+
+- **Jest configuration**: `jest.config.js` with Next.js integration and path mapping
+- **Setup file**: `jest.setup.js` for global test configuration
+- **Test environment**: jsdom for DOM testing with React components  
+- **Test location**: `__tests__/` directory with component and utility tests
+- **Coverage**: Tests for components (Button, LoginForm, Sidebar) and utility functions
 
 ### Page Structure
 
@@ -64,7 +81,7 @@ Each main feature has its own page directory under `src/app/`:
 - `/url-templates` - URL template management (for tracking parameters)
 - `/ads` - Advertisement management with search/filter table
 - `/article-ad-mapping` - Article to advertisement mapping management
-- `/accounts` - Account management system
+- `/accounts` - Account management system with full CRUD operations (admin only)
 
 All protected pages currently show placeholder/empty state UI with Japanese text and icons.
 
@@ -75,9 +92,10 @@ All protected pages currently show placeholder/empty state UI with Japanese text
 - **NextAuth.js 5.0.0-beta.29** - Authentication with Credentials provider
 - **Neon Database** - PostgreSQL serverless database
 - **bcrypt** - Password hashing
-- **Zod** - Schema validation for authentication
+- **Zod** - Schema validation for authentication and user management
 - **TypeScript** - Strict type safety configuration
 - **Tailwind CSS v4** - Utility-first styling with PostCSS
+- **Jest & React Testing Library** - Unit testing framework with DOM testing utilities
 - **Geist fonts** - Typography (sans and mono variants)
 
 ## Development Notes

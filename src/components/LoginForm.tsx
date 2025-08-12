@@ -1,17 +1,36 @@
 'use client';
 
-import {useActionState} from 'react';
 import {Button} from './Button';
-import {authenticate} from '@/lib/actions';
+import {signIn} from 'next-auth/react';
+import {useState} from 'react';
 
 export default function LoginForm() {
-  const [errorMessage, formAction, isPending] = useActionState(
-    authenticate,
-    undefined,
-  );
+  const [isPending, setIsPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+    setErrorMessage(undefined);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      await signIn('credentials', {
+        email,
+        password,
+        redirectTo: '/dashboard',
+      });
+    } catch {
+      setErrorMessage('メールアドレスまたはパスワードが正しくありません。');
+      setIsPending(false);
+    }
+  };
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex-1 rounded-xl bg-white px-10 pb-10 pt-12 border border-gray-200 shadow-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">

@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import {authConfig} from './auth.config';
 import {z} from 'zod';
-import type {User} from '@/lib/definitions';
+import type {User, UserRole} from '@/lib/definitions';
 import bcrypt from 'bcrypt';
 import {neon} from '@neondatabase/serverless';
 
@@ -15,12 +15,11 @@ async function getUser(email: string): Promise<User | undefined> {
                             WHERE email = ${email}`;
     return users[0] as User | undefined;
   } catch (error) {
-    console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
   }
 }
 
-export const {auth, signIn, signOut} = NextAuth({
+export const {auth, signIn, signOut, handlers} = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
@@ -40,12 +39,32 @@ export const {auth, signIn, signOut} = NextAuth({
             id: user.id.toString(),
             email: user.email,
             name: user.name,
+            role: user.role,
           };
         }
 
-        console.log('Invalid credentials');
         return null;
       },
     }),
   ],
+  callbacks: {
+    async jwt({token, user}) {
+      // ユーザー認証時にid、role情報をtokenに保存
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({session, token}) {
+      // sessionにid、role情報を含める
+      if (token.id) {
+        session.user.id = token.id as string;
+      }
+      if (token.role) {
+        session.user.role = token.role as UserRole;
+      }
+      return session;
+    },
+  },
 });
