@@ -41,8 +41,11 @@ export default function Sidebar() {
     return baseItems;
   };
 
-  const getRoleDisplayName = (role?: string) => 
-    role === 'admin' ? '管理者' : '編集者';
+  const getRoleDisplayName = (role?: string) => {
+    if (role === 'admin') return '管理者';
+    if (role === 'editor') return '編集者';
+    return '不明';
+  };
 
   const menuItems = getMenuItems();
 
