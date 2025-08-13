@@ -27,4 +27,4 @@ export const VALID_PLACEHOLDER_KEYWORDS = [
   'Category', 'Tag', 'Type', 'Kind', 'Genre'
 ];
 
-export const REQUIRED_PLACEHOLDERS = ['linkUrl'];
+export const REQUIRED_PLACEHOLDERS = [];

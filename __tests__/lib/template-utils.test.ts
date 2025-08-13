@@ -88,11 +88,11 @@ describe('template-utils', () => {
       ]);
     });
 
-    it('空のHTMLと空のプレースホルダーリストで必須エラーのみ', () => {
+    it('空のHTMLと空のプレースホルダーリストでエラーなし', () => {
       const html = '<div>Static content</div>';
       const placeholders: string[] = [];
       const result = validatePlaceholders(html, placeholders);
-      expect(result).toEqual(['必須プレースホルダーが不足: linkUrl']);
+      expect(result).toEqual([]);
     });
 
     it('命名規則違反と不整合の両方を検出する', () => {
