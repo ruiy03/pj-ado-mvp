@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { AdTemplate, CreateAdTemplateRequest } from '@/lib/definitions';
-import { extractPlaceholders, validatePlaceholders } from '@/lib/template-utils';
+import {useState, useEffect, useCallback, useRef} from 'react';
+import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
+import {extractPlaceholders, validatePlaceholders} from '@/lib/template-utils';
 
-import { useTemplates } from './hooks/useTemplates';
+import {useTemplates} from './hooks/useTemplates';
 import ImportExportButtons from './components/ImportExportButtons';
 import TemplateForm from './components/TemplateForm';
 import TemplatePreview from './components/TemplatePreview';
@@ -22,6 +22,7 @@ export default function AdTemplates() {
     loading,
     error,
     setError,
+    fetchTemplates,
     createTemplate,
     updateTemplate,
     deleteTemplate,
@@ -62,7 +63,7 @@ export default function AdTemplates() {
       } else {
         await createTemplate(formData, autoNofollow);
       }
-      
+
       setShowCreateForm(false);
       setEditingTemplate(null);
       resetForm();
@@ -85,9 +86,9 @@ export default function AdTemplates() {
 
     setTimeout(() => {
       if (formRef.current) {
-        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        formRef.current.scrollIntoView({behavior: 'smooth', block: 'start'});
       } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
       }
     }, 100);
   };
@@ -121,9 +122,9 @@ export default function AdTemplates() {
 
     setTimeout(() => {
       if (formRef.current) {
-        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        formRef.current.scrollIntoView({behavior: 'smooth', block: 'start'});
       } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
       }
     }, 100);
   };
@@ -181,6 +182,9 @@ export default function AdTemplates() {
       }
 
       setImportResult(result);
+
+      // テンプレートリストを再取得
+      await fetchTemplates();
 
       if (result.errors.length === 0) {
         setShowImportForm(false);

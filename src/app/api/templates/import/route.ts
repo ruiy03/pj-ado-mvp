@@ -10,38 +10,65 @@ interface ImportResult {
   total: number;
 }
 
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
+function parseCSV(csvText: string): string[][] {
+  const result: string[][] = [];
+  const lines = csvText.split(/\r?\n/);
+  let currentRow: string[] = [];
+  let currentField = '';
   let inQuotes = false;
-  let i = 0;
+  let lineIndex = 0;
 
-  while (i < line.length) {
-    const char = line[i];
-    const nextChar = line[i + 1];
+  while (lineIndex < lines.length) {
+    const line = lines[lineIndex];
+    let i = 0;
 
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        // エスケープされた引用符
-        current += '"';
-        i += 2;
+    while (i < line.length) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // エスケープされた引用符
+          currentField += '"';
+          i += 2;
+        } else {
+          // 引用符の開始/終了
+          inQuotes = !inQuotes;
+          i++;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // フィールド区切り
+        currentRow.push(currentField);
+        currentField = '';
+        i++;
       } else {
-        // 引用符の開始/終了
-        inQuotes = !inQuotes;
+        currentField += char;
         i++;
       }
-    } else if (char === ',' && !inQuotes) {
-      // フィールド区切り
-      result.push(current);
-      current = '';
-      i++;
+    }
+
+    // 行の終了
+    if (inQuotes) {
+      // 引用符内の改行の場合、次の行に続く
+      currentField += '\n';
+      lineIndex++;
     } else {
-      current += char;
-      i++;
+      // 行の終了
+      currentRow.push(currentField);
+      if (currentRow.length > 0 && currentRow.some(field => field.trim() !== '')) {
+        result.push(currentRow);
+      }
+      currentRow = [];
+      currentField = '';
+      lineIndex++;
     }
   }
 
-  result.push(current);
+  // 最後の行を追加
+  if (currentRow.length > 0) {
+    result.push(currentRow);
+  }
+
   return result;
 }
 
@@ -91,13 +118,13 @@ export async function POST(request: NextRequest) {
     }
 
     const csvText = await file.text();
-    const lines = csvText.split('\n').filter(line => line.trim());
+    const rows = parseCSV(csvText);
 
-    if (lines.length < 2) {
+    if (rows.length < 2) {
       return NextResponse.json({error: 'CSVファイルが空か、ヘッダーのみです'}, {status: 400});
     }
 
-    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+    const headers = rows[0].map(h => h.toLowerCase().trim());
     const expectedHeaders = ['name', 'html', 'placeholders', 'description'];
 
     // ヘッダー検証
@@ -111,23 +138,25 @@ export async function POST(request: NextRequest) {
     const result: ImportResult = {
       success: 0,
       errors: [],
-      total: lines.length - 1
+      total: rows.length - 1
     };
 
     // データ行を処理
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       try {
-        const values = parseCSVLine(lines[i]);
+        const values = rows[i];
 
         if (values.length !== headers.length) {
-          result.errors.push(`行 ${i + 1}: カラム数が一致しません`);
+          result.errors.push(`行 ${i + 1}: カラム数が一致しません (期待: ${headers.length}, 実際: ${values.length})`);
+          console.log(`Debug - Row ${i + 1}:`, values);
+          console.log(`Debug - Headers:`, headers);
           continue;
         }
 
         // データオブジェクト作成
         const rowData: Record<string, string> = {};
         headers.forEach((header, index) => {
-          rowData[header] = values[index];
+          rowData[header] = values[index] || '';
         });
 
         // バリデーション
