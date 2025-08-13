@@ -68,3 +68,50 @@ export function validatePlaceholders(html: string, placeholders: string[]): stri
 
   return errors;
 }
+
+export function getSampleValue(placeholder: string): string {
+  const lowerPlaceholder = placeholder.toLowerCase();
+  
+  // 画像関連のプレースホルダー
+  if (lowerPlaceholder.includes('image') || lowerPlaceholder.includes('img') || lowerPlaceholder.includes('picture')) {
+    return 'https://picsum.photos/300/200';
+  }
+  
+  // URL関連のプレースホルダー
+  if (lowerPlaceholder.includes('url') || lowerPlaceholder.includes('link') || lowerPlaceholder.includes('href')) {
+    return '#';
+  }
+  
+  // タイトル関連のプレースホルダー
+  if (lowerPlaceholder.includes('title') || lowerPlaceholder.includes('headline') || lowerPlaceholder.includes('header')) {
+    return 'サンプルタイトル';
+  }
+  
+  // 説明文関連のプレースホルダー
+  if (lowerPlaceholder.includes('description') || lowerPlaceholder.includes('text') || lowerPlaceholder.includes('content') || lowerPlaceholder.includes('body')) {
+    return 'サンプル説明文です。ここに実際のコンテンツが表示されます。';
+  }
+  
+  // 価格関連のプレースホルダー
+  if (lowerPlaceholder.includes('price') || lowerPlaceholder.includes('cost') || lowerPlaceholder.includes('fee')) {
+    return '¥9,800';
+  }
+  
+  // ボタンテキスト関連のプレースホルダー
+  if (lowerPlaceholder.includes('button') || lowerPlaceholder.includes('cta') || lowerPlaceholder.includes('action')) {
+    return '詳細を見る';
+  }
+  
+  // 日付関連のプレースホルダー
+  if (lowerPlaceholder.includes('date') || lowerPlaceholder.includes('time')) {
+    return '2024年12月31日';
+  }
+  
+  // 名前関連のプレースホルダー
+  if (lowerPlaceholder.includes('name') || lowerPlaceholder.includes('author') || lowerPlaceholder.includes('company')) {
+    return 'サンプル名';
+  }
+  
+  // その他のプレースホルダー
+  return `サンプル${placeholder}`;
+}
