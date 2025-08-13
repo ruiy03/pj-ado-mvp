@@ -53,8 +53,8 @@ npm run dev
 
 開発・テスト用のログイン情報：
 
-- **メールアドレス**: `admin@example.com`
-- **パスワード**: `password123`
+- **管理者アカウント**: `admin@example.com` / `password123`
+- **編集者アカウント**: `editor@example.com` / `password123`
 
 ## 技術スタック
 
@@ -98,6 +98,9 @@ npm run lint
 # テスト実行
 npm test
 
+# テストウォッチモード
+npm run test:watch
+
 # データベース初期化
 node scripts/seed.js
 ```
@@ -108,42 +111,71 @@ node scripts/seed.js
 pj-ado-mvp/
 ├── src/
 │   ├── app/                    # App Router ページ
-│   │   ├── api/auth/[...nextauth]/ # NextAuth API ルート
+│   │   ├── api/              # API ルート
+│   │   │   ├── auth/[...nextauth]/ # NextAuth API ルート
+│   │   │   └── templates/    # 広告テンプレート API
+│   │   │       ├── route.ts  # GET, POST (全テンプレート)
+│   │   │       ├── [id]/route.ts # GET, PUT, DELETE (個別)
+│   │   │       ├── import/route.ts # POST (インポート)
+│   │   │       └── export/route.ts # GET (エクスポート)
 │   │   ├── dashboard/         # ダッシュボード
 │   │   ├── ads/              # 広告管理
-│   │   ├── ad-templates/     # 広告テンプレート
-│   │   ├── url-templates/    # URLテンプレート
-│   │   ├── article-ad-mapping/ # 記事・広告紐付け
+│   │   ├── ad-templates/     # 広告テンプレート管理
+│   │   ├── url-templates/    # URLテンプレート管理
+│   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
 │   │   ├── accounts/         # アカウント管理
 │   │   ├── login/           # ログインページ
 │   │   ├── layout.tsx       # ルートレイアウト
 │   │   └── page.tsx         # ホームページ
 │   ├── components/           # 共通コンポーネント
-│   │   ├── Layout.tsx       # メインレイアウト
-│   │   ├── Sidebar.tsx      # サイドバーナビゲーション
 │   │   ├── Button.tsx       # ボタンコンポーネント
-│   │   ├── ProtectedPage.tsx # 認証保護ラッパー
+│   │   ├── ClientLayout.tsx # クライアントレイアウト
 │   │   ├── LoginForm.tsx    # ログインフォーム
-│   │   └── SessionProvider.tsx # セッションプロバイダー
-│   └── lib/                 # ユーティリティ・設定
-│       ├── actions.ts       # 認証サーバーアクション
-│       ├── user-actions.ts  # ユーザー管理アクション
-│       ├── authorization.ts # 認可ロジック
-│       └── definitions.ts   # TypeScript型定義
+│   │   ├── ProtectedPage.tsx # 認証保護ラッパー
+│   │   ├── SessionProvider.tsx # セッションプロバイダー
+│   │   └── Sidebar.tsx      # サイドバーナビゲーション
+│   ├── lib/                 # ユーティリティ・設定
+│   │   ├── actions.ts       # 認証サーバーアクション
+│   │   ├── authorization.ts # 認可ロジック
+│   │   ├── definitions.ts   # TypeScript型定義
+│   │   ├── template-actions.ts # テンプレート管理アクション
+│   │   ├── template-utils.ts   # テンプレートユーティリティ
+│   │   └── user-actions.ts  # ユーザー管理アクション
+│   ├── auth.config.ts       # NextAuth.js設定詳細
+│   └── auth.ts              # NextAuth.js設定
 ├── __tests__/              # テストファイル
 │   ├── components/         # コンポーネントテスト
 │   └── lib/               # ライブラリ関数テスト
 ├── scripts/               # ユーティリティスクリプト
 │   └── seed.js           # データベース初期化
-├── .claude/              # Claude Code 設定
-├── auth.ts               # NextAuth.js設定
-├── auth.config.ts        # NextAuth.js設定詳細
 ├── middleware.ts         # ルート保護ミドルウェア
 ├── jest.config.js        # Jest設定
 └── jest.setup.js         # Jest セットアップ
 ```
 
-## 認証について
+## API ルート
+
+### 広告テンプレート API
+
+| エンドポイント | メソッド | 説明 | 認証 |
+|-------------|--------|------|------|
+| `/api/templates` | GET | 全テンプレート取得 | 必須 |
+| `/api/templates` | POST | 新規テンプレート作成 | 必須 |
+| `/api/templates/[id]` | GET | 個別テンプレート取得 | 必須 |
+| `/api/templates/[id]` | PUT | テンプレート更新 | 必須 |
+| `/api/templates/[id]` | DELETE | テンプレート削除 | 必須 |
+| `/api/templates/import` | POST | テンプレートインポート | 必須 |
+| `/api/templates/export` | GET | テンプレートエクスポート | 必須 |
+
+### 認証 API
+
+| エンドポイント | メソッド | 説明 |
+|-------------|--------|------|
+| `/api/auth/[...nextauth]` | GET/POST | NextAuth.js 認証ハンドラー |
+
+## 認証・認可について
+
+### 認証システム
 
 このシステムでは以下の認証機能を実装しています：
 
@@ -154,10 +186,61 @@ pj-ado-mvp/
 - **セッションベース** の認証フロー
 - **条件付きレイアウト** で認証状態に応じた UI 表示
 
+### 役割ベース認可 (RBAC)
+
+システムでは2段階の役割システムを実装：
+
+| 役割 | レベル | 権限 |
+|------|--------|------|
+| **管理者 (admin)** | 2 | 全機能アクセス、ユーザー管理、テンプレート管理 |
+| **編集者 (editor)** | 1 | テンプレート作成・編集、広告管理 |
+
+#### 認可ヘルパー関数
+
+- `hasMinimumRole(user, role)` - 最小権限チェック
+- `isAdmin(user)` - 管理者権限チェック  
+- `canEdit(user)` - 編集権限チェック
+- `withAuthorization(handler, requiredRole)` - API認可ラッパー
+
 ### アーキテクチャ
 
 - 認証されていないユーザー: ログインフォームのみ表示
 - 認証済みユーザー: サイドバー付きメインレイアウト表示
+- 役割に応じた機能制限 (アカウント管理は管理者のみ)
+
+## データベーススキーマ
+
+### users テーブル
+
+| カラム | 型 | 説明 | 制約 |
+|--------|-----|------|------|
+| `id` | SERIAL | プライマリキー | PRIMARY KEY |
+| `name` | VARCHAR(255) | ユーザー名 | NOT NULL |
+| `email` | VARCHAR(255) | メールアドレス | UNIQUE, NOT NULL |
+| `password` | VARCHAR(255) | bcryptハッシュ化パスワード | NOT NULL |
+| `role` | VARCHAR(20) | ユーザー役割 (admin/editor) | NOT NULL, DEFAULT 'editor' |
+| `created_at` | TIMESTAMP | 作成日時 | DEFAULT NOW() |
+| `updated_at` | TIMESTAMP | 更新日時 | DEFAULT NOW() |
+
+### ad_templates テーブル
+
+| カラム | 型 | 説明 | 制約 |
+|--------|-----|------|------|
+| `id` | SERIAL | プライマリキー | PRIMARY KEY |
+| `name` | VARCHAR(255) | テンプレート名 | NOT NULL |
+| `html` | TEXT | HTMLテンプレート | NOT NULL |
+| `placeholders` | JSON | プレースホルダー配列 | |
+| `description` | TEXT | テンプレート説明 | |
+| `created_at` | TIMESTAMP | 作成日時 | DEFAULT NOW() |
+| `updated_at` | TIMESTAMP | 更新日時 | DEFAULT NOW() |
+
+#### サンプルデータ
+
+シードスクリプトでは以下のテンプレートが作成されます：
+
+- **バナー基本** - グラデーション背景のバナータイプ
+- **テキスト広告** - シンプルなテキストのみの広告
+- **カード型広告** - 画像付きカード形式の広告
 
 ## テスト
 

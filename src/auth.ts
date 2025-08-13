@@ -15,6 +15,7 @@ async function getUser(email: string): Promise<User | undefined> {
                             WHERE email = ${email}`;
     return users[0] as User | undefined;
   } catch (error) {
+    console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
   }
 }

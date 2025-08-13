@@ -47,10 +47,12 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/components/Sidebar.tsx` - Fixed sidebar with menu items, active state, and logout functionality
 - `src/components/ProtectedPage.tsx` - Wrapper component for route protection
 - `src/components/LoginForm.tsx` - Authentication form component
-- `src/lib/definitions.ts` - TypeScript interfaces (User model with role field)
+- `src/lib/definitions.ts` - TypeScript interfaces (User model with role field, AdTemplate models)
 - `src/lib/actions.ts` - Server actions for authentication operations
 - `src/lib/user-actions.ts` - Server actions for user CRUD operations with role-based authorization
+- `src/lib/template-actions.ts` - Server actions for ad template CRUD operations with validation
 - `src/lib/authorization.ts` - Role checking utilities and permission helpers
+- `src/lib/template-utils.ts` - Utility functions for template processing and validation
 - `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
 - `middleware.ts` - Route protection middleware
 
@@ -59,6 +61,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 Uses Neon PostgreSQL with the following structure:
 
 - **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
+- **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`, `updated_at`
 - **Test credentials**: test@example.com / 123456 (seeded via `scripts/seed.js`)
 
 ### Testing Setup
@@ -69,7 +72,7 @@ The application uses Jest with React Testing Library for unit and component test
 - **Setup file**: `jest.setup.js` for global test configuration
 - **Test environment**: jsdom for DOM testing with React components  
 - **Test location**: `__tests__/` directory with component and utility tests
-- **Coverage**: Tests for components (Button, LoginForm, Sidebar) and utility functions
+- **Coverage**: Tests for components (Button, LoginForm, Sidebar, AdTemplates, Dashboard, etc.) and utility functions (authorization, template-utils)
 
 ### Page Structure
 
@@ -77,13 +80,19 @@ Each main feature has its own page directory under `src/app/`:
 
 - `/login` - Authentication page (accessible without login)
 - `/dashboard` - Overview dashboard with metrics cards and activity feed
-- `/ad-templates` - Advertisement template management
+- `/ad-templates` - Advertisement template management with full CRUD operations, import/export functionality
 - `/url-templates` - URL template management (for tracking parameters)
 - `/ads` - Advertisement management with search/filter table
 - `/article-ad-mapping` - Article to advertisement mapping management
 - `/accounts` - Account management system with full CRUD operations (admin only)
 
-All protected pages currently show placeholder/empty state UI with Japanese text and icons.
+**API Routes**:
+- `/api/templates` - REST API for ad template CRUD operations (GET, POST)
+- `/api/templates/[id]` - Individual template operations (GET, PUT, DELETE)
+- `/api/templates/import` - Template import functionality (POST)
+- `/api/templates/export` - Template export functionality (GET)
+
+Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese text and icons.
 
 ## Key Technologies
 
