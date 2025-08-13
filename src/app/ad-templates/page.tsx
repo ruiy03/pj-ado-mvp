@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
 import {
   extractPlaceholders,
@@ -11,6 +11,7 @@ import {
   addNofollowToLinks,
   removeNofollowFromLinks
 } from '@/lib/template-utils';
+import HTMLCodeEditor, {HTMLCodeEditorRef} from '@/components/HTMLCodeEditor';
 
 interface ImportResult {
   success: number;
@@ -35,6 +36,8 @@ export default function AdTemplates() {
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [previewSize, setPreviewSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [autoNofollow, setAutoNofollow] = useState(true);
+  const htmlEditorRef = useRef<HTMLCodeEditorRef>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CreateAdTemplateRequest>({
     name: '',
@@ -134,6 +137,15 @@ export default function AdTemplates() {
     setShowCreateForm(true);
     setShowImportForm(false);
     setImportResult(null);
+
+    // 編集フォームにスクロール
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({behavior: 'smooth', block: 'start'});
+      } else {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+    }, 100);
   };
 
   const resetForm = () => {
@@ -162,6 +174,15 @@ export default function AdTemplates() {
     setShowCreateForm(true);
     setShowImportForm(false);
     setImportResult(null);
+
+    // 作成フォームにスクロール
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({behavior: 'smooth', block: 'start'});
+      } else {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+    }, 100);
   };
 
   const addPlaceholder = () => {
@@ -423,7 +444,7 @@ export default function AdTemplates() {
         </div>
 
         {showCreateForm && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div ref={formRef} className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold mb-4">
               {editingTemplate ? 'テンプレートを編集' : '新しいテンプレートを作成'}
             </h2>
@@ -448,9 +469,19 @@ export default function AdTemplates() {
 
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        HTMLコード
-                      </label>
+                      <div className="flex items-center gap-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                          HTMLコード
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => htmlEditorRef.current?.formatCode()}
+                          className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors cursor-pointer"
+                          title="HTMLコードをフォーマット (Shift+Alt+F)"
+                        >
+                          フォーマット
+                        </button>
+                      </div>
                       <div className="flex items-center gap-4">
                         <label className="flex items-center text-sm">
                           <input
@@ -481,16 +512,15 @@ export default function AdTemplates() {
                         </div>
                       </div>
                     </div>
-                    <textarea
+                    <HTMLCodeEditor
+                      ref={htmlEditorRef}
                       value={formData.html}
-                      onChange={(e) => setFormData((prev: CreateAdTemplateRequest) => ({
+                      onChange={(value) => setFormData((prev: CreateAdTemplateRequest) => ({
                         ...prev,
-                        html: e.target.value
+                        html: value
                       }))}
-                      rows={8}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                      height={250}
                       placeholder="HTMLコードを入力してください。プレースホルダーは {{placeholder}} の形式で記述してください。"
-                      required
                     />
                     <div className="flex justify-between items-start mt-1">
                       <p className="text-xs text-gray-500">
@@ -550,7 +580,7 @@ export default function AdTemplates() {
                     {/* 命名規則ガイド */}
                     <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <h4 className="text-sm font-semibold text-blue-900 mb-3">プレースホルダー命名規則</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 text-xs">
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
                           <div className="font-medium text-blue-800 mb-2 flex items-center">
                             <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
@@ -558,11 +588,15 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">image</span>
+                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1 mb-1">Image</span>
                             <span
-                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">img</span>
+                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1 mb-1">Img</span>
                             <span
-                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">picture</span>
+                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1 mb-1">Picture</span>
+                            <span
+                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1 mb-1">Photo</span>
+                            <span
+                              className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1 mb-1">Banner</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -572,11 +606,13 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">url</span>
+                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1 mb-1">Url</span>
                             <span
-                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">link</span>
+                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1 mb-1">Link</span>
                             <span
-                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs">href</span>
+                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1 mb-1">Href</span>
+                            <span
+                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1 mb-1">Path</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -586,11 +622,13 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">title</span>
+                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1 mb-1">Title</span>
                             <span
-                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">headline</span>
+                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1 mb-1">Headline</span>
                             <span
-                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">header</span>
+                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1 mb-1">Header</span>
+                            <span
+                              className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1 mb-1">Subject</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -600,11 +638,15 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">description</span>
+                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1 mb-1">Description</span>
                             <span
-                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">text</span>
+                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1 mb-1">Text</span>
                             <span
-                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">content</span>
+                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1 mb-1">Content</span>
+                            <span
+                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1 mb-1">Body</span>
+                            <span
+                              className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1 mb-1">Message</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -614,11 +656,13 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">price</span>
+                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1 mb-1">Price</span>
                             <span
-                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">cost</span>
+                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1 mb-1">Cost</span>
                             <span
-                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">fee</span>
+                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1 mb-1">Fee</span>
+                            <span
+                              className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1 mb-1">Amount</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -628,11 +672,13 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">button</span>
+                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1 mb-1">Button</span>
                             <span
-                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">cta</span>
+                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1 mb-1">Cta</span>
                             <span
-                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs">action</span>
+                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1 mb-1">Action</span>
+                            <span
+                              className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1 mb-1">Label</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -642,9 +688,13 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1">date</span>
+                              className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1 mb-1">Date</span>
                             <span
-                              className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">time</span>
+                              className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1 mb-1">Time</span>
+                            <span
+                              className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1 mb-1">Period</span>
+                            <span
+                              className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1 mb-1">Duration</span>
                           </div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border border-blue-100">
@@ -654,11 +704,145 @@ export default function AdTemplates() {
                           </div>
                           <div className="space-y-1">
                             <span
-                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">name</span>
+                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1 mb-1">Name</span>
                             <span
-                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">author</span>
+                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1 mb-1">Author</span>
                             <span
-                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs">company</span>
+                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1 mb-1">Company</span>
+                            <span
+                              className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1 mb-1">Brand</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                            アイコン
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs mr-1 mb-1">Icon</span>
+                            <span
+                              className="inline-block bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs mr-1 mb-1">Symbol</span>
+                            <span
+                              className="inline-block bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs mr-1 mb-1">Mark</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                            サービス
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1 mb-1">Service</span>
+                            <span
+                              className="inline-block bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1 mb-1">Tool</span>
+                            <span
+                              className="inline-block bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1 mb-1">Platform</span>
+                            <span
+                              className="inline-block bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1 mb-1">App</span>
+                            <span
+                              className="inline-block bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1 mb-1">System</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2"></span>
+                            職業・キャリア
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1 mb-1">Job</span>
+                            <span
+                              className="inline-block bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1 mb-1">Position</span>
+                            <span
+                              className="inline-block bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1 mb-1">Career</span>
+                            <span
+                              className="inline-block bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1 mb-1">Work</span>
+                            <span
+                              className="inline-block bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1 mb-1">Role</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-teal-500 rounded-full mr-2"></span>
+                            業界・分野
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs mr-1 mb-1">Industry</span>
+                            <span
+                              className="inline-block bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs mr-1 mb-1">Field</span>
+                            <span
+                              className="inline-block bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs mr-1 mb-1">Sector</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-lime-500 rounded-full mr-2"></span>
+                            特典・メリット
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1 mb-1">Benefit</span>
+                            <span
+                              className="inline-block bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1 mb-1">Feature</span>
+                            <span
+                              className="inline-block bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1 mb-1">Advantage</span>
+                            <span
+                              className="inline-block bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1 mb-1">Offer</span>
+                            <span
+                              className="inline-block bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1 mb-1">Merit</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                            評価・実績
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1 mb-1">Rating</span>
+                            <span
+                              className="inline-block bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1 mb-1">Review</span>
+                            <span
+                              className="inline-block bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1 mb-1">Score</span>
+                            <span
+                              className="inline-block bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1 mb-1">Result</span>
+                            <span
+                              className="inline-block bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1 mb-1">Achievement</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                            ロゴ・パートナー
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs mr-1 mb-1">Logo</span>
+                            <span
+                              className="inline-block bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs mr-1 mb-1">Sponsor</span>
+                            <span
+                              className="inline-block bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs mr-1 mb-1">Partner</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-blue-100">
+                          <div className="font-medium text-blue-800 mb-2 flex items-center">
+                            <span className="w-2 h-2 bg-violet-500 rounded-full mr-2"></span>
+                            カテゴリ・タグ
+                          </div>
+                          <div className="space-y-1">
+                            <span
+                              className="inline-block bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1 mb-1">Category</span>
+                            <span
+                              className="inline-block bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1 mb-1">Tag</span>
+                            <span
+                              className="inline-block bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1 mb-1">Type</span>
+                            <span
+                              className="inline-block bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1 mb-1">Kind</span>
+                            <span
+                              className="inline-block bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1 mb-1">Genre</span>
                           </div>
                         </div>
                       </div>
@@ -707,7 +891,9 @@ export default function AdTemplates() {
                                 <div className="space-y-1">
                                   <span
                                     className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">productImage</span>
-                                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">bannerImg</span>
+                                  <span
+                                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">bannerPhoto</span>
+                                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">mainPicture</span>
                                 </div>
                               </td>
                               <td className="py-2 px-3 text-gray-600">https://picsum.photos/300/200</td>
@@ -724,7 +910,9 @@ export default function AdTemplates() {
                                   <span
                                     className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">productUrl</span>
                                   <span
-                                    className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">linkHref</span>
+                                    className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">linkHref</span>
+                                  <span
+                                    className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">actionPath</span>
                                 </div>
                               </td>
                               <td className="py-2 px-3 text-gray-600">#</td>
@@ -741,7 +929,9 @@ export default function AdTemplates() {
                                   <span
                                     className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">productTitle</span>
                                   <span
-                                    className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">mainHeadline</span>
+                                    className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">mainHeadline</span>
+                                  <span
+                                    className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">pageHeader</span>
                                 </div>
                               </td>
                               <td className="py-2 px-3 text-gray-600">サンプルタイトル</td>
@@ -757,7 +947,9 @@ export default function AdTemplates() {
                                 <div className="space-y-1">
                                   <span
                                     className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">productDescription</span>
-                                  <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">bodyText</span>
+                                  <span
+                                    className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">bodyContent</span>
+                                  <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">textMessage</span>
                                 </div>
                               </td>
                               <td
@@ -776,10 +968,12 @@ export default function AdTemplates() {
                                   <span
                                     className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">salePrice</span>
                                   <span
-                                    className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">membershipFee</span>
+                                    className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">serviceCost</span>
+                                  <span
+                                    className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">totalAmount</span>
                                 </div>
                               </td>
-                              <td className="py-2 px-3 text-gray-600">¥9,800</td>
+                              <td className="py-2 px-3 text-gray-600">無料</td>
                             </tr>
                             <tr className="border-b border-gray-100">
                               <td className="py-2 px-3 align-top">
@@ -792,10 +986,12 @@ export default function AdTemplates() {
                                 <div className="space-y-1">
                                   <span
                                     className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">ctaButton</span>
-                                  <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">actionText</span>
+                                  <span
+                                    className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">submitAction</span>
+                                  <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">buttonLabel</span>
                                 </div>
                               </td>
-                              <td className="py-2 px-3 text-gray-600">詳細を見る</td>
+                              <td className="py-2 px-3 text-gray-600">今すぐ登録</td>
                             </tr>
                             <tr className="border-b border-gray-100">
                               <td className="py-2 px-3 align-top">
@@ -809,12 +1005,14 @@ export default function AdTemplates() {
                                   <span
                                     className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1">eventDate</span>
                                   <span
-                                    className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">publishTime</span>
+                                    className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1">deadlineTime</span>
+                                  <span
+                                    className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">campaignPeriod</span>
                                 </div>
                               </td>
-                              <td className="py-2 px-3 text-gray-600">2024年12月31日</td>
+                              <td className="py-2 px-3 text-gray-600">2025年12月31日</td>
                             </tr>
-                            <tr>
+                            <tr className="border-b border-gray-100">
                               <td className="py-2 px-3 align-top">
                               <span className="inline-flex items-center">
                                 <span className="w-2 h-2 bg-pink-500 rounded-full mr-2"></span>
@@ -826,10 +1024,164 @@ export default function AdTemplates() {
                                   <span
                                     className="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">authorName</span>
                                   <span
-                                    className="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs">companyName</span>
+                                    className="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">companyName</span>
+                                  <span
+                                    className="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs">brandName</span>
                                 </div>
                               </td>
                               <td className="py-2 px-3 text-gray-600">サンプル名</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-orange-800">アイコン</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs mr-1">iconSymbol</span>
+                                  <span
+                                    className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs mr-1">markIcon</span>
+                                  <span
+                                    className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">visualSymbol</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">🚀</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-emerald-800">サービス</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1">serviceTitle</span>
+                                  <span
+                                    className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs mr-1">toolName</span>
+                                  <span
+                                    className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs">platformName</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">就活支援サービス</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-cyan-800">職業・キャリア</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1">jobTitle</span>
+                                  <span
+                                    className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs mr-1">positionName</span>
+                                  <span
+                                    className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs">careerPath</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">新卒採用</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-teal-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-teal-800">業界・分野</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs mr-1">industryName</span>
+                                  <span
+                                    className="bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs mr-1">fieldType</span>
+                                  <span
+                                    className="bg-teal-100 text-teal-700 px-2 py-1 rounded text-xs">sectorName</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">IT・Web業界</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-lime-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-lime-800">特典・メリット</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1">benefitText</span>
+                                  <span
+                                    className="bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs mr-1">featureList</span>
+                                  <span
+                                    className="bg-lime-100 text-lime-700 px-2 py-1 rounded text-xs">offerDetail</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">内定獲得率95%</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-amber-800">評価・実績</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1">userRating</span>
+                                  <span
+                                    className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs mr-1">reviewScore</span>
+                                  <span
+                                    className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">resultData</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">★★★★★ 4.8</td>
+                            </tr>
+                            <tr className="border-b border-gray-100">
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-rose-800">ロゴ・パートナー</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs mr-1">companyLogo</span>
+                                  <span
+                                    className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs mr-1">sponsorName</span>
+                                  <span
+                                    className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs">partnerLogo</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">PORTキャリア</td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-violet-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-violet-800">カテゴリ・タグ</span>
+                              </span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="space-y-1">
+                                  <span
+                                    className="bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1">categoryName</span>
+                                  <span
+                                    className="bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs mr-1">tagList</span>
+                                  <span
+                                    className="bg-violet-100 text-violet-700 px-2 py-1 rounded text-xs">contentType</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-gray-600">就活ツール</td>
                             </tr>
                             </tbody>
                           </table>
