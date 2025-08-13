@@ -16,7 +16,8 @@ NextAuth.js for authentication.
 - **Lint**: `npm run lint` - Runs ESLint with Next.js TypeScript rules
 - **Test**: `npm test` - Runs Jest test suites for components and utilities
 - **Test (watch mode)**: `npm run test:watch` - Runs tests in watch mode for development
-- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test user (test@example.com / 123456)
+- **Run single test**: `npm test -- --testNamePattern="test name"` or `npm test Button.test.tsx`
+- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test users (admin@example.com/password123, editor@example.com/password123)
 
 ## Architecture Overview
 
@@ -62,7 +63,7 @@ Uses Neon PostgreSQL with the following structure:
 
 - **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
 - **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`, `updated_at`
-- **Test credentials**: test@example.com / 123456 (seeded via `scripts/seed.js`)
+- **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via `scripts/seed.js`
 
 ### Testing Setup
 
@@ -101,17 +102,19 @@ Most pages are implemented with full functionality. Some protected pages show pl
 - **NextAuth.js 5.0.0-beta.29** - Authentication with Credentials provider
 - **Neon Database** - PostgreSQL serverless database
 - **bcrypt** - Password hashing
-- **Zod** - Schema validation for authentication and user management
-- **TypeScript** - Strict type safety configuration
+- **Zod 4.0.15** - Schema validation for authentication and user management
+- **TypeScript 5** - Strict type safety configuration with path aliases (@/*)
 - **Tailwind CSS v4** - Utility-first styling with PostCSS
-- **Jest & React Testing Library** - Unit testing framework with DOM testing utilities
+- **Jest 29.7.0 & React Testing Library** - Unit testing framework with jsdom environment
 - **Geist fonts** - Typography (sans and mono variants)
 
 ## Development Notes
 
 - Uses Turbopack for faster development builds
 - Japanese language interface throughout (`lang="ja"` in layout)
-- Path alias `@/*` maps to `./src/*`
-- Server components by default with selective client components (`'use client'` in Sidebar)
-- Environment variable required: `DATABASE_URL` for Neon connection
+- Path alias `@/*` maps to `./src/*` (configured in tsconfig.json)
+- Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, etc.)
+- Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 - Authentication state determines entire application layout and available routes
+- Tests are located in `__tests__/` directory with `.test.tsx` and `.test.ts` extensions
+- Jest configuration includes Next.js integration and path mapping for imports
