@@ -35,7 +35,7 @@ const VALID_PLACEHOLDER_KEYWORDS = [
   // 就活関連キーワード
   'Service', 'Tool', 'Platform', 'App', 'System',
   'Job', 'Position', 'Career', 'Work', 'Role',
-  'Industry', 'Field', 'Sector',
+  'Industry', 'Sector',
   'Benefit', 'Feature', 'Advantage', 'Offer', 'Merit',
   'Rating', 'Review', 'Score', 'Result', 'Achievement',
   'Logo', 'Sponsor', 'Partner',
@@ -43,6 +43,8 @@ const VALID_PLACEHOLDER_KEYWORDS = [
 ];
 
 export function validatePlaceholderNaming(placeholder: string): boolean {
+  if (!placeholder || placeholder.trim() === '') return false;
+  
   const lowerPlaceholder = placeholder.toLowerCase();
   return VALID_PLACEHOLDER_KEYWORDS.some(keyword =>
     lowerPlaceholder.includes(keyword.toLowerCase())
@@ -54,7 +56,7 @@ export function validatePlaceholders(html: string, placeholders: string[]): stri
   const missingInList: string[] = [];
   const unusedInHtml: string[] = [];
   const invalidNaming: string[] = [];
-  const requiredPlaceholders: string[] = []; // 必須プレースホルダーを削除
+  const requiredPlaceholders: string[] = ['linkUrl']; // 必須プレースホルダー
   const missingRequired: string[] = [];
 
   extractedPlaceholders.forEach(extracted => {
