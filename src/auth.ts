@@ -4,9 +4,7 @@ import {authConfig} from './auth.config';
 import {z} from 'zod';
 import type {User, UserRole} from '@/lib/definitions';
 import bcrypt from 'bcrypt';
-import {neon} from '@neondatabase/serverless';
-
-const sql = neon(process.env.DATABASE_URL!);
+import {sql} from '@/lib/db';
 
 async function getUser(email: string): Promise<User | undefined> {
   try {

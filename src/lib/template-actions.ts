@@ -1,11 +1,9 @@
 'use server';
 
-import {neon} from '@neondatabase/serverless';
 import {z} from 'zod';
 import {revalidatePath} from 'next/cache';
 import type {AdTemplate, CreateAdTemplateRequest, UpdateAdTemplateRequest} from './definitions';
-
-const sql = neon(process.env.DATABASE_URL!);
+import {sql} from '@/lib/db';
 
 const CreateAdTemplateSchema = z.object({
   name: z.string().min(1, 'テンプレート名は必須です'),
