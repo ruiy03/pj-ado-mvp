@@ -11,6 +11,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@neondatabase/serverless": "^1.0.1",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
