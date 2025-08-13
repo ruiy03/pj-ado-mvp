@@ -50,7 +50,7 @@ export default function Dashboard() {
 
       // 最近の活動を設定（テンプレート作成日時から生成）
       const recentActivities: Activity[] = templates
-        .slice(0, 5)
+        .slice(0, 10)
         .map((template: AdTemplate, index: number) => ({
           id: index + 1,
           message: `広告テンプレート「${template.name}」が作成されました`,
