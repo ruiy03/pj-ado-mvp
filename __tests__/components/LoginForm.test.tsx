@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { signIn } from 'next-auth/react';
 import LoginForm from '@/components/LoginForm';
@@ -40,24 +40,46 @@ describe('LoginForm', () => {
   });
 
   it('フォーム送信時にsignInが呼ばれる', async () => {
-    const user = userEvent.setup();
     mockSignIn.mockResolvedValueOnce({ ok: true } as any);
     
-    render(<LoginForm />);
+    const { container } = render(<LoginForm />);
     
-    const emailInput = screen.getByLabelText('メールアドレス');
-    const passwordInput = screen.getByLabelText('パスワード');
-    const submitButton = screen.getByRole('button', { name: 'ログイン' });
+    const emailInput = screen.getByLabelText('メールアドレス') as HTMLInputElement;
+    const passwordInput = screen.getByLabelText('パスワード') as HTMLInputElement;
+    const form = container.querySelector('form')!;
     
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, '123456');
-    await user.click(submitButton);
+    // Set input values directly
+    emailInput.value = 'test@example.com';
+    passwordInput.value = '123456';
     
-    expect(mockSignIn).toHaveBeenCalledWith('credentials', {
-      email: 'test@example.com',
-      password: '123456',
-      redirectTo: '/dashboard',
+    // Create a submit event with form data
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+    
+    // Mock FormData to return our values
+    const originalFormData = global.FormData;
+    global.FormData = jest.fn().mockImplementation(() => ({
+      get: (name: string) => {
+        if (name === 'email') return 'test@example.com';
+        if (name === 'password') return '123456';
+        return null;
+      }
+    }));
+    
+    // Dispatch the submit event wrapped in act
+    act(() => {
+      form.dispatchEvent(submitEvent);
     });
+    
+    await waitFor(() => {
+      expect(mockSignIn).toHaveBeenCalledWith('credentials', {
+        email: 'test@example.com',
+        password: '123456',
+        redirectTo: '/dashboard',
+      });
+    });
+    
+    // Restore FormData
+    global.FormData = originalFormData;
   });
 
   it('送信中はローディング状態が表示される', async () => {

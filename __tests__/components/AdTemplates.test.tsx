@@ -402,4 +402,327 @@ describe('AdTemplates', () => {
     placeholderInputs = screen.getAllByPlaceholderText('プレースホルダー名（例：title, imageUrl）');
     expect(placeholderInputs).toHaveLength(1);
   });
+
+  it('プレビュー機能が正常に表示される', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // プレビューエリアが表示されることを確認
+    expect(screen.getByText('プレビュー')).toBeInTheDocument();
+    expect(screen.getByText('HTMLコードを入力するとプレビューが表示されます')).toBeInTheDocument();
+
+    // プレビューサイズの選択肢があることを確認
+    expect(screen.getByDisplayValue('デスクトップ')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('サンプルデータ')).toBeInTheDocument();
+  });
+
+  it('プレビューサイズ切り替えが正常に動作する', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // プレビューサイズの選択肢を確認
+    const sizeSelect = screen.getByDisplayValue('デスクトップ');
+    expect(sizeSelect).toBeInTheDocument();
+
+    // タブレットに切り替え
+    await user.selectOptions(sizeSelect, 'tablet');
+    expect(screen.getByDisplayValue('タブレット')).toBeInTheDocument();
+
+    // モバイルに切り替え
+    await user.selectOptions(sizeSelect, 'mobile');
+    expect(screen.getByDisplayValue('モバイル')).toBeInTheDocument();
+  });
+
+  it('プレビューモード切り替えが正常に動作する', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // プレビューモードの選択肢を確認
+    const modeSelect = screen.getByDisplayValue('サンプルデータ');
+    expect(modeSelect).toBeInTheDocument();
+
+    // カスタムデータモードに切り替え
+    await user.selectOptions(modeSelect, 'custom');
+    expect(screen.getByDisplayValue('カスタムデータ')).toBeInTheDocument();
+  });
+
+  it('カスタムデータ入力が正常に動作する', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // プレースホルダーを追加
+    await user.click(screen.getByText('プレースホルダーを追加'));
+    const placeholderInput = screen.getByPlaceholderText('プレースホルダー名（例：title, imageUrl）');
+    await user.type(placeholderInput, 'title');
+
+    // カスタムデータモードに切り替え
+    const modeSelect = screen.getByDisplayValue('サンプルデータ');
+    await user.selectOptions(modeSelect, 'custom');
+
+    // カスタムデータ入力エリアが表示される
+    expect(screen.getByText('カスタムデータ入力')).toBeInTheDocument();
+    // labelとしてのtitleを特定（複数の'title'テキストがあるため）
+    const titleLabels = screen.getAllByText('title');
+    expect(titleLabels.length).toBeGreaterThan(0);
+  });
+
+  it('nofollow自動追加チェックボックスが正常に動作する', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // 自動nofollow追加チェックボックスがデフォルトでチェックされていることを確認
+    const nofollowCheckbox = screen.getByRole('checkbox', { name: '自動nofollow追加' });
+    expect(nofollowCheckbox).toBeChecked();
+
+    // チェックを外す
+    await user.click(nofollowCheckbox);
+    expect(nofollowCheckbox).not.toBeChecked();
+
+    // 再度チェック
+    await user.click(nofollowCheckbox);
+    expect(nofollowCheckbox).toBeChecked();
+  });
+
+  it('nofollow手動操作ボタンが表示される', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // nofollow手動操作ボタンが表示されることを確認
+    expect(screen.getByRole('button', { name: 'nofollow追加' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'nofollow削除' })).toBeInTheDocument();
+  });
+
+  it('自動nofollow追加が有効な場合にヒントが表示される', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // 自動nofollow追加のヒントが表示されることを確認
+    expect(screen.getByText(/保存時に全リンクにrel="nofollow"が自動追加されます/)).toBeInTheDocument();
+  });
+
+  it('HTMLコード入力時にリアルタイムプレビューが更新される', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // HTMLコードを入力
+    const htmlTextarea = screen.getByPlaceholderText(/HTMLコードを入力してください/);
+    await user.type(htmlTextarea, '<div>テストHTML</div>');
+
+    // プレビューが更新されることを確認（HTMLが存在する場合、空のプレビューメッセージは表示されない）
+    await waitFor(() => {
+      expect(screen.queryByText('HTMLコードを入力するとプレビューが表示されます')).not.toBeInTheDocument();
+    });
+  });
+
+  it('プレースホルダーを含むHTMLを入力できる', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // プレースホルダーを含むHTMLコードを入力
+    const htmlTextarea = screen.getByPlaceholderText(/HTMLコードを入力してください/);
+    await user.type(htmlTextarea, '<div>{{title}}</div>');
+
+    // HTMLコードが入力されたことを確認
+    expect(htmlTextarea.value).toContain('title');
+  });
+
+  it('プレースホルダー命名規則ガイドが表示される', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // 命名規則ガイドが表示されることを確認
+    expect(screen.getByText('プレースホルダー命名規則')).toBeInTheDocument();
+    expect(screen.getByText('画像')).toBeInTheDocument();
+    expect(screen.getByText('URL')).toBeInTheDocument();
+    expect(screen.getByText('タイトル')).toBeInTheDocument();
+    expect(screen.getByText('説明文')).toBeInTheDocument();
+    expect(screen.getByText('価格')).toBeInTheDocument();
+    expect(screen.getByText('ボタン')).toBeInTheDocument();
+    expect(screen.getByText('日付')).toBeInTheDocument();
+    expect(screen.getByText('名前')).toBeInTheDocument();
+  });
+
+  it('詳細なサンプル例の表示切り替えが動作する', async () => {
+    const user = userEvent.setup();
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // サンプル例表示ボタンをクリック
+    const toggleButton = screen.getByText('サンプル例を表示');
+    await user.click(toggleButton);
+
+    // 詳細サンプル例が表示される
+    expect(screen.getByText('プレースホルダー例とサンプル出力')).toBeInTheDocument();
+    expect(screen.getByText('詳細を非表示')).toBeInTheDocument();
+
+    // 非表示ボタンをクリック
+    await user.click(screen.getByText('詳細を非表示'));
+    expect(screen.getByText('サンプル例を表示')).toBeInTheDocument();
+  });
+
+  it('フォーム送信でnofollowオプションが表示される', async () => {
+    const user = userEvent.setup();
+    
+    // 初期取得
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // nofollow関連のオプションが表示されることを確認
+    expect(screen.getByRole('checkbox', { name: '自動nofollow追加' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'nofollow追加' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'nofollow削除' })).toBeInTheDocument();
+  });
 });
