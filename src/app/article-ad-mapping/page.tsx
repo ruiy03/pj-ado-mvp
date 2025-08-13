@@ -1,8 +1,7 @@
-import ProtectedPage from '@/components/ProtectedPage';
 
 export default function ArticleAdMapping() {
   return (
-    <ProtectedPage>
+    <div>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">記事と広告の紐付け管理</h1>
@@ -26,6 +25,6 @@ export default function ArticleAdMapping() {
           </div>
         </div>
       </div>
-    </ProtectedPage>
+    </div>
   );
 }

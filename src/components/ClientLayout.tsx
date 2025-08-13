@@ -3,11 +3,11 @@
 import { useSession } from 'next-auth/react';
 import Sidebar from './Sidebar';
 
-interface LayoutProps {
+interface ClientLayoutProps {
   children: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function ClientLayout({ children }: ClientLayoutProps) {
   const { data: session, status } = useSession();
 
   if (status === 'loading') {

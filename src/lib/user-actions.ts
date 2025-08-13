@@ -1,13 +1,11 @@
 'use server';
 
-import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcrypt';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { User } from './definitions';
 import { withAuthorization, getCurrentUser } from './authorization';
-
-const sql = neon(process.env.DATABASE_URL!);
+import { sql } from '@/lib/db';
 
 // バリデーションスキーマ
 const CreateUserSchema = z.object({

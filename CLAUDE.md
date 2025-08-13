@@ -16,7 +16,8 @@ NextAuth.js for authentication.
 - **Lint**: `npm run lint` - Runs ESLint with Next.js TypeScript rules
 - **Test**: `npm test` - Runs Jest test suites for components and utilities
 - **Test (watch mode)**: `npm run test:watch` - Runs tests in watch mode for development
-- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test user (test@example.com / 123456)
+- **Run single test**: `npm test -- --testNamePattern="test name"` or `npm test Button.test.tsx`
+- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test users (admin@example.com/password123, editor@example.com/password123)
 
 ## Architecture Overview
 
@@ -47,10 +48,13 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/components/Sidebar.tsx` - Fixed sidebar with menu items, active state, and logout functionality
 - `src/components/ProtectedPage.tsx` - Wrapper component for route protection
 - `src/components/LoginForm.tsx` - Authentication form component
-- `src/lib/definitions.ts` - TypeScript interfaces (User model with role field)
+- `src/components/HTMLCodeEditor.tsx` - Monaco-based HTML code editor with validation
+- `src/lib/definitions.ts` - TypeScript interfaces (User model with role field, AdTemplate models)
 - `src/lib/actions.ts` - Server actions for authentication operations
 - `src/lib/user-actions.ts` - Server actions for user CRUD operations with role-based authorization
+- `src/lib/template-actions.ts` - Server actions for ad template CRUD operations with validation
 - `src/lib/authorization.ts` - Role checking utilities and permission helpers
+- `src/lib/template-utils.ts` - Utility functions for template processing and validation
 - `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
 - `middleware.ts` - Route protection middleware
 
@@ -59,17 +63,18 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 Uses Neon PostgreSQL with the following structure:
 
 - **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
-- **Test credentials**: test@example.com / 123456 (seeded via `scripts/seed.js`)
+- **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`, `updated_at`
+- **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via `scripts/seed.js`
 
 ### Testing Setup
 
 The application uses Jest with React Testing Library for unit and component testing:
 
 - **Jest configuration**: `jest.config.js` with Next.js integration and path mapping
-- **Setup file**: `jest.setup.js` for global test configuration
+- **Setup file**: `jest.setup.js` for global test configuration including Web API mocks
 - **Test environment**: jsdom for DOM testing with React components  
 - **Test location**: `__tests__/` directory with component and utility tests
-- **Coverage**: Tests for components (Button, LoginForm, Sidebar) and utility functions
+- **Coverage**: Tests for components (Button, LoginForm, Sidebar, AdTemplates, Dashboard, etc.) and utility functions (authorization, template-utils)
 
 ### Page Structure
 
@@ -77,13 +82,19 @@ Each main feature has its own page directory under `src/app/`:
 
 - `/login` - Authentication page (accessible without login)
 - `/dashboard` - Overview dashboard with metrics cards and activity feed
-- `/ad-templates` - Advertisement template management
+- `/ad-templates` - Advertisement template management with full CRUD operations, import/export functionality
 - `/url-templates` - URL template management (for tracking parameters)
 - `/ads` - Advertisement management with search/filter table
 - `/article-ad-mapping` - Article to advertisement mapping management
 - `/accounts` - Account management system with full CRUD operations (admin only)
 
-All protected pages currently show placeholder/empty state UI with Japanese text and icons.
+**API Routes**:
+- `/api/templates` - REST API for ad template CRUD operations (GET, POST)
+- `/api/templates/[id]` - Individual template operations (GET, PUT, DELETE)
+- `/api/templates/import` - Template import functionality (POST)
+- `/api/templates/export` - Template export functionality (GET)
+
+Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese text and icons.
 
 ## Key Technologies
 
@@ -92,17 +103,33 @@ All protected pages currently show placeholder/empty state UI with Japanese text
 - **NextAuth.js 5.0.0-beta.29** - Authentication with Credentials provider
 - **Neon Database** - PostgreSQL serverless database
 - **bcrypt** - Password hashing
-- **Zod** - Schema validation for authentication and user management
-- **TypeScript** - Strict type safety configuration
+- **Zod 4.0.15** - Schema validation for authentication and user management
+- **TypeScript 5** - Strict type safety configuration with path aliases (@/*)
 - **Tailwind CSS v4** - Utility-first styling with PostCSS
-- **Jest & React Testing Library** - Unit testing framework with DOM testing utilities
+- **Jest 29.7.0 & React Testing Library** - Unit testing framework with jsdom environment
+- **Monaco Editor** - Code editor for HTML template editing
 - **Geist fonts** - Typography (sans and mono variants)
 
 ## Development Notes
 
 - Uses Turbopack for faster development builds
 - Japanese language interface throughout (`lang="ja"` in layout)
-- Path alias `@/*` maps to `./src/*`
-- Server components by default with selective client components (`'use client'` in Sidebar)
-- Environment variable required: `DATABASE_URL` for Neon connection
+- Path alias `@/*` maps to `./src/*` (configured in tsconfig.json)
+- Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, etc.)
+- Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 - Authentication state determines entire application layout and available routes
+- Tests are located in `__tests__/` directory with `.test.tsx` and `.test.ts` extensions
+- Jest configuration includes Next.js integration and path mapping for imports
+
+## Template System Architecture
+
+The ad template system is a core feature with several important components:
+
+- **Template validation**: `src/lib/template-utils/validation.ts` validates HTML structure and placeholders
+- **Placeholder extraction**: `src/lib/template-utils/placeholder-extraction.ts` extracts `{{variable}}` placeholders from HTML
+- **Link processing**: `src/lib/template-utils/link-processing.ts` handles `rel="nofollow"` attributes for SEO
+- **Template actions**: `src/lib/template-actions.ts` provides server actions for template CRUD with authorization checks
+- **HTML Editor**: `src/components/HTMLCodeEditor.tsx` uses Monaco Editor with HTML syntax highlighting
+- **Template hooks**: `src/app/ad-templates/hooks/useTemplates.tsx` manages template state and operations
+
+Templates support dynamic placeholders in `{{variableName}}` format and automatically enforce `rel="nofollow"` on external links for SEO compliance.

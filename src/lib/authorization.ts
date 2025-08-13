@@ -1,4 +1,4 @@
-import {auth} from '../../auth';
+import {auth} from '@/auth';
 import {UserRole} from './definitions';
 
 // 役割階層の定義

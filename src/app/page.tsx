@@ -1,9 +1,9 @@
-import { auth } from '../../auth';
-import { redirect } from 'next/navigation';
+import {auth} from '@/auth';
+import {redirect} from 'next/navigation';
 
 export default async function HomePage() {
   const session = await auth();
-  
+
   // If user is logged in, redirect to dashboard
   if (session?.user) {
     redirect('/dashboard');
@@ -47,7 +47,9 @@ export default async function HomePage() {
           >
             システムにログイン
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              <path fillRule="evenodd"
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"/>
             </svg>
           </a>
         </div>

@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/SessionProvider";
-import Layout from "@/components/Layout";
+import ClientLayout from "@/components/ClientLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +30,9 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
     <NextAuthSessionProvider>
-      <Layout>
+      <ClientLayout>
         {children}
-      </Layout>
+      </ClientLayout>
     </NextAuthSessionProvider>
     </body>
     </html>

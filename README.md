@@ -5,11 +5,12 @@ LMG向けの内部メディア（PORTキャリアなど）の広告管理シス�
 ## プロジェクト概要
 
 このプロジェクトはNext.js、TypeScript、Tailwind CSS、NextAuth.jsを使用して構築された日本語の広告管理システムです。認証機能とアカウント管理機能を備えた本格的なWebアプリケーションとして開発されています。
+
 ### 主な機能
 
 - **🔐 認証システム** - NextAuth.js v5 (beta) を使用したセキュアなログイン/ログアウト機能
 - **📊 ダッシュボード** - システム概要と活動フィード
-- **📄 広告テンプレート管理** - 広告テンプレートの作成・管理
+- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理
 - **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理
 - **📢 広告管理** - 広告の作成・編集・検索機能
 - **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
@@ -39,7 +40,7 @@ NEXTAUTH_URL=http://localhost:3000
 node scripts/seed.js
 ```
 
-このコマンドにより、usersテーブルが作成され、テストユーザーがシードされます。
+このコマンドにより、usersテーブルとad_templatesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 ### 4. 開発サーバーの起動
 
@@ -53,8 +54,8 @@ npm run dev
 
 開発・テスト用のログイン情報：
 
-- **メールアドレス**: `admin@example.com`
-- **パスワード**: `password123`
+- **管理者アカウント**: `admin@example.com` / `password123`
+- **編集者アカウント**: `editor@example.com` / `password123`
 
 ## 技術スタック
 
@@ -64,6 +65,7 @@ npm run dev
 - **React 19** - UI ライブラリ
 - **TypeScript** - 型安全性
 - **Tailwind CSS v4** - ユーティリティファーストCSS
+- **Monaco Editor** - HTMLコードエディター (VS Code エディター技術)
 - **Geist フォント** - タイポグラフィ
 
 ### バックエンド・認証
@@ -71,7 +73,7 @@ npm run dev
 - **NextAuth.js 5.0.0-beta.29** - 認証システム (Credentials provider)
 - **Neon Database** - PostgreSQL サーバーレスデータベース
 - **bcrypt** - パスワードハッシュ化
-- **Zod** - スキーマバリデーション
+- **Zod 4.0.15** - スキーマバリデーション
 
 ### 開発・テスト
 
@@ -98,6 +100,9 @@ npm run lint
 # テスト実行
 npm test
 
+# テストウォッチモード
+npm run test:watch
+
 # データベース初期化
 node scripts/seed.js
 ```
@@ -108,42 +113,85 @@ node scripts/seed.js
 pj-ado-mvp/
 ├── src/
 │   ├── app/                    # App Router ページ
-│   │   ├── api/auth/[...nextauth]/ # NextAuth API ルート
+│   │   ├── api/              # API ルート
+│   │   │   ├── auth/[...nextauth]/ # NextAuth API ルート
+│   │   │   └── templates/    # 広告テンプレート API
+│   │   │       ├── route.ts  # GET, POST (全テンプレート)
+│   │   │       ├── [id]/route.ts # GET, PUT, DELETE (個別)
+│   │   │       ├── import/route.ts # POST (CSVインポート)
+│   │   │       └── export/route.ts # GET (CSVエクスポート)
 │   │   ├── dashboard/         # ダッシュボード
 │   │   ├── ads/              # 広告管理
-│   │   ├── ad-templates/     # 広告テンプレート
-│   │   ├── url-templates/    # URLテンプレート
-│   │   ├── article-ad-mapping/ # 記事・広告紐付け
+│   │   ├── ad-templates/     # 広告テンプレート管理
+│   │   │   ├── components/   # テンプレート管理専用コンポーネント
+│   │   │   │   ├── TemplateForm.tsx # テンプレート作成・編集フォーム
+│   │   │   │   ├── TemplateList.tsx # テンプレート一覧表示
+│   │   │   │   ├── TemplatePreview.tsx # テンプレートプレビュー
+│   │   │   │   ├── ImportExportButtons.tsx # CSV機能UI
+│   │   │   │   └── ValidationGuide.tsx # バリデーションガイド
+│   │   │   └── hooks/        # テンプレート管理hooks
+│   │   ├── url-templates/    # URLテンプレート管理
+│   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
 │   │   ├── accounts/         # アカウント管理
 │   │   ├── login/           # ログインページ
 │   │   ├── layout.tsx       # ルートレイアウト
 │   │   └── page.tsx         # ホームページ
 │   ├── components/           # 共通コンポーネント
-│   │   ├── Layout.tsx       # メインレイアウト
-│   │   ├── Sidebar.tsx      # サイドバーナビゲーション
 │   │   ├── Button.tsx       # ボタンコンポーネント
-│   │   ├── ProtectedPage.tsx # 認証保護ラッパー
+│   │   ├── ClientLayout.tsx # クライアントレイアウト
+│   │   ├── HTMLCodeEditor.tsx # Monaco Editor HTMLエディター
 │   │   ├── LoginForm.tsx    # ログインフォーム
-│   │   └── SessionProvider.tsx # セッションプロバイダー
-│   └── lib/                 # ユーティリティ・設定
-│       ├── actions.ts       # 認証サーバーアクション
-│       ├── user-actions.ts  # ユーザー管理アクション
-│       ├── authorization.ts # 認可ロジック
-│       └── definitions.ts   # TypeScript型定義
+│   │   ├── ProtectedPage.tsx # 認証保護ラッパー
+│   │   ├── SessionProvider.tsx # セッションプロバイダー
+│   │   └── Sidebar.tsx      # サイドバーナビゲーション
+│   ├── lib/                 # ユーティリティ・設定
+│   │   ├── actions.ts       # 認証サーバーアクション
+│   │   ├── authorization.ts # 認可ロジック
+│   │   ├── definitions.ts   # TypeScript型定義
+│   │   ├── template-actions.ts # テンプレート管理アクション
+│   │   ├── template-utils.ts   # テンプレートユーティリティ
+│   │   ├── template-utils/  # テンプレート処理専用モジュール
+│   │   │   ├── validation.ts # HTMLとプレースホルダーのバリデーション
+│   │   │   ├── placeholder-extraction.ts # プレースホルダー抽出
+│   │   │   ├── link-processing.ts # SEO用nofollow処理
+│   │   │   └── constants.ts # バリデーション規則定義
+│   │   └── user-actions.ts  # ユーザー管理アクション
+│   ├── auth.config.ts       # NextAuth.js設定詳細
+│   └── auth.ts              # NextAuth.js設定
 ├── __tests__/              # テストファイル
+│   ├── api/                # API エンドポイントテスト
 │   ├── components/         # コンポーネントテスト
 │   └── lib/               # ライブラリ関数テスト
 ├── scripts/               # ユーティリティスクリプト
 │   └── seed.js           # データベース初期化
-├── .claude/              # Claude Code 設定
-├── auth.ts               # NextAuth.js設定
-├── auth.config.ts        # NextAuth.js設定詳細
 ├── middleware.ts         # ルート保護ミドルウェア
 ├── jest.config.js        # Jest設定
 └── jest.setup.js         # Jest セットアップ
 ```
 
-## 認証について
+## API ルート
+
+### 広告テンプレート API
+
+| エンドポイント | メソッド | 説明 | 認証 |
+|-------------|--------|------|------|
+| `/api/templates` | GET | 全テンプレート取得 | 必須 |
+| `/api/templates` | POST | 新規テンプレート作成 | 必須 |
+| `/api/templates/[id]` | GET | 個別テンプレート取得 | 必須 |
+| `/api/templates/[id]` | PUT | テンプレート更新 | 必須 |
+| `/api/templates/[id]` | DELETE | テンプレート削除 | 必須 |
+| `/api/templates/import` | POST | CSVからテンプレートインポート | 必須 |
+| `/api/templates/export` | GET | テンプレートをCSVエクスポート | 必須 |
+
+### 認証 API
+
+| エンドポイント | メソッド | 説明 |
+|-------------|--------|------|
+| `/api/auth/[...nextauth]` | GET/POST | NextAuth.js 認証ハンドラー |
+
+## 認証・認可について
+
+### 認証システム
 
 このシステムでは以下の認証機能を実装しています：
 
@@ -154,14 +202,94 @@ pj-ado-mvp/
 - **セッションベース** の認証フロー
 - **条件付きレイアウト** で認証状態に応じた UI 表示
 
+### 役割ベース認可 (RBAC)
+
+システムでは2段階の役割システムを実装：
+
+| 役割 | レベル | 権限 |
+|------|--------|------|
+| **管理者 (admin)** | 2 | 全機能アクセス、ユーザー管理、テンプレート管理 |
+| **編集者 (editor)** | 1 | テンプレート作成・編集、広告管理 |
+
+#### 認可ヘルパー関数
+
+- `hasMinimumRole(user, role)` - 最小権限チェック
+- `isAdmin(user)` - 管理者権限チェック  
+- `canEdit(user)` - 編集権限チェック
+- `withAuthorization(handler, requiredRole)` - API認可ラッパー
+
 ### アーキテクチャ
 
 - 認証されていないユーザー: ログインフォームのみ表示
 - 認証済みユーザー: サイドバー付きメインレイアウト表示
+- 役割に応じた機能制限 (アカウント管理は管理者のみ)
+
+## データベーススキーマ
+
+### users テーブル
+
+| カラム | 型 | 説明 | 制約 |
+|--------|-----|------|------|
+| `id` | SERIAL | プライマリキー | PRIMARY KEY |
+| `name` | VARCHAR(255) | ユーザー名 | NOT NULL |
+| `email` | VARCHAR(255) | メールアドレス | UNIQUE, NOT NULL |
+| `password` | VARCHAR(255) | bcryptハッシュ化パスワード | NOT NULL |
+| `role` | VARCHAR(20) | ユーザー役割 (admin/editor) | NOT NULL, DEFAULT 'editor' |
+| `created_at` | TIMESTAMP | 作成日時 | DEFAULT NOW() |
+| `updated_at` | TIMESTAMP | 更新日時 | DEFAULT NOW() |
+
+### ad_templates テーブル
+
+| カラム | 型 | 説明 | 制約 |
+|--------|-----|------|------|
+| `id` | SERIAL | プライマリキー | PRIMARY KEY |
+| `name` | VARCHAR(255) | テンプレート名 | NOT NULL |
+| `html` | TEXT | HTMLテンプレート | NOT NULL |
+| `placeholders` | JSON | プレースホルダー配列 | |
+| `description` | TEXT | テンプレート説明 | |
+| `created_at` | TIMESTAMP | 作成日時 | DEFAULT NOW() |
+| `updated_at` | TIMESTAMP | 更新日時 | DEFAULT NOW() |
+
+## テンプレートシステム
+
+### 主要機能
+
+- **HTMLエディター**: Monaco Editor による高機能コードエディター
+- **プレースホルダーシステム**: `{{variableName}}` 形式の動的コンテンツ対応
+- **バリデーション**: HTMLとプレースホルダーの整合性チェック
+- **SEO対応**: 自動 `rel="nofollow"` 属性追加・削除機能
+- **CSV インポート/エクスポート**: テンプレートの一括管理機能
+
+### HTMLコードエディター機能
+
+- **シンタックスハイライト**: HTML専用カラーテーマ
+- **オートコンプリート**: タグとプロパティの自動補完
+- **コードフォーマット**: ワンクリックでの整形機能
+- **バリデーション**: リアルタイムエラーチェック
+- **プレースホルダー表示**: 未入力時のガイド表示
+
+### プレースホルダーバリデーション
+
+- **命名規則チェック**: 推奨キーワードベースの命名規則
+- **整合性確認**: HTMLとプレースホルダーリストの一致確認
+- **自動修正機能**: 不整合の自動検出と修正提案
+
+### サンプルテンプレート
+
+シードスクリプトでは以下の就活向けテンプレートが作成されます：
+
+- **就活支援バナー** - 基本的なグラデーション背景バナー
+- **大型就活バナー** - インパクトのある大型バナー
+- **就活テキスト広告** - シンプルなテキストのみの広告
+- **就活サービスカード** - 画像とロゴ付きカード形式
+- **記事内就活インライン** - 記事に自然に溶け込むインライン広告
+- **記事内就活カード** - 記事内挿入用カード型広告
+- **就活リボン型** - 特殊形状のリボンデザイン
+- **就活アイコン広告** - 円形アイコンを使った横長デザイン
 
 ## テスト
 
-プロジェクトにはJestとReact Testing Libraryを使用したテストスイートが含まれています：
+プロジェクトにはJestとReact Testing Libraryを使用した包括的なテストスイートが含まれています：
 
 ```bash
 # 全テスト実行
@@ -178,6 +306,14 @@ npm test -- --coverage
 
 - `__tests__/components/` - React コンポーネントのテスト
 - `__tests__/lib/` - ユーティリティ関数のテスト
+- `__tests__/api/` - API エンドポイントのテスト
+
+### テスト環境
+
+- **jsdom環境**: DOM操作のテスト対応
+- **Web API モック**: Request/Response、FormData、Headers等の完全モック
+- **NextAuth.js モック**: 認証システムのテスト対応
+- **Monaco Editor モック**: エディターコンポーネントのテスト対応
 
 ## 開発者向け情報
 
@@ -194,6 +330,12 @@ npm test -- --coverage
 - **ESLint** によるコード品質チェック
 - **Next.js** の厳格な設定
 - **React 19** の最新機能を活用
+
+### パフォーマンス
+
+- **Turbopack** による高速ビルド
+- **Server Components** によるサーバーサイドレンダリング
+- **Monaco Editor** による軽量なコードエディター体験
 
 ## デプロイ
 

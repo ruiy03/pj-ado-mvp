@@ -14,6 +14,9 @@ const customJestConfig = {
   transformIgnorePatterns: [
     'node_modules/(?!(next-auth)/)',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+  ],
 };
 
 module.exports = createJestConfig(customJestConfig);
