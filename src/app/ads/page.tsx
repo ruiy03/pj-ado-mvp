@@ -1,8 +1,7 @@
-import ProtectedPage from '@/components/ProtectedPage';
 
 export default function Ads() {
   return (
-    <ProtectedPage>
+    <div>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">広告管理</h1>
@@ -76,6 +75,6 @@ export default function Ads() {
           </div>
         </div>
       </div>
-    </ProtectedPage>
+    </div>
   );
 }

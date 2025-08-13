@@ -1,31 +1,882 @@
-import ProtectedPage from '@/components/ProtectedPage';
+'use client';
+
+import {useState, useEffect, useCallback} from 'react';
+import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
+import {extractPlaceholders, validatePlaceholders, validatePlaceholderNaming, getSampleValue} from '@/lib/template-utils';
+
+interface ImportResult {
+  success: number;
+  errors: string[];
+  total: number;
+}
+
 
 export default function AdTemplates() {
+  const [templates, setTemplates] = useState<AdTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<AdTemplate | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showImportForm, setShowImportForm] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [showNamingGuide, setShowNamingGuide] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  const [formData, setFormData] = useState<CreateAdTemplateRequest>({
+    name: '',
+    html: '',
+    placeholders: [],
+    description: '',
+  });
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/templates');
+      if (!response.ok) {
+        throw new Error('テンプレートの取得に失敗しました');
+      }
+      const data = await response.json();
+      setTemplates(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // バリデーションエラーがある場合は送信をブロック
+    if (validationErrors.length > 0) {
+      setError('プレースホルダーの問題を修正してから保存してください');
+      return;
+    }
+
+    try {
+      const url = editingTemplate ? `/api/templates/${editingTemplate.id}` : '/api/templates';
+      const method = editingTemplate ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'テンプレートの保存に失敗しました');
+      }
+
+      await fetchTemplates();
+      setShowCreateForm(false);
+      setEditingTemplate(null);
+      resetForm();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エラーが発生しました');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('このテンプレートを削除しますか？')) return;
+
+    try {
+      const response = await fetch(`/api/templates/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'テンプレートの削除に失敗しました');
+      }
+
+      await fetchTemplates();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エラーが発生しました');
+    }
+  };
+
+  const handleEdit = (template: AdTemplate) => {
+    setEditingTemplate(template);
+    setFormData({
+      name: template.name,
+      html: template.html,
+      placeholders: template.placeholders,
+      description: template.description || '',
+    });
+    setShowCreateForm(true);
+    setShowImportForm(false);
+    setImportResult(null);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      html: '',
+      placeholders: [],
+      description: '',
+    });
+  };
+
+  const handleCancel = () => {
+    setShowCreateForm(false);
+    setEditingTemplate(null);
+    resetForm();
+  };
+
+  const handleImportClick = () => {
+    setShowCreateForm(false);
+    setEditingTemplate(null);
+    resetForm();
+    setShowImportForm(true);
+  };
+
+  const handleCreateClick = () => {
+    setShowCreateForm(true);
+    setShowImportForm(false);
+    setImportResult(null);
+  };
+
+  const addPlaceholder = () => {
+    setFormData((prev: CreateAdTemplateRequest) => ({
+      ...prev,
+      placeholders: [...prev.placeholders, '']
+    }));
+  };
+
+  const updatePlaceholder = (index: number, value: string) => {
+    setFormData((prev: CreateAdTemplateRequest) => ({
+      ...prev,
+      placeholders: prev.placeholders.map((p: string, i: number) => i === index ? value : p)
+    }));
+  };
+
+  const removePlaceholder = (index: number) => {
+    setFormData((prev: CreateAdTemplateRequest) => ({
+      ...prev,
+      placeholders: prev.placeholders.filter((_: string, i: number) => i !== index)
+    }));
+  };
+
+  const autoExtractPlaceholders = () => {
+    if (!formData.html.trim()) {
+      setError('HTMLコードを入力してください');
+      return;
+    }
+
+    const extracted = extractPlaceholders(formData.html);
+    setFormData((prev: CreateAdTemplateRequest) => ({
+      ...prev,
+      placeholders: extracted
+    }));
+
+    if (extracted.length === 0) {
+      setError('プレースホルダーが見つかりませんでした。{{placeholder}}の形式で記述してください。');
+    } else {
+      setError(null);
+    }
+  };
+
+  const validateCurrentPlaceholders = useCallback(() => {
+    if (!formData.html.trim()) {
+      setValidationErrors([]);
+      return;
+    }
+
+    const errors = validatePlaceholders(formData.html, formData.placeholders);
+    setValidationErrors(errors);
+  }, [formData.html, formData.placeholders]);
+
+  useEffect(() => {
+    validateCurrentPlaceholders();
+  }, [formData.html, formData.placeholders, validateCurrentPlaceholders]);
+
+  const handleImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+
+    try {
+      setImportLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/templates/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'インポートに失敗しました');
+      }
+
+      setImportResult(result);
+      await fetchTemplates();
+
+      if (result.errors.length === 0) {
+        setShowImportForm(false);
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エラーが発生しました');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+      setError(null);
+      const response = await fetch('/api/templates/export');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'エクスポートに失敗しました');
+      }
+
+      // CSV ファイルをダウンロード
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // ファイル名を Content-Disposition ヘッダーから取得、またはデフォルト値を使用
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'ad-templates.csv';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エクスポートでエラーが発生しました');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+
+  const renderTemplate = (template: AdTemplate) => {
+    let previewHtml = template.html;
+    
+    template.placeholders.forEach((placeholder: string) => {
+      const regex = new RegExp(`{{${placeholder}}}`, 'g');
+      const sampleValue = getSampleValue(placeholder);
+      previewHtml = previewHtml.replace(regex, sampleValue);
+    });
+
+    return (
+      <div
+        dangerouslySetInnerHTML={{__html: previewHtml}}
+        className="border border-gray-200 p-4 rounded-lg bg-white shadow-sm max-w-full overflow-hidden"
+        style={{
+          minHeight: '120px',
+          fontSize: '14px',
+          lineHeight: '1.4'
+        }}
+      />
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500">読み込み中...</div>
+      </div>
+    );
+  }
+
   return (
-    <ProtectedPage>
+    <div>
       <div className="space-y-6">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+            <button
+              onClick={() => setError(null)}
+              className="float-right text-red-500 hover:text-red-700 cursor-pointer"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">広告テンプレート管理</h1>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer">
-            新しいテンプレートを作成
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleImportClick}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
+            >
+              CSVインポート
+            </button>
+            <button
+              onClick={handleExport}
+              disabled={exportLoading}
+              className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
+            >
+              {exportLoading ? 'エクスポート中...' : 'CSVエクスポート'}
+            </button>
+            <button
+              onClick={handleCreateClick}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+            >
+              新しいテンプレートを作成
+            </button>
+          </div>
         </div>
+
+        {showCreateForm && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold mb-4">
+              {editingTemplate ? 'テンプレートを編集' : '新しいテンプレートを作成'}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  テンプレート名
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData((prev: CreateAdTemplateRequest) => ({...prev, name: e.target.value}))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  HTMLコード
+                </label>
+                <textarea
+                  value={formData.html}
+                  onChange={(e) => setFormData((prev: CreateAdTemplateRequest) => ({...prev, html: e.target.value}))}
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  placeholder="HTMLコードを入力してください。プレースホルダーは {{placeholder}} の形式で記述してください。"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  例: &lt;div class=&quot;ad-banner&quot;&gt;&lt;h2&gt;&#123;&#123;title&#125;&#125;&lt;/h2&gt;&lt;img
+                  src=&quot;&#123;&#123;imageUrl&#125;&#125;&quot; /&gt;&lt;/div&gt;
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  プレースホルダー
+                </label>
+
+                {(validationErrors.length > 0 || (formData.html.trim() && extractPlaceholders(formData.html).length > 0 && formData.placeholders.length === 0)) && (
+                  <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-start">
+                      <div className="text-orange-600 mr-2">⚠️</div>
+                      <div>
+                        {validationErrors.length > 0 ? (
+                          <>
+                            <p className="text-sm font-medium text-orange-800 mb-1">プレースホルダーの整合性に問題があります:</p>
+                            <ul className="text-sm text-orange-700 space-y-1 mb-2">
+                              {validationErrors.map((error, index) => (
+                                <li key={index} className="flex items-start">
+                                  <span className="w-1 h-1 bg-orange-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                  {error}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : (
+                          <p className="text-sm font-medium text-orange-800 mb-2">
+                            HTMLにプレースホルダーが見つかりましたが、リストが空です
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={autoExtractPlaceholders}
+                          className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 px-2 py-1 rounded transition-colors cursor-pointer"
+                        >
+                          自動修正
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* 命名規則ガイド */}
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="text-sm font-semibold text-blue-900 mb-3">プレースホルダー命名規則</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                        画像
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">image</span>
+                        <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">img</span>
+                        <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">picture</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        URL
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">url</span>
+                        <span className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">link</span>
+                        <span className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs">href</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                        タイトル
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">title</span>
+                        <span className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">headline</span>
+                        <span className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">header</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                        説明文
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">description</span>
+                        <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">text</span>
+                        <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">content</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                        価格
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">price</span>
+                        <span className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">cost</span>
+                        <span className="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">fee</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                        ボタン
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">button</span>
+                        <span className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">cta</span>
+                        <span className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs">action</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                        日付
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1">date</span>
+                        <span className="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">time</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-blue-100">
+                      <div className="font-medium text-blue-800 mb-2 flex items-center">
+                        <span className="w-2 h-2 bg-pink-500 rounded-full mr-2"></span>
+                        名前
+                      </div>
+                      <div className="space-y-1">
+                        <span className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">name</span>
+                        <span className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">author</span>
+                        <span className="inline-block bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs">company</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-blue-200">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-blue-700">
+                        <span className="font-medium">💡 ヒント:</span> 
+                        これらのキーワードを含む名前を使用すると、プレビューで適切なサンプルデータが自動表示されます
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowNamingGuide(!showNamingGuide)}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                      >
+                        {showNamingGuide ? '詳細を非表示' : 'サンプル例を表示'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 詳細なサンプル例 */}
+                {showNamingGuide && (
+                  <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">プレースホルダー例とサンプル出力</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs border-collapse min-w-[600px]">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-2 px-3 font-medium text-gray-700 bg-gray-100">カテゴリ</th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-700 bg-gray-100">プレースホルダー例</th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-700 bg-gray-100">サンプル出力</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-blue-800">画像</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-1">productImage</span>
+                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">bannerImg</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">https://picsum.photos/300/200</td>
+                          </tr>
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-green-800">URL</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1">productUrl</span>
+                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">linkHref</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">#</td>
+                          </tr>
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-purple-800">タイトル</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-1">productTitle</span>
+                                <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">mainHeadline</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">サンプルタイトル</td>
+                          </tr>
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-gray-800">説明文</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs mr-1">productDescription</span>
+                                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">bodyText</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">サンプル説明文です。ここに実際のコンテンツが表示されます。</td>
+                          </tr>
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-yellow-800">価格</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs mr-1">salePrice</span>
+                                <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">membershipFee</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">¥9,800</td>
+                          </tr>
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-red-800">ボタン</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs mr-1">ctaButton</span>
+                                <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">actionText</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">詳細を見る</td>
+                          </tr>
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-indigo-800">日付</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs mr-1">eventDate</span>
+                                <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">publishTime</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">2024年12月31日</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 align-top">
+                              <span className="inline-flex items-center">
+                                <span className="w-2 h-2 bg-pink-500 rounded-full mr-2"></span>
+                                <span className="font-medium text-pink-800">名前</span>
+                              </span>
+                            </td>
+                            <td className="py-2 px-3">
+                              <div className="space-y-1">
+                                <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs mr-1">authorName</span>
+                                <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs">companyName</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-gray-600">サンプル名</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {formData.placeholders.map((placeholder: string, index: number) => {
+                    const isValid = validatePlaceholderNaming(placeholder);
+                    return (
+                      <div key={index} className="flex gap-2">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={placeholder}
+                            onChange={(e) => updatePlaceholder(index, e.target.value)}
+                            placeholder="プレースホルダー名（例：title, imageUrl）"
+                            className={`w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+                              placeholder.trim() && !isValid
+                                ? 'border-red-300 bg-red-50'
+                                : 'border-gray-300'
+                            }`}
+                          />
+                          {placeholder.trim() && !isValid && (
+                            <p className="text-xs text-red-600 mt-1">
+                              命名規則に違反しています。推奨キーワードを含めてください
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removePlaceholder(index)}
+                          className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 cursor-pointer"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={addPlaceholder}
+                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 cursor-pointer"
+                  >
+                    プレースホルダーを追加
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  説明
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev: CreateAdTemplateRequest) => ({
+                    ...prev,
+                    description: e.target.value
+                  }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="テンプレートの説明を入力してください"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={validationErrors.length > 0}
+                  className={`px-6 py-2 rounded-lg transition-colors ${
+                    validationErrors.length > 0
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                  }`}
+                >
+                  {editingTemplate ? '更新' : '作成'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {showImportForm && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold mb-4">CSVインポート</h2>
+
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-medium text-blue-900 mb-2">CSVフォーマット</h3>
+              <p className="text-sm text-blue-700 mb-2">以下の形式でCSVファイルを作成してください：</p>
+              <code className="text-xs bg-white p-2 rounded block">
+                name,html,placeholders,description<br/>
+                &quot;バナー基本&quot;,&quot;&lt;div&gt;&#123;&#123;title&#125;&#125;&lt;/div&gt;&quot;,&quot;title,imageUrl,linkUrl&quot;,&quot;基本的なバナーテンプレート&quot;
+              </code>
+            </div>
+
+            {importResult && (
+              <div
+                className={`mb-4 p-4 rounded-lg ${importResult.errors.length === 0 ? 'bg-green-50' : 'bg-yellow-50'}`}>
+                <h3 className="font-medium mb-2">インポート結果</h3>
+                <p className="text-sm mb-2">
+                  成功: {importResult.success}件 / 総数: {importResult.total}件
+                </p>
+                {importResult.errors.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-red-600 mb-1">エラー:</p>
+                    <ul className="text-xs text-red-600 list-disc list-inside">
+                      {importResult.errors.map((error: string, index: number) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleImport} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  CSVファイル
+                </label>
+                <input
+                  type="file"
+                  name="file"
+                  accept=".csv"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={importLoading}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+                >
+                  {importLoading ? 'インポート中...' : 'インポート'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowImportForm(false);
+                    setImportResult(null);
+                  }}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-4xl mb-4">📝</div>
-              <h3 className="text-lg font-medium mb-2">テンプレートがありません</h3>
-              <p className="text-gray-400">広告テンプレートを作成して始めましょう</p>
-              <button
-                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer">
-                最初のテンプレートを作成
-              </button>
-            </div>
+            {templates.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-4xl mb-4">📝</div>
+                <h3 className="text-lg font-medium mb-2">テンプレートがありません</h3>
+                <p className="text-gray-400">広告テンプレートを作成して始めましょう</p>
+                <button
+                  onClick={handleCreateClick}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer"
+                >
+                  最初のテンプレートを作成
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-gray-900">テンプレート一覧</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {templates.map((template) => (
+                    <div key={template.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="p-4 border-b border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-gray-900">{template.name}</h4>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEdit(template)}
+                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+                            >
+                              編集
+                            </button>
+                            <button
+                              onClick={() => handleDelete(template.id)}
+                              className="text-red-600 hover:text-red-800 text-sm cursor-pointer"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        </div>
+                        {template.description && (
+                          <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                        )}
+                        <div className="text-xs text-gray-400">
+                          プレースホルダー: {template.placeholders.join(', ')}
+                        </div>
+                      </div>
+                      <div className="p-4 bg-gray-50">
+                        <div className="text-xs text-gray-500 mb-3 font-medium">プレビュー:</div>
+                        <div className="bg-white rounded border p-2">
+                          {renderTemplate(template)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </ProtectedPage>
+    </div>
   );
 }
