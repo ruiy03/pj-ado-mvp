@@ -8,6 +8,37 @@ import AdTemplates from '@/app/ad-templates/page';
 global.fetch = jest.fn();
 global.confirm = jest.fn();
 
+// HTMLCodeEditor コンポーネントをモック
+jest.mock('@/components/HTMLCodeEditor', () => {
+  const { forwardRef } = require('react');
+  
+  const MockHTMLCodeEditor = forwardRef(({ value, onChange, ...props }, ref) => {
+    // refを使ってformatCode関数をモック
+    if (ref && typeof ref === 'object') {
+      ref.current = {
+        formatCode: jest.fn()
+      };
+    }
+    
+    return (
+      <div data-testid="html-code-editor">
+        <textarea
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder="HTMLコードを入力してください..."
+        />
+      </div>
+    );
+  });
+  
+  MockHTMLCodeEditor.displayName = 'MockHTMLCodeEditor';
+  
+  return {
+    __esModule: true,
+    default: MockHTMLCodeEditor
+  };
+});
+
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 const mockConfirm = confirm as jest.MockedFunction<typeof confirm>;
 
@@ -55,11 +86,21 @@ describe('AdTemplates - Error Handling', () => {
     // フォームを開く
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
-    // フォームに入力
+    // フォームに入力（必須プレースホルダーlinkUrlを含む有効なHTML）
     const inputs = screen.getAllByDisplayValue('');
     const nameInput = inputs[0]; // テンプレート名は最初の空の入力フィールド
     await user.type(nameInput, 'テストテンプレート');
-    await user.type(screen.getByPlaceholderText(/HTMLコードを入力してください/), '<div>test</div>');
+    
+    const htmlTextarea = screen.getByPlaceholderText('HTMLコードを入力してください...');
+    // React の onChange イベントを直接発火してHTMLを設定
+    const htmlContent = '<a href="{{linkUrl}}">テスト</a>';
+    htmlTextarea.value = htmlContent;
+    htmlTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // プレースホルダーを手動で追加
+    await user.click(screen.getByText('プレースホルダーを追加'));
+    const placeholderInput = screen.getByPlaceholderText('プレースホルダー名（例：title, imageUrl）');
+    await user.type(placeholderInput, 'linkUrl');
 
     // 送信
     await user.click(screen.getByRole('button', { name: '作成' }));
@@ -126,7 +167,7 @@ describe('AdTemplates - Error Handling', () => {
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
     // プレースホルダーを含むHTMLを入力（バリデーションエラーを発生させる）
-    await user.type(screen.getByPlaceholderText(/HTMLコードを入力してください/), '<div>{{title}}</div>');
+    await user.type(screen.getByPlaceholderText('HTMLコードを入力してください...'), '<div>{{title}}</div>');
 
     // フォーム要素が表示されることを確認
     const submitButton = screen.getByRole('button', { name: '作成' });
@@ -151,7 +192,7 @@ describe('AdTemplates - Error Handling', () => {
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
     // プレースホルダーを含むHTMLを入力
-    const htmlTextarea = screen.getByPlaceholderText(/HTMLコードを入力してください/);
+    const htmlTextarea = screen.getByPlaceholderText('HTMLコードを入力してください...');
     await user.type(htmlTextarea, '<div>{{title}}</div>');
 
     // HTML入力フィールドに値が設定されることを確認
@@ -234,7 +275,7 @@ describe('AdTemplates - Error Handling', () => {
     // 無効なHTMLを入力（プレビューエラーを発生させるため）
     // 注：実際にはReactのdangerouslySetInnerHTMLは多くのHTMLを受け入れるため、
     // この例では単純にHTMLを入力してプレビューが表示されることを確認
-    await user.type(screen.getByPlaceholderText(/HTMLコードを入力してください/), '<script>alert("test")</script>');
+    await user.type(screen.getByPlaceholderText('HTMLコードを入力してください...'), '<script>alert("test")</script>');
 
     // プレビューエリアが表示される（スクリプトタグは無害化される）
     await waitFor(() => {
@@ -318,7 +359,7 @@ describe('AdTemplates - Error Handling', () => {
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
     // HTMLにプレースホルダーを含める
-    await user.type(screen.getByPlaceholderText(/HTMLコードを入力してください/), '<div>{{title}}{{description}}</div>');
+    await user.type(screen.getByPlaceholderText('HTMLコードを入力してください...'), '<div>{{title}}{{description}}</div>');
 
     // プレースホルダーを手動で追加
     await user.click(screen.getByText('プレースホルダーを追加'));

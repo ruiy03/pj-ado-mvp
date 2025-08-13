@@ -266,3 +266,6 @@ global.NextRequest = class NextRequest extends global.Request {
     this.ip = '127.0.0.1';
   }
 };
+
+// Mock DOM methods for testing
+Element.prototype.scrollIntoView = jest.fn();

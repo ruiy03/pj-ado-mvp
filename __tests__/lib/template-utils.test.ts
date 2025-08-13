@@ -57,29 +57,29 @@ describe('template-utils', () => {
 
   describe('validatePlaceholders', () => {
     it('HTMLとプレースホルダーリストが一致する場合はエラーなし', () => {
-      const html = '<div>{{title}}</div><img src="{{imageUrl}}" />';
-      const placeholders = ['title', 'imageUrl'];
+      const html = '<div>{{title}}</div><img src="{{imageUrl}}" /><a href="{{linkUrl}}">Link</a>';
+      const placeholders = ['title', 'imageUrl', 'linkUrl'];
       const result = validatePlaceholders(html, placeholders);
       expect(result).toEqual([]);
     });
 
     it('HTMLに存在するがリストにないプレースホルダーを検出する', () => {
-      const html = '<div>{{title}}</div><img src="{{imageUrl}}" />';
-      const placeholders = ['title'];
+      const html = '<div>{{title}}</div><img src="{{imageUrl}}" /><a href="{{linkUrl}}">Link</a>';
+      const placeholders = ['title', 'linkUrl'];
       const result = validatePlaceholders(html, placeholders);
       expect(result).toEqual(['HTMLに存在するがリストにないプレースホルダー: imageUrl']);
     });
 
     it('リストにあるがHTMLで使用されていないプレースホルダーを検出する', () => {
-      const html = '<div>{{title}}</div>';
-      const placeholders = ['title', 'imageUrl', 'description'];
+      const html = '<div>{{title}}</div><a href="{{linkUrl}}">Link</a>';
+      const placeholders = ['title', 'linkUrl', 'imageUrl', 'description'];
       const result = validatePlaceholders(html, placeholders);
       expect(result).toEqual(['リストにあるがHTMLで使用されていないプレースホルダー: imageUrl, description']);
     });
 
     it('両方の問題を同時に検出する', () => {
-      const html = '<div>{{title}}</div><span>{{newField}}</span>';
-      const placeholders = ['title', 'oldField'];
+      const html = '<div>{{title}}</div><span>{{newField}}</span><a href="{{linkUrl}}">Link</a>';
+      const placeholders = ['title', 'linkUrl', 'oldField'];
       const result = validatePlaceholders(html, placeholders);
       expect(result).toEqual([
         'HTMLに存在するがリストにないプレースホルダー: newField',
@@ -88,16 +88,16 @@ describe('template-utils', () => {
       ]);
     });
 
-    it('空のHTMLと空のプレースホルダーリストでエラーなし', () => {
+    it('空のHTMLと空のプレースホルダーリストで必須エラーのみ', () => {
       const html = '<div>Static content</div>';
       const placeholders: string[] = [];
       const result = validatePlaceholders(html, placeholders);
-      expect(result).toEqual([]);
+      expect(result).toEqual(['必須プレースホルダーが不足: linkUrl']);
     });
 
     it('命名規則違反と不整合の両方を検出する', () => {
-      const html = '<div>{{title}}</div><span>{{invalidField}}</span>';
-      const placeholders = ['title', 'wrongField'];
+      const html = '<div>{{title}}</div><span>{{invalidField}}</span><a href="{{linkUrl}}">Link</a>';
+      const placeholders = ['title', 'linkUrl', 'wrongField'];
       const result = validatePlaceholders(html, placeholders);
       expect(result).toEqual([
         'HTMLに存在するがリストにないプレースホルダー: invalidField',

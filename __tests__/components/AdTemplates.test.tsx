@@ -9,6 +9,37 @@ global.fetch = jest.fn();
 global.confirm = jest.fn();
 global.window.open = jest.fn();
 
+// HTMLCodeEditor コンポーネントをモック
+jest.mock('@/components/HTMLCodeEditor', () => {
+  const { forwardRef } = require('react');
+  
+  const MockHTMLCodeEditor = forwardRef(({ value, onChange, ...props }, ref) => {
+    // refを使ってformatCode関数をモック
+    if (ref && typeof ref === 'object') {
+      ref.current = {
+        formatCode: jest.fn()
+      };
+    }
+    
+    return (
+      <div data-testid="html-code-editor">
+        <textarea
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder="HTMLコードを入力してください..."
+        />
+      </div>
+    );
+  });
+  
+  MockHTMLCodeEditor.displayName = 'MockHTMLCodeEditor';
+  
+  return {
+    __esModule: true,
+    default: MockHTMLCodeEditor
+  };
+});
+
 // URL.createObjectURL と document.createElement をモック
 global.URL.createObjectURL = jest.fn(() => 'mock-url');
 global.URL.revokeObjectURL = jest.fn();
@@ -203,6 +234,7 @@ describe('AdTemplates', () => {
     // フォームが編集モードで表示される
     expect(screen.getByText('テンプレートを編集')).toBeInTheDocument();
     expect(screen.getByDisplayValue('既存テンプレート')).toBeInTheDocument();
+    // HTMLCodeEditorはモックされているため、textareaでの値確認
     expect(screen.getByDisplayValue('<div>{{title}}</div>')).toBeInTheDocument();
     expect(screen.getByDisplayValue('編集前')).toBeInTheDocument();
   });
@@ -609,7 +641,7 @@ describe('AdTemplates', () => {
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
     // HTMLコードを入力
-    const htmlTextarea = screen.getByPlaceholderText(/HTMLコードを入力してください/);
+    const htmlTextarea = screen.getByPlaceholderText('HTMLコードを入力してください...');
     await user.type(htmlTextarea, '<div>テストHTML</div>');
 
     // プレビューが更新されることを確認（HTMLが存在する場合、空のプレビューメッセージは表示されない）
@@ -636,11 +668,16 @@ describe('AdTemplates', () => {
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
     // プレースホルダーを含むHTMLコードを入力
-    const htmlTextarea = screen.getByPlaceholderText(/HTMLコードを入力してください/);
-    await user.type(htmlTextarea, '<div>{{title}}</div>');
+    const htmlTextarea = screen.getByPlaceholderText('HTMLコードを入力してください...');
+    const testHtml = '<div>{{title}}</div>';
+    
+    await user.clear(htmlTextarea);
+    await user.type(htmlTextarea, testHtml);
 
-    // HTMLコードが入力されたことを確認
-    expect(htmlTextarea.value).toContain('title');
+    // HTMLコードが入力されたことを確認（実際の値を確認）
+    await waitFor(() => {
+      expect(htmlTextarea.value).toContain('title');
+    });
   });
 
   it('プレースホルダー命名規則ガイドが表示される', async () => {
@@ -724,5 +761,116 @@ describe('AdTemplates', () => {
     expect(screen.getByRole('checkbox', { name: '自動nofollow追加' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'nofollow追加' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'nofollow削除' })).toBeInTheDocument();
+  });
+
+  it('HTMLコードフォーマットボタンが表示され、クリックできる', async () => {
+    const user = userEvent.setup();
+    
+    // 初期取得
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // フォーマットボタンが「HTMLコード」ラベルの横に表示されることを確認
+    expect(screen.getByText('HTMLコード')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'フォーマット' })).toBeInTheDocument();
+
+    // フォーマットボタンがクリックできることを確認
+    const formatButton = screen.getByRole('button', { name: 'フォーマット' });
+    expect(formatButton).not.toBeDisabled();
+    
+    // クリックしてもエラーが発生しないことを確認
+    await user.click(formatButton);
+  });
+
+  it('HTMLCodeEditorコンポーネントが適切にレンダリングされる', async () => {
+    const user = userEvent.setup();
+    
+    // 初期取得
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // HTMLCodeEditorコンポーネントがレンダリングされることを確認
+    expect(screen.getByTestId('html-code-editor')).toBeInTheDocument();
+    
+    // 従来のtextareaの代わりにHTMLCodeEditorが使用されることを確認
+    const editorTextarea = screen.getByPlaceholderText('HTMLコードを入力してください...');
+    expect(editorTextarea).toBeInTheDocument();
+  });
+
+  it('HTMLCodeEditorでコード入力ができる', async () => {
+    const user = userEvent.setup();
+    
+    // 初期取得
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // HTMLコードエディターに入力
+    const editorTextarea = screen.getByPlaceholderText('HTMLコードを入力してください...');
+    const testHtml = '<div class="banner">{{title}}</div>';
+    
+    await user.clear(editorTextarea);
+    await user.type(editorTextarea, testHtml);
+    
+    // コード入力が正常に動作することを確認（完全一致ではなく、主要部分の確認）
+    await waitFor(() => {
+      expect(editorTextarea.value).toContain('banner');
+      expect(editorTextarea.value).toContain('title');
+    });
+  });
+
+  it('フォーマットボタンのツールチップが適切に設定されている', async () => {
+    const user = userEvent.setup();
+    
+    // 初期取得
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<AdTemplates />);
+
+    await waitFor(() => {
+      expect(screen.getByText('新しいテンプレートを作成')).toBeInTheDocument();
+    });
+
+    // フォームを開く
+    await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
+
+    // フォーマットボタンのツールチップを確認
+    const formatButton = screen.getByRole('button', { name: 'フォーマット' });
+    expect(formatButton).toHaveAttribute('title', 'HTMLコードをフォーマット (Shift+Alt+F)');
   });
 });
