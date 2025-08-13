@@ -73,7 +73,7 @@ npm run dev
 - **NextAuth.js 5.0.0-beta.29** - 認証システム (Credentials provider)
 - **Neon Database** - PostgreSQL サーバーレスデータベース
 - **bcrypt** - パスワードハッシュ化
-- **Zod** - スキーマバリデーション
+- **Zod 4.0.15** - スキーマバリデーション
 
 ### 開発・テスト
 
