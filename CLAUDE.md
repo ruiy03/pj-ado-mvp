@@ -48,6 +48,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/components/Sidebar.tsx` - Fixed sidebar with menu items, active state, and logout functionality
 - `src/components/ProtectedPage.tsx` - Wrapper component for route protection
 - `src/components/LoginForm.tsx` - Authentication form component
+- `src/components/HTMLCodeEditor.tsx` - Monaco-based HTML code editor with validation
 - `src/lib/definitions.ts` - TypeScript interfaces (User model with role field, AdTemplate models)
 - `src/lib/actions.ts` - Server actions for authentication operations
 - `src/lib/user-actions.ts` - Server actions for user CRUD operations with role-based authorization
@@ -70,7 +71,7 @@ Uses Neon PostgreSQL with the following structure:
 The application uses Jest with React Testing Library for unit and component testing:
 
 - **Jest configuration**: `jest.config.js` with Next.js integration and path mapping
-- **Setup file**: `jest.setup.js` for global test configuration
+- **Setup file**: `jest.setup.js` for global test configuration including Web API mocks
 - **Test environment**: jsdom for DOM testing with React components  
 - **Test location**: `__tests__/` directory with component and utility tests
 - **Coverage**: Tests for components (Button, LoginForm, Sidebar, AdTemplates, Dashboard, etc.) and utility functions (authorization, template-utils)
@@ -106,6 +107,7 @@ Most pages are implemented with full functionality. Some protected pages show pl
 - **TypeScript 5** - Strict type safety configuration with path aliases (@/*)
 - **Tailwind CSS v4** - Utility-first styling with PostCSS
 - **Jest 29.7.0 & React Testing Library** - Unit testing framework with jsdom environment
+- **Monaco Editor** - Code editor for HTML template editing
 - **Geist fonts** - Typography (sans and mono variants)
 
 ## Development Notes
@@ -118,3 +120,16 @@ Most pages are implemented with full functionality. Some protected pages show pl
 - Authentication state determines entire application layout and available routes
 - Tests are located in `__tests__/` directory with `.test.tsx` and `.test.ts` extensions
 - Jest configuration includes Next.js integration and path mapping for imports
+
+## Template System Architecture
+
+The ad template system is a core feature with several important components:
+
+- **Template validation**: `src/lib/template-utils/validation.ts` validates HTML structure and placeholders
+- **Placeholder extraction**: `src/lib/template-utils/placeholder-extraction.ts` extracts `{{variable}}` placeholders from HTML
+- **Link processing**: `src/lib/template-utils/link-processing.ts` handles `rel="nofollow"` attributes for SEO
+- **Template actions**: `src/lib/template-actions.ts` provides server actions for template CRUD with authorization checks
+- **HTML Editor**: `src/components/HTMLCodeEditor.tsx` uses Monaco Editor with HTML syntax highlighting
+- **Template hooks**: `src/app/ad-templates/hooks/useTemplates.tsx` manages template state and operations
+
+Templates support dynamic placeholders in `{{variableName}}` format and automatically enforce `rel="nofollow"` on external links for SEO compliance.
