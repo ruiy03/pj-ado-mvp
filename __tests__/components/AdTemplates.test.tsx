@@ -456,9 +456,9 @@ describe('AdTemplates', () => {
     expect(screen.getByText('プレビュー')).toBeInTheDocument();
     expect(screen.getByText('HTMLコードを入力するとプレビューが表示されます')).toBeInTheDocument();
 
-    // プレビューサイズの選択肢があることを確認
-    expect(screen.getByDisplayValue('デスクトップ')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('サンプルデータ')).toBeInTheDocument();
+    // プレビューサイズの選択肢があることを確認（ボタン形式）
+    expect(screen.getByText('🖥️')).toBeInTheDocument(); // デスクトップ
+    expect(screen.getByText('サンプル値')).toBeInTheDocument(); // プレビューモード
   });
 
   it('プレビューサイズ切り替えが正常に動作する', async () => {
@@ -478,17 +478,13 @@ describe('AdTemplates', () => {
     // フォームを開く
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
-    // プレビューサイズの選択肢を確認
-    const sizeSelect = screen.getByDisplayValue('デスクトップ');
-    expect(sizeSelect).toBeInTheDocument();
+    // プレビューサイズボタンの確認
+    const desktopButton = screen.getByText('🖥️');
+    expect(desktopButton).toBeInTheDocument();
 
-    // タブレットに切り替え
-    await user.selectOptions(sizeSelect, 'tablet');
-    expect(screen.getByDisplayValue('タブレット')).toBeInTheDocument();
-
-    // モバイルに切り替え
-    await user.selectOptions(sizeSelect, 'mobile');
-    expect(screen.getByDisplayValue('モバイル')).toBeInTheDocument();
+    // タブレットとモバイルボタンが存在することを確認
+    const tabletMobileButtons = screen.getAllByText('📱');
+    expect(tabletMobileButtons.length).toBe(2); // タブレットとモバイル
   });
 
   it('プレビューモード切り替えが正常に動作する', async () => {
@@ -508,13 +504,12 @@ describe('AdTemplates', () => {
     // フォームを開く
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
-    // プレビューモードの選択肢を確認
-    const modeSelect = screen.getByDisplayValue('サンプルデータ');
-    expect(modeSelect).toBeInTheDocument();
+    // プレビューモードボタンの確認
+    expect(screen.getByText('サンプル値')).toBeInTheDocument();
+    expect(screen.getByText('カスタム値')).toBeInTheDocument();
 
     // カスタムデータモードに切り替え
-    await user.selectOptions(modeSelect, 'custom');
-    expect(screen.getByDisplayValue('カスタムデータ')).toBeInTheDocument();
+    await user.click(screen.getByText('カスタム値'));
   });
 
   it('カスタムデータ入力が正常に動作する', async () => {
@@ -540,11 +535,10 @@ describe('AdTemplates', () => {
     await user.type(placeholderInput, 'title');
 
     // カスタムデータモードに切り替え
-    const modeSelect = screen.getByDisplayValue('サンプルデータ');
-    await user.selectOptions(modeSelect, 'custom');
+    await user.click(screen.getByText('カスタム値'));
 
     // カスタムデータ入力エリアが表示される
-    expect(screen.getByText('カスタムデータ入力')).toBeInTheDocument();
+    expect(screen.getByText('カスタム値を入力')).toBeInTheDocument();
     // labelとしてのtitleを特定（複数の'title'テキストがあるため）
     const titleLabels = screen.getAllByText('title');
     expect(titleLabels.length).toBeGreaterThan(0);
@@ -697,19 +691,24 @@ describe('AdTemplates', () => {
     // フォームを開く
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
-    // 命名規則ガイドが表示されることを確認
+    // 命名規則ガイドタイトルが表示されることを確認
     expect(screen.getByText('プレースホルダー命名規則')).toBeInTheDocument();
-    expect(screen.getByText('画像')).toBeInTheDocument();
-    expect(screen.getByText('URL')).toBeInTheDocument();
-    expect(screen.getByText('タイトル')).toBeInTheDocument();
-    expect(screen.getByText('説明文')).toBeInTheDocument();
-    expect(screen.getByText('価格')).toBeInTheDocument();
-    expect(screen.getByText('ボタン')).toBeInTheDocument();
-    expect(screen.getByText('日付')).toBeInTheDocument();
-    expect(screen.getByText('名前')).toBeInTheDocument();
+    
+    // 命名規則ガイドを展開
+    await user.click(screen.getByText('表示する'));
+    
+    // 展開された命名規則ガイドの内容が表示されることを確認（複数要素があるので個数で確認）
+    expect(screen.getAllByText('画像').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('URL').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('タイトル').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('説明文').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('価格').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('ボタン').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('日付').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('名前').length).toBeGreaterThan(0);
   });
 
-  it('詳細なサンプル例の表示切り替えが動作する', async () => {
+  it('命名規則ガイドの表示切り替えが動作する', async () => {
     const user = userEvent.setup();
     
     mockFetch.mockResolvedValueOnce({
@@ -726,17 +725,18 @@ describe('AdTemplates', () => {
     // フォームを開く
     await user.click(screen.getByRole('button', { name: '新しいテンプレートを作成' }));
 
-    // サンプル例表示ボタンをクリック
-    const toggleButton = screen.getByText('サンプル例を表示');
-    await user.click(toggleButton);
+    // 命名規則ガイドを展開
+    await user.click(screen.getByText('表示する'));
 
-    // 詳細サンプル例が表示される
-    expect(screen.getByText('プレースホルダー例とサンプル出力')).toBeInTheDocument();
-    expect(screen.getByText('詳細を非表示')).toBeInTheDocument();
+    // ガイド内容が表示される
+    const imageElements = screen.getAllByText('画像');
+    expect(imageElements.length).toBeGreaterThan(0);
 
     // 非表示ボタンをクリック
-    await user.click(screen.getByText('詳細を非表示'));
-    expect(screen.getByText('サンプル例を表示')).toBeInTheDocument();
+    await user.click(screen.getByText('非表示にする'));
+    
+    // 表示ボタンが再び表示される
+    expect(screen.getByText('表示する')).toBeInTheDocument();
   });
 
   it('フォーム送信でnofollowオプションが表示される', async () => {

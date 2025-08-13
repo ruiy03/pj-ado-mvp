@@ -250,8 +250,8 @@ describe('AdTemplates - Error Handling', () => {
     await user.click(screen.getByText('CSVインポート'));
 
     // CSVインポート画面の要素が表示される
-    expect(screen.getByText('CSVフォーマット')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'インポート' })).toBeInTheDocument();
+    expect(screen.getByText('📋 CSVフォーマット')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'インポート実行' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'キャンセル' })).toBeInTheDocument();
   });
 
