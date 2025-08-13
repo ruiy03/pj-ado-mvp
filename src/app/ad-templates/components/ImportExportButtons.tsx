@@ -10,6 +10,7 @@ interface ImportExportButtonsProps {
   onImport: () => void;
   onExport: () => void;
   onCreateClick: () => void;
+  onImportCancel: () => void;
   exportLoading: boolean;
   showImportForm: boolean;
   importLoading: boolean;
@@ -21,6 +22,7 @@ export default function ImportExportButtons({
                                               onImport,
                                               onExport,
                                               onCreateClick,
+                                              onImportCancel,
                                               exportLoading,
                                               showImportForm,
                                               importLoading,
@@ -97,7 +99,7 @@ export default function ImportExportButtons({
               </button>
               <button
                 type="button"
-                onClick={() => window.location.href = '#'}
+                onClick={onImportCancel}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 キャンセル

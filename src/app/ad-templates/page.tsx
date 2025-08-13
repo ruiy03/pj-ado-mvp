@@ -115,6 +115,11 @@ export default function AdTemplates() {
     setShowImportForm(true);
   };
 
+  const handleImportCancel = () => {
+    setShowImportForm(false);
+    setImportResult(null);
+  };
+
   const handleCreateClick = () => {
     setShowCreateForm(true);
     setShowImportForm(false);
@@ -275,6 +280,7 @@ export default function AdTemplates() {
           onImport={handleImportClick}
           onExport={handleExport}
           onCreateClick={handleCreateClick}
+          onImportCancel={handleImportCancel}
           exportLoading={exportLoading}
           showImportForm={showImportForm}
           importLoading={importLoading}
