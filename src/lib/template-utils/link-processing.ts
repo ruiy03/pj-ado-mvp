@@ -49,15 +49,27 @@ export function removeNofollowFromLinks(html: string): string {
 
 /**
  * HTMLコード内のリンクを安全化（プレビュー用）
- * href属性を無効化し、nofollowを追加
+ * nofollowを追加し、外部リンクにtarget="_blank"を設定
  */
 export function sanitizeLinksForPreview(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attributes) => {
-    // href属性を無効化（#に変更）
-    const sanitizedAttributes = attributes.replace(/href\s*=\s*["'][^"']*?["']/gi, 'href="#"');
+    // href属性の値を取得
+    const hrefMatch = attributes.match(/href\s*=\s*["']([^"']*?)["']/gi);
+    let updatedAttributes = attributes;
+
+    if (hrefMatch) {
+      const hrefValue = hrefMatch[0].match(/href\s*=\s*["']([^"']*?)["']/i)?.[1] || '';
+
+      // 外部リンク（http/httpsで始まる）の場合、target="_blank"を追加
+      if (hrefValue.match(/^https?:\/\//i)) {
+        if (!attributes.match(/target\s*=/i)) {
+          updatedAttributes = `${attributes} target="_blank"`;
+        }
+      }
+    }
 
     // nofollowを追加
-    const withNofollow = addNofollowToLinks(`<a ${sanitizedAttributes}>`);
+    const withNofollow = addNofollowToLinks(`<a ${updatedAttributes}>`);
     return withNofollow;
   });
 }

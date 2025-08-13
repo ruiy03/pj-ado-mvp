@@ -128,16 +128,22 @@ describe('link-processing', () => {
   });
 
   describe('sanitizeLinksForPreview', () => {
-    it('hrefを#に変更しnofollowを追加する', () => {
+    it('外部URLにnofollowとtarget="_blank"を追加する', () => {
       const html = '<a href="https://example.com">Link</a>';
       const result = sanitizeLinksForPreview(html);
-      expect(result).toBe('<a href="#" rel="nofollow">Link</a>');
+      expect(result).toBe('<a href="https://example.com" target="_blank" rel="nofollow">Link</a>');
     });
 
     it('既存のrel属性がある場合はnofollowを追加する', () => {
       const html = '<a href="https://example.com" rel="external">Link</a>';
       const result = sanitizeLinksForPreview(html);
-      expect(result).toBe('<a href="#" rel="external nofollow">Link</a>');
+      expect(result).toBe('<a href="https://example.com" rel="external nofollow" target="_blank">Link</a>');
+    });
+
+    it('既存のtarget属性がある場合は上書きしない', () => {
+      const html = '<a href="https://example.com" target="_self">Link</a>';
+      const result = sanitizeLinksForPreview(html);
+      expect(result).toBe('<a href="https://example.com" target="_self" rel="nofollow">Link</a>');
     });
 
     it('複数のリンクを処理する', () => {
@@ -146,10 +152,11 @@ describe('link-processing', () => {
         <a href="https://example2.com" rel="external">Link2</a>
       `;
       const result = sanitizeLinksForPreview(html);
-      expect(result).toContain('href="#"');
+      expect(result).toContain('href="https://example1.com"');
+      expect(result).toContain('href="https://example2.com"');
       expect(result).toContain('rel="nofollow"');
       expect(result).toContain('rel="external nofollow"');
-      expect(result.match(/href="#"/g)).toHaveLength(2);
+      expect(result.match(/target="_blank"/g)).toHaveLength(2);
     });
 
     it('様々なhref形式を処理する', () => {
@@ -158,19 +165,26 @@ describe('link-processing', () => {
         <a href='http://example.com'>HTTP Link</a>
         <a href="mailto:test@example.com">Email Link</a>
         <a href="tel:123-456-7890">Phone Link</a>
+        <a href="/relative/path">Relative Link</a>
       `;
       const result = sanitizeLinksForPreview(html);
-      expect(result.match(/href="#"/g)).toHaveLength(4);
-      expect(result.match(/rel="[^"]*nofollow[^"]*"/g)).toHaveLength(4);
+      // 外部リンク（https/http）のみがtarget="_blank"を持つ
+      expect(result.match(/target="_blank"/g)).toHaveLength(2);
+      // 全てのリンクがnofollowを持つ
+      expect(result.match(/rel="[^"]*nofollow[^"]*"/g)).toHaveLength(5);
+      // hrefは保持される
+      expect(result).toContain('href="https://example.com"');
+      expect(result).toContain('href="mailto:test@example.com"');
+      expect(result).toContain('href="/relative/path"');
     });
 
     it('他の属性は保持する', () => {
-      const html = '<a href="https://example.com" class="btn" id="link1" target="_blank">Link</a>';
+      const html = '<a href="https://example.com" class="btn" id="link1">Link</a>';
       const result = sanitizeLinksForPreview(html);
       expect(result).toContain('class="btn"');
       expect(result).toContain('id="link1"');
       expect(result).toContain('target="_blank"');
-      expect(result).toContain('href="#"');
+      expect(result).toContain('href="https://example.com"');
       expect(result).toContain('rel="nofollow"');
     });
 
@@ -184,7 +198,8 @@ describe('link-processing', () => {
         </div>
       `;
       const result = sanitizeLinksForPreview(html);
-      expect(result).toContain('href="#"');
+      expect(result).toContain('href="https://example.com"');
+      expect(result).toContain('target="_blank"');
       expect(result).toContain('rel="external nofollow"');
       expect(result).toContain('<img src="image.jpg" alt="Image" />');
       expect(result).toContain('<span>Link Text</span>');
