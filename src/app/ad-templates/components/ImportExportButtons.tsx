@@ -77,14 +77,16 @@ export default function ImportExportButtons({
 
           <form onSubmit={handleImport} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="csv-file" className="block text-sm font-medium text-gray-700 mb-2">
                 CSVファイルを選択
               </label>
               <input
+                id="csv-file"
                 type="file"
                 name="file"
                 accept=".csv"
                 required
+                disabled={importLoading}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
               />
             </div>
@@ -100,7 +102,8 @@ export default function ImportExportButtons({
               <button
                 type="button"
                 onClick={onImportCancel}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                disabled={importLoading}
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 キャンセル
               </button>

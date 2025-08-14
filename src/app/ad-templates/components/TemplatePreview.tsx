@@ -139,10 +139,11 @@ export default function TemplatePreview({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {formData.placeholders.map((placeholder: string) => (
                 <div key={placeholder} className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label htmlFor={`custom-${placeholder}`} className="text-sm font-medium text-gray-700">
                     {placeholder}
                   </label>
                   <input
+                    id={`custom-${placeholder}`}
                     type="text"
                     value={customValues[placeholder] || ''}
                     onChange={(e) => updateCustomValue(placeholder, e.target.value)}
