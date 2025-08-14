@@ -68,7 +68,7 @@ export default function ImportExportButtons({
             <div className="bg-white p-3 rounded border text-xs font-mono overflow-x-auto">
               <div>name,html,placeholders,description</div>
               <div
-                className="text-gray-600">&quot;サンプル広告&quot;,&quot;&lt;div&gt;&#123;&#123;title&#125;&#125;&lt;/div&gt;&quot;,&quot;title,linkUrl&quot;,&quot;サンプルの説明&quot;</div>
+                className="text-gray-600">&quot;サンプル広告&quot;,&quot;&lt;a href=&#123;&#123;linkUrl&#125;&#125;&gt;&lt;div&gt;&#123;&#123;title&#125;&#125;&lt;/div&gt;&lt;/a&gt;&quot;,&quot;title,linkUrl&quot;,&quot;サンプルの説明&quot;</div>
             </div>
             <div className="mt-3 text-xs text-blue-600">
               <strong>注意:</strong> placeholders列には、プレースホルダーをカンマで区切って記載してください
