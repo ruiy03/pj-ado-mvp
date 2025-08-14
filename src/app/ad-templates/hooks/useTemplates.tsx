@@ -17,7 +17,13 @@ export function useTemplates() {
         throw new Error('テンプレートの取得に失敗しました');
       }
       const data = await response.json();
-      setTemplates(data);
+      // updated_atでソート（最新が一番上）
+      const sortedData = data.sort((a: AdTemplate, b: AdTemplate) => {
+        const dateA = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+        const dateB = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+        return dateB - dateA;
+      });
+      setTemplates(sortedData);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'エラーが発生しました');
     } finally {
@@ -44,7 +50,9 @@ export function useTemplates() {
       throw new Error(errorData.error || 'テンプレートの保存に失敗しました');
     }
 
-    await fetchTemplates();
+    // 新しく作成されたテンプレートを取得して一番上に配置
+    const newTemplate = await response.json();
+    setTemplates(prev => [newTemplate, ...prev]);
   };
 
   const updateTemplate = async (id: number, formData: CreateAdTemplateRequest, autoNofollow: boolean) => {
@@ -62,7 +70,12 @@ export function useTemplates() {
       throw new Error(errorData.error || 'テンプレートの更新に失敗しました');
     }
 
-    await fetchTemplates();
+    // 更新されたテンプレートを取得して一番上に配置
+    const updatedTemplate = await response.json();
+    setTemplates(prev => {
+      const filtered = prev.filter(t => t.id !== id);
+      return [updatedTemplate, ...filtered];
+    });
   };
 
   const deleteTemplate = async (id: number) => {
@@ -77,7 +90,8 @@ export function useTemplates() {
       throw new Error(errorData.error || 'テンプレートの削除に失敗しました');
     }
 
-    await fetchTemplates();
+    // 削除されたテンプレートをリストから除外
+    setTemplates(prev => prev.filter(t => t.id !== id));
   };
 
   return {
