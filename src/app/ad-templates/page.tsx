@@ -38,7 +38,7 @@ export default function AdTemplates() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [previewMode, setPreviewMode] = useState<'sample' | 'custom'>('sample');
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
-  const [previewSize, setPreviewSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewSize, setPreviewSize] = useState<'desktop' | 'mobile'>('desktop');
   const [autoNofollow, setAutoNofollow] = useState(true);
   const formRef = useRef<HTMLDivElement>(null);
 
