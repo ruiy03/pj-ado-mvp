@@ -50,10 +50,11 @@ export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
           {isEdit && <input type="hidden" name="id" value={user.id} />}
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               名前
             </label>
             <input
+              id="name"
               type="text"
               name="name"
               value={formValues.name}
@@ -64,10 +65,11 @@ export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               メールアドレス
             </label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formValues.email}
@@ -80,10 +82,11 @@ export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
           <input type="hidden" name="role" value="editor" />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               パスワード {isEdit && '(変更する場合のみ)'}
             </label>
             <input
+              id="password"
               type="password"
               name="password"
               value={formValues.password}

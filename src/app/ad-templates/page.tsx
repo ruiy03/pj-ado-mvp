@@ -1,5 +1,6 @@
 'use client';
 
+import ClientProtectedPage from '@/components/ClientProtectedPage';
 import {useState, useEffect, useCallback, useRef} from 'react';
 import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
 import {extractPlaceholders, validatePlaceholders} from '@/lib/template-utils';
@@ -38,7 +39,7 @@ export default function AdTemplates() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [previewMode, setPreviewMode] = useState<'sample' | 'custom'>('sample');
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
-  const [previewSize, setPreviewSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewSize, setPreviewSize] = useState<'desktop' | 'mobile'>('desktop');
   const [autoNofollow, setAutoNofollow] = useState(true);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -262,73 +263,75 @@ export default function AdTemplates() {
   }
 
   return (
-    <div>
-      <div className="space-y-6">
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="float-right text-red-500 hover:text-red-700 cursor-pointer"
-            >
-              ×
-            </button>
-          </div>
-        )}
+    <ClientProtectedPage>
+      <div>
+        <div className="space-y-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+              <button
+                onClick={() => setError(null)}
+                className="float-right text-red-500 hover:text-red-700 cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
-        <ImportExportButtons
-          onImport={handleImportClick}
-          onExport={handleExport}
-          onCreateClick={handleCreateClick}
-          onImportCancel={handleImportCancel}
-          exportLoading={exportLoading}
-          showImportForm={showImportForm}
-          importLoading={importLoading}
-          importResult={importResult}
-          handleImport={handleImport}
-        />
+          <ImportExportButtons
+            onImport={handleImportClick}
+            onExport={handleExport}
+            onCreateClick={handleCreateClick}
+            onImportCancel={handleImportCancel}
+            exportLoading={exportLoading}
+            showImportForm={showImportForm}
+            importLoading={importLoading}
+            importResult={importResult}
+            handleImport={handleImport}
+          />
 
-        {showCreateForm && (
-          <div ref={formRef} className="bg-white rounded-lg shadow p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <TemplateForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  validationErrors={validationErrors}
-                  autoNofollow={autoNofollow}
-                  setAutoNofollow={setAutoNofollow}
-                  showNamingGuide={showNamingGuide}
-                  setShowNamingGuide={setShowNamingGuide}
-                  editingTemplate={editingTemplate}
-                  onSubmit={handleSubmit}
-                  onCancel={handleCancel}
-                  autoExtractPlaceholders={autoExtractPlaceholders}
-                />
-              </div>
+          {showCreateForm && (
+            <div ref={formRef} className="bg-white rounded-lg shadow p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <TemplateForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    validationErrors={validationErrors}
+                    autoNofollow={autoNofollow}
+                    setAutoNofollow={setAutoNofollow}
+                    showNamingGuide={showNamingGuide}
+                    setShowNamingGuide={setShowNamingGuide}
+                    editingTemplate={editingTemplate}
+                    onSubmit={handleSubmit}
+                    onCancel={handleCancel}
+                    autoExtractPlaceholders={autoExtractPlaceholders}
+                  />
+                </div>
 
-              <div className="space-y-4">
-                <TemplatePreview
-                  formData={formData}
-                  previewMode={previewMode}
-                  customValues={customValues}
-                  previewSize={previewSize}
-                  setPreviewMode={setPreviewMode}
-                  setPreviewSize={setPreviewSize}
-                  updateCustomValue={updateCustomValue}
-                />
+                <div className="space-y-4">
+                  <TemplatePreview
+                    formData={formData}
+                    previewMode={previewMode}
+                    customValues={customValues}
+                    previewSize={previewSize}
+                    setPreviewMode={setPreviewMode}
+                    setPreviewSize={setPreviewSize}
+                    updateCustomValue={updateCustomValue}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <TemplateList
-          templates={templates}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onCreateClick={handleCreateClick}
-        />
+          <TemplateList
+            templates={templates}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onCreateClick={handleCreateClick}
+          />
+        </div>
       </div>
-    </div>
+    </ClientProtectedPage>
   );
 }

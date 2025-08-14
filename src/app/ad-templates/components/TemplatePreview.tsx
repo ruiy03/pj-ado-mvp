@@ -7,9 +7,9 @@ interface TemplatePreviewProps {
   formData: CreateAdTemplateRequest;
   previewMode: 'sample' | 'custom';
   customValues: Record<string, string>;
-  previewSize: 'desktop' | 'tablet' | 'mobile';
+  previewSize: 'desktop' | 'mobile';
   setPreviewMode: (mode: 'sample' | 'custom') => void;
-  setPreviewSize: (size: 'desktop' | 'tablet' | 'mobile') => void;
+  setPreviewSize: (size: 'desktop' | 'mobile') => void;
   updateCustomValue: (placeholder: string, value: string) => void;
 }
 
@@ -48,7 +48,6 @@ export default function TemplatePreview({
 
     const sizeClasses = {
       desktop: 'max-w-full',
-      tablet: 'max-w-md mx-auto',
       mobile: 'max-w-xs mx-auto'
     };
 
@@ -121,17 +120,6 @@ export default function TemplatePreview({
               </button>
               <button
                 type="button"
-                onClick={() => setPreviewSize('tablet')}
-                className={`px-3 py-1 transition-colors ${
-                  previewSize === 'tablet' 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                }`}
-              >
-                📱
-              </button>
-              <button
-                type="button"
                 onClick={() => setPreviewSize('mobile')}
                 className={`px-3 py-1 transition-colors ${
                   previewSize === 'mobile' 
@@ -151,10 +139,11 @@ export default function TemplatePreview({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {formData.placeholders.map((placeholder: string) => (
                 <div key={placeholder} className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label htmlFor={`custom-${placeholder}`} className="text-sm font-medium text-gray-700">
                     {placeholder}
                   </label>
                   <input
+                    id={`custom-${placeholder}`}
                     type="text"
                     value={customValues[placeholder] || ''}
                     onChange={(e) => updateCustomValue(placeholder, e.target.value)}

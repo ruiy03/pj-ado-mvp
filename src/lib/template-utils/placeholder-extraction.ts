@@ -19,7 +19,7 @@ export function getSampleValue(placeholder: string): string {
   // 画像関連のプレースホルダー
   if (lowerPlaceholder.includes('image') || lowerPlaceholder.includes('img') || lowerPlaceholder.includes('picture') ||
     lowerPlaceholder.includes('photo') || lowerPlaceholder.includes('banner')) {
-    return 'https://picsum.photos/300/200';
+    return '/images/sample-ad.svg';
   }
 
   // URL関連のプレースホルダー

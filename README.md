@@ -1,10 +1,18 @@
 # 広告管理システム (Ado) MVP
 
+![Next.js](https://img.shields.io/badge/Next.js-15.4.5-black?style=flat-square&logo=next.js)
+![React](https://img.shields.io/badge/React-19.1.0-blue?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
+![NextAuth.js](https://img.shields.io/badge/NextAuth.js-5.0.0--beta-purple?style=flat-square)
+![Jest](https://img.shields.io/badge/Jest-29.7.0-C21325?style=flat-square&logo=jest)
+
 LMG向けの内部メディア（PORTキャリアなど）の広告管理システムMVPです。
 
 ## プロジェクト概要
 
-このプロジェクトはNext.js、TypeScript、Tailwind CSS、NextAuth.jsを使用して構築された日本語の広告管理システムです。認証機能とアカウント管理機能を備えた本格的なWebアプリケーションとして開発されています。
+このプロジェクトはNext.js、TypeScript、Tailwind
+CSS、NextAuth.jsを使用して構築された日本語の広告管理システムです。認証機能とアカウント管理機能を備えた本格的なWebアプリケーションとして開発されています。
 
 ### 主な機能
 
@@ -16,46 +24,57 @@ LMG向けの内部メディア（PORTキャリアなど）の広告管理シス�
 - **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
 - **👥 アカウント管理** - ユーザーアカウント管理システム
 
-## セットアップ手順
+## 🚀 クイックスタート
 
-### 1. 依存関係のインストール
+### 前提条件
 
-```bash
-npm install
-```
+- Node.js 18.17以上
+- npm または yarn
+- Neon PostgreSQL データベース
 
-### 2. 環境変数の設定
+### セットアップ手順
 
-`.env.local`ファイルを作成し、以下の環境変数を設定してください：
+1. **リポジトリのクローン**
+   ```bash
+   git clone <repository-url>
+   cd pj-ado-mvp
+   ```
 
-```env
-DATABASE_URL=your_neon_database_url
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
-```
+2. **依存関係のインストール**
+   ```bash
+   npm install
+   ```
 
-### 3. データベースの初期化
+3. **環境変数の設定**
 
-```bash
-node scripts/seed.js
-```
+   `.env.local`ファイルを作成し、以下の環境変数を設定：
+   ```env
+   DATABASE_URL=your_neon_database_url
+   NEXTAUTH_SECRET=your_nextauth_secret_key_32_characters_long
+   NEXTAUTH_URL=http://localhost:3000
+   ```
 
-このコマンドにより、usersテーブルとad_templatesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
+4. **データベースの初期化**
+   ```bash
+   node scripts/seed.js
+   ```
+   > このコマンドにより、usersテーブルとad_templatesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
-### 4. 開発サーバーの起動
+5. **開発サーバーの起動**
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-```
+   ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
 
-ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
-
-## ログイン情報
+## 🔐 ログイン情報
 
 開発・テスト用のログイン情報：
 
-- **管理者アカウント**: `admin@example.com` / `password123`
-- **編集者アカウント**: `editor@example.com` / `password123`
+| 役割      | メールアドレス              | パスワード         | 権限          |
+|---------|----------------------|---------------|-------------|
+| **管理者** | `admin@example.com`  | `password123` | 全機能アクセス     |
+| **編集者** | `editor@example.com` | `password123` | テンプレート・広告管理 |
 
 ## 技術スタック
 
@@ -173,20 +192,20 @@ pj-ado-mvp/
 
 ### 広告テンプレート API
 
-| エンドポイント | メソッド | 説明 | 認証 |
-|-------------|--------|------|------|
-| `/api/templates` | GET | 全テンプレート取得 | 必須 |
-| `/api/templates` | POST | 新規テンプレート作成 | 必須 |
-| `/api/templates/[id]` | GET | 個別テンプレート取得 | 必須 |
-| `/api/templates/[id]` | PUT | テンプレート更新 | 必須 |
-| `/api/templates/[id]` | DELETE | テンプレート削除 | 必須 |
-| `/api/templates/import` | POST | CSVからテンプレートインポート | 必須 |
-| `/api/templates/export` | GET | テンプレートをCSVエクスポート | 必須 |
+| エンドポイント                 | メソッド   | 説明               | 認証 |
+|-------------------------|--------|------------------|----|
+| `/api/templates`        | GET    | 全テンプレート取得        | 必須 |
+| `/api/templates`        | POST   | 新規テンプレート作成       | 必須 |
+| `/api/templates/[id]`   | GET    | 個別テンプレート取得       | 必須 |
+| `/api/templates/[id]`   | PUT    | テンプレート更新         | 必須 |
+| `/api/templates/[id]`   | DELETE | テンプレート削除         | 必須 |
+| `/api/templates/import` | POST   | CSVからテンプレートインポート | 必須 |
+| `/api/templates/export` | GET    | テンプレートをCSVエクスポート | 必須 |
 
 ### 認証 API
 
-| エンドポイント | メソッド | 説明 |
-|-------------|--------|------|
+| エンドポイント                   | メソッド     | 説明                  |
+|---------------------------|----------|---------------------|
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth.js 認証ハンドラー |
 
 ## 認証・認可について
@@ -206,15 +225,15 @@ pj-ado-mvp/
 
 システムでは2段階の役割システムを実装：
 
-| 役割 | レベル | 権限 |
-|------|--------|------|
-| **管理者 (admin)** | 2 | 全機能アクセス、ユーザー管理、テンプレート管理 |
-| **編集者 (editor)** | 1 | テンプレート作成・編集、広告管理 |
+| 役割               | レベル | 権限                      |
+|------------------|-----|-------------------------|
+| **管理者 (admin)**  | 2   | 全機能アクセス、ユーザー管理、テンプレート管理 |
+| **編集者 (editor)** | 1   | テンプレート作成・編集、広告管理        |
 
 #### 認可ヘルパー関数
 
 - `hasMinimumRole(user, role)` - 最小権限チェック
-- `isAdmin(user)` - 管理者権限チェック  
+- `isAdmin(user)` - 管理者権限チェック
 - `canEdit(user)` - 編集権限チェック
 - `withAuthorization(handler, requiredRole)` - API認可ラッパー
 
@@ -228,27 +247,27 @@ pj-ado-mvp/
 
 ### users テーブル
 
-| カラム | 型 | 説明 | 制約 |
-|--------|-----|------|------|
-| `id` | SERIAL | プライマリキー | PRIMARY KEY |
-| `name` | VARCHAR(255) | ユーザー名 | NOT NULL |
-| `email` | VARCHAR(255) | メールアドレス | UNIQUE, NOT NULL |
-| `password` | VARCHAR(255) | bcryptハッシュ化パスワード | NOT NULL |
-| `role` | VARCHAR(20) | ユーザー役割 (admin/editor) | NOT NULL, DEFAULT 'editor' |
-| `created_at` | TIMESTAMP | 作成日時 | DEFAULT NOW() |
-| `updated_at` | TIMESTAMP | 更新日時 | DEFAULT NOW() |
+| カラム          | 型            | 説明                    | 制約                         |
+|--------------|--------------|-----------------------|----------------------------|
+| `id`         | SERIAL       | プライマリキー               | PRIMARY KEY                |
+| `name`       | VARCHAR(255) | ユーザー名                 | NOT NULL                   |
+| `email`      | VARCHAR(255) | メールアドレス               | UNIQUE, NOT NULL           |
+| `password`   | VARCHAR(255) | bcryptハッシュ化パスワード      | NOT NULL                   |
+| `role`       | VARCHAR(20)  | ユーザー役割 (admin/editor) | NOT NULL, DEFAULT 'editor' |
+| `created_at` | TIMESTAMP    | 作成日時                  | DEFAULT NOW()              |
+| `updated_at` | TIMESTAMP    | 更新日時                  | DEFAULT NOW()              |
 
 ### ad_templates テーブル
 
-| カラム | 型 | 説明 | 制約 |
-|--------|-----|------|------|
-| `id` | SERIAL | プライマリキー | PRIMARY KEY |
-| `name` | VARCHAR(255) | テンプレート名 | NOT NULL |
-| `html` | TEXT | HTMLテンプレート | NOT NULL |
-| `placeholders` | JSON | プレースホルダー配列 | |
-| `description` | TEXT | テンプレート説明 | |
-| `created_at` | TIMESTAMP | 作成日時 | DEFAULT NOW() |
-| `updated_at` | TIMESTAMP | 更新日時 | DEFAULT NOW() |
+| カラム            | 型            | 説明         | 制約            |
+|----------------|--------------|------------|---------------|
+| `id`           | SERIAL       | プライマリキー    | PRIMARY KEY   |
+| `name`         | VARCHAR(255) | テンプレート名    | NOT NULL      |
+| `html`         | TEXT         | HTMLテンプレート | NOT NULL      |
+| `placeholders` | JSON         | プレースホルダー配列 |               |
+| `description`  | TEXT         | テンプレート説明   |               |
+| `created_at`   | TIMESTAMP    | 作成日時       | DEFAULT NOW() |
+| `updated_at`   | TIMESTAMP    | 更新日時       | DEFAULT NOW() |
 
 ## テンプレートシステム
 

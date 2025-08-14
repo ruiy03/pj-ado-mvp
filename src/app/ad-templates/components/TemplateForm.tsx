@@ -136,7 +136,7 @@ export default function TemplateForm({
           />
           <div className="flex justify-between items-start mt-1">
             <p className="text-xs text-gray-500">
-              例: &lt;div class=&quot;ad-banner&quot;&gt;&lt;h2&gt;&#123;&#123;title&#125;&#125;&lt;/h2&gt;&lt;img src=&quot;&#123;&#123;imageUrl&#125;&#125;&quot; /&gt;&lt;/div&gt;
+              例: &lt;div class=&quot;ad-banner&quot;&gt;&lt;h2&gt;&#123;&#123;title&#125;&#125;&lt;/h2&gt;&lt;a href=&quot;&#123;&#123;linkUrl&#125;&#125;&quot;&gt;&lt;img src=&quot;&#123;&#123;imageUrl&#125;&#125;&quot; /&gt;&lt;/a&gt;&lt;/div&gt;
             </p>
             {autoNofollow && (
               <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
@@ -200,7 +200,7 @@ export default function TemplateForm({
                       type="text"
                       value={placeholder}
                       onChange={(e) => updatePlaceholder(index, e.target.value)}
-                      placeholder="プレースホルダー名（例：title, imageUrl）"
+                      placeholder="プレースホルダー名（例：title, imageUrl, linkUrl）"
                       className={`w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
                         placeholder.trim() && !isValid
                           ? 'border-red-300 bg-red-50'
