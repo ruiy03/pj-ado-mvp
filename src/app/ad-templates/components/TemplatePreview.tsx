@@ -86,7 +86,7 @@ export default function TemplatePreview({
               <button
                 type="button"
                 onClick={() => setPreviewMode('sample')}
-                className={`px-3 py-1 transition-colors ${
+                className={`px-3 py-1 transition-colors cursor-pointer ${
                   previewMode === 'sample' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -97,7 +97,7 @@ export default function TemplatePreview({
               <button
                 type="button"
                 onClick={() => setPreviewMode('custom')}
-                className={`px-3 py-1 transition-colors ${
+                className={`px-3 py-1 transition-colors cursor-pointer ${
                   previewMode === 'custom' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -110,7 +110,7 @@ export default function TemplatePreview({
               <button
                 type="button"
                 onClick={() => setPreviewSize('desktop')}
-                className={`px-3 py-1 transition-colors ${
+                className={`px-3 py-1 transition-colors cursor-pointer ${
                   previewSize === 'desktop' 
                     ? 'bg-green-600 text-white' 
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -121,7 +121,7 @@ export default function TemplatePreview({
               <button
                 type="button"
                 onClick={() => setPreviewSize('mobile')}
-                className={`px-3 py-1 transition-colors ${
+                className={`px-3 py-1 transition-colors cursor-pointer ${
                   previewSize === 'mobile' 
                     ? 'bg-green-600 text-white' 
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'

@@ -119,17 +119,17 @@ export default function UserForm({user, onClose, onSuccess}: UserFormProps) {
 
           <div className="flex space-x-2">
             <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded transition-colors cursor-pointer"
+            >
+              キャンセル
+            </button>
+            <button
               type="submit"
               className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition-colors"
             >
               {isEdit ? '更新' : '作成'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded transition-colors"
-            >
-              キャンセル
             </button>
           </div>
         </form>
