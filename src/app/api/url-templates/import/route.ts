@@ -103,7 +103,7 @@ function validateUrlTemplateData(data: Record<string, string>): CreateUrlTemplat
 
   return {
     name: data.name.trim(),
-    url: data.url.trim(),
+    url_template: data.url.trim(),
     parameters,
     description: data.description || '',
   };

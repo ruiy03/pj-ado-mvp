@@ -67,7 +67,9 @@ Uses Neon PostgreSQL with the following structure:
 
 - **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
 - **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`, `updated_at`
-- **url_templates table**: `id` (serial), `name`, `base_url`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `custom_params` (JSON), `description`, `is_active`, `created_at`, `updated_at`
+- **url_templates table**: `id` (serial), `name`, `url_template`, `parameters` (JSON), `description`, `created_at`, `updated_at`
+- **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON), `status` (enum), `created_by` (FK), `created_at`, `updated_at`
+- **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`, `alt_text`, `placeholder_name`, `created_at`
 - **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via `scripts/seed.js`
 
 ### Testing Setup
@@ -78,7 +80,7 @@ The application uses Jest with React Testing Library for comprehensive unit and 
 - **Setup file**: `jest.setup.js` for global test configuration including comprehensive Web API mocks (Request, Response, FormData, Headers, etc.)
 - **Test environment**: jsdom for DOM testing with React components
 - **Test location**: `__tests__/` directory with component and utility tests
-- **Coverage**: 25 test suites with 285 tests covering components, hooks, API routes, utilities, and accessibility
+- **Coverage**: 33 test suites with 403 tests covering components, hooks, API routes, utilities, and accessibility
 - **Test types**: Component testing, API endpoint testing, utility function testing, hook testing, and integration tests
 
 ### Page Structure
@@ -100,6 +102,11 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/templates/export` - Template export functionality (GET)
 - `/api/url-templates` - REST API for URL template CRUD operations (GET, POST)
 - `/api/url-templates/[id]` - Individual URL template operations (GET, PUT, DELETE)
+- `/api/url-templates/import` - URL template import functionality (POST)
+- `/api/url-templates/export` - URL template export functionality (GET)
+- `/api/ad-contents` - REST API for ad content CRUD operations (GET, POST)
+- `/api/ad-contents/[id]` - Individual ad content operations (GET, PUT, DELETE)
+- `/api/upload` - File upload handling for ad images using Vercel Blob storage
 
 Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese text and icons.
 
@@ -109,6 +116,7 @@ Most pages are implemented with full functionality. Some protected pages show pl
 - **React 19** - UI library with client-side navigation
 - **NextAuth.js 5.0.0-beta.29** - Authentication with Credentials provider
 - **Neon Database** - PostgreSQL serverless database
+- **Vercel Blob** - File storage service for ad images
 - **bcrypt** - Password hashing
 - **Zod 4.0.15** - Schema validation for authentication and user management
 - **TypeScript 5** - Strict type safety configuration with path aliases (@/*)
@@ -155,3 +163,18 @@ The URL template system provides comprehensive tracking parameter management for
 - **Template activation**: Boolean flag system for enabling/disabling URL templates
 
 URL templates support standard UTM parameters and custom JSON parameters for flexible campaign tracking and analytics integration.
+
+## Ad Content Management System
+
+The ad content management system provides comprehensive advertisement creation and management with image handling:
+
+- **Ad content management**: `src/lib/ad-content-actions.ts` provides server actions for ad content CRUD with authorization checks
+- **Image upload system**: `src/components/ImageUpload.tsx` handles file uploads with drag-and-drop support and Vercel Blob integration
+- **Content data structure**: JSON-based content storage linking to templates and URL templates with dynamic placeholder support
+- **Status management**: Four-state workflow (draft, active, paused, archived) for ad lifecycle management
+- **Image association**: Links uploaded images to specific placeholder names in ad templates for dynamic content insertion
+- **Ad content hooks**: `src/app/ads/hooks/useAdContents.tsx` manages ad content state and operations
+- **UI components**: `AdContentCard.tsx`, `AdContentForm.tsx`, `AdPreview.tsx`, and `AdContentClient.tsx` for complete CRUD interface
+- **File storage**: Vercel Blob storage integration for scalable image hosting with metadata tracking
+
+Ad contents combine templates, URL templates, and user-uploaded images to create complete advertisement instances with comprehensive tracking and preview capabilities.

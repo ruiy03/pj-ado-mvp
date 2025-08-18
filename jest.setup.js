@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom';
 
+// テスト用環境変数を設定
+process.env.DATABASE_URL = 'postgres://test:test@localhost:5432/test';
+
 // Suppress console.error and console.log during tests
 const originalError = console.error;
 const originalLog = console.log;

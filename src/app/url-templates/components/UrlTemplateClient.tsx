@@ -170,7 +170,7 @@ export default function UrlTemplateClient() {
             <div className="text-red-600 text-sm">{error}</div>
             <button
               onClick={() => setError(null)}
-              className="ml-auto text-red-600 hover:text-red-800"
+              className="ml-auto text-red-600 hover:text-red-800 cursor-pointer"
             >
               ×
             </button>
@@ -187,7 +187,7 @@ export default function UrlTemplateClient() {
               <p className="text-gray-400">計測パラメータ付きのURLテンプレートを作成して始めましょう</p>
               <button
                 onClick={handleCreateClick}
-                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer">
                 最初のテンプレートを作成
               </button>
             </div>

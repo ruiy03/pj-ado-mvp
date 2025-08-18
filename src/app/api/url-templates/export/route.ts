@@ -18,7 +18,7 @@ export async function GET() {
     // CSV データ生成
     const csvRows = templates.map(template => [
       `"${template.name.replace(/"/g, '""')}"`, // エスケープ処理
-      `"${template.url.replace(/"/g, '""')}"`,
+      `"${template.url_template.replace(/"/g, '""')}"`,
       `"${JSON.stringify(template.parameters).replace(/"/g, '""')}"`,
       `"${(template.description || '').replace(/"/g, '""')}"`
     ]);

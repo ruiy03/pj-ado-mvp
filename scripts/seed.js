@@ -1,5 +1,10 @@
 const {neon} = require('@neondatabase/serverless');
 const bcrypt = require('bcrypt');
+const path = require('path');
+
+// .env.local ファイルを優先して読み込む
+require('dotenv').config({path: path.resolve(process.cwd(), '.env.local')});
+// .env ファイルも読み込む（.env.localに無い変数のため）
 require('dotenv').config();
 
 const sql = neon(process.env.DATABASE_URL);
@@ -76,9 +81,36 @@ async function seed() {
 
     console.log('Creating url_templates table...');
 
+    // Drop existing url_templates table to ensure schema matches
+    await sql`DROP TABLE IF EXISTS url_templates CASCADE`;
+
     // Create url_templates table
     await sql`
-        CREATE TABLE IF NOT EXISTS url_templates
+        CREATE TABLE url_templates
+        (
+            id
+                         SERIAL
+                PRIMARY
+                    KEY,
+            name
+                         VARCHAR(255) NOT NULL,
+            url_template TEXT         NOT NULL,
+            parameters   JSON,
+            description  TEXT,
+            created_at   TIMESTAMP DEFAULT NOW
+                                           (
+                                           ),
+            updated_at   TIMESTAMP DEFAULT NOW
+                                           (
+                                           )
+        );
+    `;
+
+    console.log('Creating ad_contents table...');
+
+    // Create ad_contents table
+    await sql`
+        CREATE TABLE IF NOT EXISTS ad_contents
         (
             id
             SERIAL
@@ -89,9 +121,25 @@ async function seed() {
         (
             255
         ) NOT NULL,
-            url TEXT NOT NULL,
-            parameters JSON,
-            description TEXT,
+            template_id INTEGER REFERENCES ad_templates
+        (
+            id
+        ) ON DELETE SET NULL,
+            url_template_id INTEGER REFERENCES url_templates
+        (
+            id
+        )
+          ON DELETE SET NULL,
+            content_data JSON DEFAULT '{}',
+            status VARCHAR
+        (
+            20
+        ) DEFAULT 'draft',
+            created_by INTEGER REFERENCES users
+        (
+            id
+        )
+          ON DELETE SET NULL,
             created_at TIMESTAMP DEFAULT NOW
         (
         ),
@@ -99,6 +147,67 @@ async function seed() {
         (
         )
             );
+    `;
+
+    console.log('Creating ad_images table...');
+
+    // Create ad_images table
+    await sql`
+        CREATE TABLE IF NOT EXISTS ad_images
+        (
+            id
+            SERIAL
+            PRIMARY
+            KEY,
+            ad_content_id
+            INTEGER
+            REFERENCES
+            ad_contents
+        (
+            id
+        ) ON DELETE CASCADE,
+            blob_url VARCHAR
+        (
+            500
+        ) NOT NULL,
+            original_filename VARCHAR
+        (
+            255
+        ),
+            file_size INTEGER,
+            mime_type VARCHAR
+        (
+            100
+        ),
+            alt_text VARCHAR
+        (
+            255
+        ),
+            placeholder_name VARCHAR
+        (
+            100
+        ), -- テンプレートのプレースホルダー名
+            created_at TIMESTAMP DEFAULT NOW
+        (
+        )
+            );
+    `;
+
+    // Create indexes for performance
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_ad_contents_template_id ON ad_contents(template_id);
+    `;
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_ad_contents_url_template_id ON ad_contents(url_template_id);
+    `;
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_ad_contents_created_by ON ad_contents(created_by);
+    `;
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_ad_contents_status ON ad_contents(status);
+    `;
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_ad_images_ad_content_id ON ad_images(ad_content_id);
     `;
 
     console.log('Seeding users...');
@@ -120,7 +229,8 @@ async function seed() {
     console.log('Seeding ad_templates...');
 
     // Clear existing templates and insert new ones
-    await sql`DELETE FROM ad_templates`;
+    await sql`DELETE
+              FROM ad_templates`;
 
     // Insert sample ad templates for job-hunting services
     await sql`
@@ -135,7 +245,7 @@ async function seed() {
     <p style="font-size: 14px; opacity: 0.9;">{{buttonText}}</p>
   </div>
 </a>',
-             '["title", "imageUrl", "linkUrl", "buttonText"]', 
+             '["title", "imageUrl", "linkUrl", "buttonText"]',
              '就活支援サービス向けの基本的なバナーテンプレート'),
 
             ('大型就活バナー',
@@ -153,7 +263,7 @@ async function seed() {
     <img src="{{imageUrl}}" style="position: absolute; top: 0; right: 0; width: 300px; height: 100%; object-fit: cover; opacity: 0.3;" alt="{{title}}" />
   </div>
 </a>',
-             '["title", "description", "feature", "rating", "buttonText", "imageUrl", "linkUrl"]', 
+             '["title", "description", "feature", "rating", "buttonText", "imageUrl", "linkUrl"]',
              '就活サービス向けの大型インパクトバナー'),
 
             -- テキスト系テンプレート
@@ -168,7 +278,7 @@ async function seed() {
     </div>
   </div>
 </a>',
-             '["title", "description", "benefit", "category", "linkUrl"]', 
+             '["title", "description", "benefit", "category", "linkUrl"]',
              '就活向けテキストのみの広告'),
 
             -- カード系テンプレート
@@ -190,7 +300,7 @@ async function seed() {
     </div>
   </div>
 </a>',
-             '["title", "description", "serviceName", "logoUrl", "imageUrl", "offer", "category", "linkUrl"]', 
+             '["title", "description", "serviceName", "logoUrl", "imageUrl", "offer", "category", "linkUrl"]',
              '就活サービス向けのカード型広告'),
 
             -- 記事内テンプレート
@@ -206,7 +316,7 @@ async function seed() {
     </div>
   </a>
 </div>',
-             '["title", "description", "benefit", "industry", "linkUrl"]', 
+             '["title", "description", "benefit", "industry", "linkUrl"]',
              '記事内に自然に溶け込む就活インライン広告'),
 
             ('記事内就活カード',
@@ -227,7 +337,7 @@ async function seed() {
     </div>
   </a>
 </div>',
-             '["title", "description", "benefit", "rating", "buttonText", "imageUrl", "linkUrl"]', 
+             '["title", "description", "benefit", "rating", "buttonText", "imageUrl", "linkUrl"]',
              '記事内に挿入する就活カード型広告'),
 
             -- 特殊形状テンプレート
@@ -242,7 +352,7 @@ async function seed() {
   </a>
   <div style="position: absolute; left: 0; top: 0; width: 0; height: 0; border-style: solid; border-width: 0 0 20px 20px; border-color: transparent transparent #c92a2a transparent;"></div>
 </div>',
-             '["title", "description", "category", "linkUrl"]', 
+             '["title", "description", "category", "linkUrl"]',
              '就活向けリボン型の特殊形状広告'),
 
             ('就活アイコン広告',
@@ -257,78 +367,196 @@ async function seed() {
     <div style="background: #007bff; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px;">{{buttonText}}</div>
   </div>
 </a>',
-             '["title", "description", "benefit", "buttonText", "icon", "linkUrl"]', 
+             '["title", "description", "benefit", "buttonText", "icon", "linkUrl"]',
              '就活向け円形アイコンを使った横長広告');
     `;
 
     console.log('Seeding url_templates...');
 
     // Clear existing URL templates and insert new ones
-    await sql`DELETE FROM url_templates`;
+    await sql`DELETE
+              FROM url_templates`;
 
     // Insert sample URL templates with tracking parameters
     await sql`
-        INSERT INTO url_templates (name, url, parameters, description)
+        INSERT INTO url_templates (name, url_template, parameters, description)
         VALUES
-            -- PORTキャリア計測用URL
-            ('PORTキャリア記事内キャンペーン',
-             'https://port-career.jp/career-support/',
-             '{"utm_campaign": "03", "utm_content": "102738", "utm_medium": "mirai", "utm_source": "kijinaka"}',
-             'PORTキャリア記事内に配置するキャリア支援サービスへの誘導URL'),
+            -- 記事系広告
+            ('記事内広告 (kijinaka)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "kijinaka", "utm_medium": "port-career", "utm_content": "default"}',
+             '記事内に配置する広告のトラッキングURL'),
 
-            ('PORTキャリア転職支援',
-             'https://port-career.jp/job-change/',
-             '{"utm_campaign": "05", "utm_content": "102749", "utm_medium": "mirai", "utm_source": "cameleon"}',
-             'PORTキャリアから転職支援サービスへの誘導URL'),
+            ('記事下広告 (kijisita)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "kijisita", "utm_medium": "port-career", "utm_content": "default"}',
+             '記事下に配置する広告のトラッキングURL'),
 
-            ('PORTキャリア新卒支援',
-             'https://port-career.jp/fresh-graduate/',
-             '{"utm_campaign": "07", "utm_content": "103001", "utm_medium": "mirai", "utm_source": "kijinaka"}',
-             '新卒向け就職支援サービスへの誘導URL'),
+            ('例文内広告 (reibunnaka)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "reibunnaka", "utm_medium": "port-career", "utm_content": "default"}',
+             '例文内に配置する広告のトラッキングURL'),
 
-            -- 外部パートナーサイト用URL
-            ('就活エージェント A社',
-             'https://recruit-agent-a.com/register/',
-             '{"utm_campaign": "partner_a", "utm_content": "banner_01", "utm_medium": "referral", "utm_source": "port_career"}',
-             'パートナー就活エージェントA社への誘導URL'),
+            ('記事バナー広告 (kijibanner)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "kijibanner", "utm_medium": "port-career", "utm_content": "default"}',
+             '記事バナー形式の広告のトラッキングURL'),
 
-            ('転職サイト B社',
-             'https://job-change-b.com/entry/',
-             '{"utm_campaign": "partner_b", "utm_content": "text_ad", "utm_medium": "cpc", "utm_source": "port_media"}',
-             'パートナー転職サイトB社への誘導URL'),
+            -- Webプッシュ系広告
+            ('Webプッシュ スマホ (webpush_sp)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "webpush_sp", "utm_medium": "push", "utm_content": "default"}',
+             'スマートフォン向けWebプッシュ広告のトラッキングURL'),
 
-            ('スキルアップ C社',
-             'https://skill-up-c.com/courses/',
-             '{"utm_campaign": "skill_up", "utm_content": "course_promo", "utm_medium": "display", "utm_source": "port_career"}',
-             'スキルアップサービスC社への誘導URL'),
+            ('Webプッシュ PC位置1 (webpush_pc1)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "webpush_pc1", "utm_medium": "push", "utm_content": "default"}',
+             'PC向けWebプッシュ広告（位置1）のトラッキングURL'),
 
-            -- 特別キャンペーン用URL
-            ('春の就活応援キャンペーン',
-             'https://port-career.jp/spring-campaign/',
-             '{"utm_campaign": "spring2024", "utm_content": "special_banner", "utm_medium": "email", "utm_source": "newsletter"}',
-             '春の就活応援特別キャンペーンURL'),
+            ('Webプッシュ PC位置2 (webpush_pc2)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "webpush_pc2", "utm_medium": "push", "utm_content": "default"}',
+             'PC向けWebプッシュ広告（位置2）のトラッキングURL'),
 
-            ('夏のインターン特集',
-             'https://port-career.jp/summer-internship/',
-             '{"utm_campaign": "summer_intern", "utm_content": "feature_article", "utm_medium": "organic", "utm_source": "search"}',
-             '夏のインターンシップ特集ページURL'),
+            ('Webプッシュ PC位置3 (webpush_pc3)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "webpush_pc3", "utm_medium": "push", "utm_content": "default"}',
+             'PC向けWebプッシュ広告（位置3）のトラッキングURL'),
 
-            ('年末転職相談会',
-             'https://port-career.jp/year-end-consultation/',
-             '{"utm_campaign": "year_end", "utm_content": "consultation_form", "utm_medium": "social", "utm_source": "twitter"}',
-             '年末転職相談会の申込URL'),
+            ('Webプッシュ 画像 (webpush_image)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "webpush_image", "utm_medium": "push", "utm_content": "default"}',
+             '画像付きWebプッシュ広告のトラッキングURL'),
 
-            -- ランディングページ用URL
-            ('LPテスト A版',
-             'https://lp.port-career.jp/test-a/',
-             '{"utm_campaign": "lp_test", "utm_content": "version_a", "utm_medium": "paid_search", "utm_source": "google_ads"}',
-             'ランディングページA版のテスト用URL'),
+            -- Chameleon系広告
+            ('Chameleon広告 (chameleon)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "chameleon", "utm_medium": "port-career", "utm_content": "default"}',
+             'Chameleon広告のトラッキングURL'),
 
-            ('LPテスト B版',
-             'https://lp.port-career.jp/test-b/',
-             '{"utm_campaign": "lp_test", "utm_content": "version_b", "utm_medium": "paid_search", "utm_source": "google_ads"}',
-             'ランディングページB版のテスト用URL');
+            ('Chameleon広告2 (chameleon2)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "chameleon2", "utm_medium": "port-career", "utm_content": "default"}',
+             'Chameleon広告2のトラッキングURL'),
+
+            ('Chameleon下部広告 (chameleonsita)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
+             '{"utm_source": "chameleonsita", "utm_medium": "port-career", "utm_content": "default"}',
+             'Chameleon下部広告のトラッキングURL'),
+
+            -- ランキング系広告（特別対応）
+            ('ランキング広告 (ranking)',
+             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_campaign={{utm_campaign}}&utm_content={{utm_content}}&rank={{rank}}',
+             '{"utm_source": "ranking", "utm_medium": "port-career", "utm_campaign": "default", "utm_content": "default", "rank": "1"}',
+             'ランキング広告のトラッキングURL（キャンペーンとランク位置付き）');
     `;
+
+    console.log('Seeding ad_contents...');
+
+    // Clear existing ad contents and insert new ones
+    await sql`DELETE
+              FROM ad_contents`;
+
+    // Get template and URL template IDs
+    const adTemplates = await sql`SELECT id, name
+                                  FROM ad_templates
+                                  ORDER BY id`;
+    const urlTemplates = await sql`SELECT id, name
+                                   FROM url_templates
+                                   ORDER BY id`;
+    const users = await sql`SELECT id
+                            FROM users
+                            ORDER BY id`;
+
+    console.log(`Found ${adTemplates.length} ad templates, ${urlTemplates.length} URL templates, ${users.length} users`);
+
+    // 基本的な広告コンテンツを作成
+    if (adTemplates.length >= 3 && urlTemplates.length >= 13 && users.length >= 1) {
+      const template1 = adTemplates[0].id; // 就活支援バナー
+      const template2 = adTemplates[1].id; // 大型就活バナー  
+      const template3 = adTemplates[2].id; // 就活テキスト広告
+
+      // URLテンプレートのID（13種類）
+      const url1 = urlTemplates[0].id;   // kijinaka
+      const url2 = urlTemplates[1].id;   // kijisita
+      const url3 = urlTemplates[2].id;   // reibunnaka
+      const url4 = urlTemplates[3].id;   // kijibanner
+      const url5 = urlTemplates[4].id;   // webpush_sp
+      const url6 = urlTemplates[5].id;   // webpush_pc1
+      const url7 = urlTemplates[6].id;   // webpush_pc2
+      const url8 = urlTemplates[7].id;   // webpush_pc3
+      const url9 = urlTemplates[8].id;   // webpush_image
+      const url10 = urlTemplates[9].id;  // chameleon
+      const url11 = urlTemplates[10].id; // chameleon2
+      const url12 = urlTemplates[11].id; // chameleonsita
+      const url13 = urlTemplates[12].id; // ranking
+
+      const user1 = users[0].id;
+      const user2 = users.length > 1 ? users[1].id : users[0].id;
+
+      await sql`
+          INSERT INTO ad_contents (name, template_id, url_template_id, content_data, status, created_by)
+          VALUES ('記事内広告 - 春の就活支援',
+                  ${template1},
+                  ${url1},
+                  '{"title": "2024年春の就活支援キャンペーン開始！", "imageUrl": "/images/sample-ad.svg", "linkUrl": "https://port-career.jp/career-support/", "buttonText": "今すぐ登録して特典をゲット"}',
+                  'active',
+                  ${user1}),
+
+                 ('記事下広告 - 転職支援サービス',
+                  ${template1},
+                  ${url2},
+                  '{"title": "経験者向け転職支援サービス", "imageUrl": "/images/sample-ad.svg", "linkUrl": "https://port-career.jp/job-change/", "buttonText": "無料相談を申し込む"}',
+                  'active',
+                  ${user1}),
+
+                 ('Webプッシュ - 新卒向け就職支援',
+                  ${template2},
+                  ${url5},
+                  '{"title": "新卒向け就職支援プログラム", "description": "内定率95%の実績を持つ就職支援サービス", "feature": "完全無料", "rating": "満足度98%", "buttonText": "無料登録はこちら", "imageUrl": "/images/sample-ad.svg", "linkUrl": "https://port-career.jp/fresh-graduate/"}',
+                  'active',
+                  ${user1}),
+
+                 ('Chameleon広告 - 転職エージェント',
+                  ${template3},
+                  ${url10},
+                  '{"title": "転職エージェントで理想の職場を見つけよう", "description": "業界最大級の求人数を誇る転職エージェント。あなたにぴったりの企業がきっと見つかります。", "benefit": "登録無料・非公開求人多数", "category": "転職支援", "linkUrl": "https://recruit-agent-a.com/register/"}',
+                  'active',
+                  ${user2}),
+
+                 ('ランキング広告 - スキルアップサービス',
+                  ${template3},
+                  ${url13},
+                  '{"title": "プログラミングスキルを身につけて転職成功", "description": "未経験からエンジニアを目指すあなたを全力サポート。実践的なカリキュラムで確実にスキルアップ。", "benefit": "就職成功率94%", "category": "スキルアップ", "linkUrl": "https://skill-up-c.com/courses/"}',
+                  'active',
+                  ${user1}),
+
+                 ('記事内広告 - テスト（下書き）',
+                  ${template1},
+                  ${url1},
+                  '{"title": "テスト広告", "imageUrl": "/images/sample-ad.svg", "linkUrl": "https://example.com/", "buttonText": "テスト用ボタン"}',
+                  'draft',
+                  ${user2}),
+
+                 ('Webプッシュ - 一時停止中',
+                  ${template2},
+                  ${url6},
+                  '{"title": "一時停止中の広告", "description": "この広告は現在停止中です", "feature": "停止中", "rating": "テスト用", "buttonText": "停止中", "imageUrl": "/images/sample-ad.svg", "linkUrl": "https://example.com/paused/"}',
+                  'paused',
+                  ${user1}),
+
+                 ('例文内広告 - アーカイブ済み',
+                  ${template3},
+                  ${url3},
+                  '{"title": "過去のキャンペーン", "description": "終了した過去のキャンペーン広告です", "benefit": "終了済み", "category": "アーカイブ", "linkUrl": "https://example.com/archived/"}',
+                  'archived',
+                  ${user2})
+      `;
+
+      console.log('Sample ad contents created successfully.');
+    } else {
+      console.log('Insufficient templates or users to create ad contents.');
+    }
 
     console.log('Database seeded successfully!');
     console.log('Test credentials:');
@@ -336,6 +564,7 @@ async function seed() {
     console.log('Editor: editor@example.com / password123');
     console.log('Sample job-hunting ad templates created.');
     console.log('Sample URL templates with tracking parameters created.');
+    console.log('Sample ad contents created with various statuses.');
 
   } catch (error) {
     console.error('Error seeding database:', error);

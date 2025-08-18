@@ -12,26 +12,7 @@ interface UrlTemplateCardProps {
 export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplateCardProps) {
   const [deleting, setDeleting] = useState(false);
 
-  const buildFullUrl = () => {
-    try {
-      const url = new URL(template.url);
-      Object.entries(template.parameters).forEach(([key, value]) => {
-        url.searchParams.set(key, value);
-      });
-      return url.toString();
-    } catch {
-      return template.url;
-    }
-  };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert('URLをクリップボードにコピーしました');
-    } catch {
-      alert('クリップボードへのコピーに失敗しました');
-    }
-  };
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -65,7 +46,7 @@ export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplat
         <div className="flex space-x-2">
           <button
             onClick={() => onEdit(template)}
-            className="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
+            className="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors cursor-pointer"
             title="編集"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +56,7 @@ export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplat
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="text-red-600 hover:text-red-800 p-1 rounded transition-colors disabled:opacity-50"
+            className="text-red-600 hover:text-red-800 p-1 rounded transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             title="削除"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,44 +68,40 @@ export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplat
 
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">ベースURL</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">URLテンプレート</label>
           <div className="bg-gray-50 p-2 rounded border">
-            <code className="text-sm text-gray-800 break-all">{template.url}</code>
+            <code className="text-sm text-gray-800 break-all">{template.url_template}</code>
           </div>
         </div>
 
-        {Object.keys(template.parameters).length > 0 && (
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">計測パラメータ</label>
-            <div className="bg-gray-50 p-2 rounded border space-y-1">
-              {Object.entries(template.parameters).map(([key, value]) => (
-                <div key={key} className="text-sm">
-                  <span className="text-gray-600">{key}</span>
-                  <span className="text-gray-400 mx-1">=</span>
-                  <span className="text-gray-800">{value}</span>
-                </div>
-              ))}
+        {(() => {
+          // URLテンプレートから計測パラメータを抽出
+          const urlParams = new URLSearchParams(template.url_template.split('?')[1] || '');
+          const trackingParams: Record<string, string> = {};
+          
+          for (const [key, value] of urlParams.entries()) {
+            if (key.startsWith('utm_') || ['campaign', 'source', 'medium', 'content', 'term'].includes(key)) {
+              trackingParams[key] = value;
+            }
+          }
+
+          return Object.keys(trackingParams).length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">計測パラメータ</label>
+              <div className="bg-gray-50 p-2 rounded border space-y-1">
+                {Object.entries(trackingParams).map(([key, value]) => (
+                  <div key={key} className="text-sm flex items-center">
+                    <span className="text-blue-600 font-medium w-24">{key}</span>
+                    <span className="text-gray-400 mx-2">=</span>
+                    <span className="text-gray-800 flex-1">{value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">完成URL</label>
-          <div className="bg-blue-50 p-2 rounded border flex items-center justify-between">
-            <code className="text-sm text-blue-800 break-all flex-1 mr-2">
-              {buildFullUrl()}
-            </code>
-            <button
-              onClick={() => copyToClipboard(buildFullUrl())}
-              className="flex-shrink-0 text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
-              title="URLをコピー"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+
       </div>
 
       <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">

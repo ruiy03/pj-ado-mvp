@@ -251,6 +251,13 @@ export default function TemplateForm({
 
         <div className="flex gap-4">
           <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer"
+          >
+            キャンセル
+          </button>
+          <button
             type="submit"
             disabled={validationErrors.length > 0}
             className={`px-6 py-2 rounded-lg transition-colors ${
@@ -260,13 +267,6 @@ export default function TemplateForm({
             }`}
           >
             {editingTemplate ? '更新' : '作成'}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer"
-          >
-            キャンセル
           </button>
         </div>
       </form>

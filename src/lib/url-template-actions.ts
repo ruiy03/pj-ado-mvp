@@ -7,7 +7,7 @@ import {sql} from '@/lib/db';
 
 const CreateUrlTemplateSchema = z.object({
   name: z.string().min(1, 'テンプレート名は必須です'),
-  url: z.string().url('有効なURLを入力してください'),
+  url_template: z.string().min(1, 'URLテンプレートは必須です'),
   parameters: z.record(z.string(), z.string()),
   description: z.string().optional(),
 });
@@ -15,7 +15,7 @@ const CreateUrlTemplateSchema = z.object({
 const UpdateUrlTemplateSchema = z.object({
   id: z.number(),
   name: z.string().min(1, 'テンプレート名は必須です').optional(),
-  url: z.string().url('有効なURLを入力してください').optional(),
+  url_template: z.string().min(1, 'URLテンプレートは必須です').optional(),
   parameters: z.record(z.string(), z.string()).optional(),
   description: z.string().optional(),
 });
@@ -25,7 +25,7 @@ export async function getUrlTemplates(): Promise<UrlTemplate[]> {
     const result = await sql`
         SELECT id,
                name,
-               url,
+               url_template,
                parameters,
                description,
                created_at,
@@ -53,7 +53,7 @@ export async function getUrlTemplateById(id: number): Promise<UrlTemplate | null
     const result = await sql`
         SELECT id,
                name,
-               url,
+               url_template,
                parameters,
                description,
                created_at,
@@ -86,14 +86,14 @@ export async function createUrlTemplate(data: CreateUrlTemplateRequest): Promise
     const validatedData = CreateUrlTemplateSchema.parse(data);
 
     const result = await sql`
-        INSERT INTO url_templates (name, url, parameters, description)
+        INSERT INTO url_templates (name, url_template, parameters, description)
         VALUES (${validatedData.name},
-                ${validatedData.url},
+                ${validatedData.url_template},
                 ${JSON.stringify(validatedData.parameters)},
                 ${validatedData.description || null}) RETURNING 
         id,
         name,
-        url,
+        url_template,
         parameters,
         description,
         created_at,
@@ -129,14 +129,14 @@ export async function updateUrlTemplate(data: UpdateUrlTemplateRequest): Promise
     const result = await sql`
         UPDATE url_templates
         SET name         = COALESCE(${updateFields.name || null}, name),
-            url          = COALESCE(${updateFields.url || null}, url),
+            url_template = COALESCE(${updateFields.url_template || null}, url_template),
             parameters   = COALESCE(${updateFields.parameters ? JSON.stringify(updateFields.parameters) : null}, parameters),
             description  = COALESCE(${updateFields.description || null}, description),
             updated_at   = NOW()
         WHERE id = ${id} RETURNING 
         id,
         name,
-        url,
+        url_template,
         parameters,
         description,
         created_at,

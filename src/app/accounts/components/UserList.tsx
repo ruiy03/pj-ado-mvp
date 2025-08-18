@@ -31,7 +31,7 @@ export default function UserList({
         <h1 className="text-3xl font-bold text-gray-900">アカウント管理</h1>
         <button
           onClick={onAddUser}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
         >
           新しいアカウントを追加
         </button>
@@ -87,14 +87,14 @@ export default function UserList({
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => onEdit(user)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                       >
                         編集
                       </button>
                       {!(user.role === 'admin' && user.id === currentUserId) && (
                         <button
                           onClick={() => onDelete(user.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 cursor-pointer"
                         >
                           削除
                         </button>

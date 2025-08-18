@@ -93,19 +93,19 @@ export default function ImportExportButtons({
 
             <div className="flex gap-2">
               <button
-                type="submit"
-                disabled={importLoading}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
-              >
-                {importLoading ? 'インポート中...' : 'インポート実行'}
-              </button>
-              <button
                 type="button"
                 onClick={onImportCancel}
                 disabled={importLoading}
                 className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 キャンセル
+              </button>
+              <button
+                type="submit"
+                disabled={importLoading}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+              >
+                {importLoading ? 'インポート中...' : 'インポート実行'}
               </button>
             </div>
           </form>
