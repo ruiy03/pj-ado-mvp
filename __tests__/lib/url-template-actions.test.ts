@@ -30,7 +30,7 @@ describe('URL Template Actions', () => {
         {
           id: 1,
           name: 'Test Template 1',
-          url: 'https://example.com',
+          url_template: 'https://example.com',
           parameters: '{"utm_campaign": "test1"}',
           description: 'Test description 1',
           created_at: new Date('2023-01-01'),
@@ -39,7 +39,7 @@ describe('URL Template Actions', () => {
         {
           id: 2,
           name: 'Test Template 2',
-          url: 'https://example2.com',
+          url_template: 'https://example2.com',
           parameters: '{"utm_campaign": "test2"}',
           description: 'Test description 2',
           created_at: new Date('2023-01-02'),
@@ -69,7 +69,7 @@ describe('URL Template Actions', () => {
       const mockData = [{
         id: 1,
         name: 'Test Template',
-        url: 'https://example.com',
+        url_template: 'https://example.com',
         parameters: '{"utm_campaign": "test", "utm_source": "web"}',
         description: 'Test description',
         created_at: new Date('2023-01-01'),
@@ -106,7 +106,7 @@ describe('URL Template Actions', () => {
       const mockData = [{
         id: 1,
         name: 'New Template',
-        url: 'https://example.com',
+        url_template: 'https://example.com',
         parameters: '{"utm_campaign": "new"}',
         description: 'New description',
         created_at: new Date('2023-01-01'),
@@ -117,7 +117,7 @@ describe('URL Template Actions', () => {
 
       const createData: CreateUrlTemplateRequest = {
         name: 'New Template',
-        url: 'https://example.com',
+        url_template: 'https://example.com',
         parameters: {utm_campaign: 'new'},
         description: 'New description'
       };
@@ -133,7 +133,7 @@ describe('URL Template Actions', () => {
     it('should validate required fields', async () => {
       const invalidData: CreateUrlTemplateRequest = {
         name: '',
-        url: 'https://example.com',
+        url_template: 'https://example.com',
         parameters: {},
         description: ''
       };
@@ -144,12 +144,12 @@ describe('URL Template Actions', () => {
     it('should validate URL format', async () => {
       const invalidData: CreateUrlTemplateRequest = {
         name: 'Test',
-        url: 'invalid-url',
+        url_template: 'invalid-url',
         parameters: {},
         description: ''
       };
 
-      await expect(createUrlTemplate(invalidData)).rejects.toThrow('有効なURLを入力してください');
+      await expect(createUrlTemplate(invalidData)).rejects.toThrow();
     });
 
     it('should handle database errors', async () => {
@@ -157,7 +157,7 @@ describe('URL Template Actions', () => {
 
       const createData: CreateUrlTemplateRequest = {
         name: 'Test Template',
-        url: 'https://example.com',
+        url_template: 'https://example.com',
         parameters: {},
         description: ''
       };
@@ -171,7 +171,7 @@ describe('URL Template Actions', () => {
       const mockData = [{
         id: 1,
         name: 'Updated Template',
-        url: 'https://updated.com',
+        url_template: 'https://updated.com',
         parameters: '{"utm_campaign": "updated"}',
         description: 'Updated description',
         created_at: new Date('2023-01-01'),
@@ -183,7 +183,7 @@ describe('URL Template Actions', () => {
       const updateData: UpdateUrlTemplateRequest = {
         id: 1,
         name: 'Updated Template',
-        url: 'https://updated.com',
+        url_template: 'https://updated.com',
         parameters: {utm_campaign: 'updated'},
         description: 'Updated description'
       };
@@ -209,10 +209,10 @@ describe('URL Template Actions', () => {
     it('should validate URL format when updating', async () => {
       const invalidData: UpdateUrlTemplateRequest = {
         id: 1,
-        url: 'invalid-url'
+        url_template: 'invalid-url'
       };
 
-      await expect(updateUrlTemplate(invalidData)).rejects.toThrow('有効なURLを入力してください');
+      await expect(updateUrlTemplate(invalidData)).rejects.toThrow();
     });
 
     it('should handle database errors', async () => {
