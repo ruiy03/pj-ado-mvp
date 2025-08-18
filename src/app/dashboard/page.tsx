@@ -2,7 +2,7 @@
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
 import {useState, useEffect} from 'react';
-import type {AdTemplate} from '@/lib/definitions';
+import type {AdTemplate, UrlTemplate} from '@/lib/definitions';
 
 interface DashboardStats {
   totalAds: number;
@@ -16,6 +16,7 @@ interface Activity {
   message: string;
   date: string;
   type: 'create' | 'update' | 'delete' | 'system';
+  created_at?: string;
 }
 
 export default function Dashboard() {
@@ -41,22 +42,47 @@ export default function Dashboard() {
       const templatesResponse = await fetch('/api/templates');
       const templates = templatesResponse.ok ? await templatesResponse.json() : [];
 
+      // URLテンプレート数を取得
+      const urlTemplatesResponse = await fetch('/api/url-templates');
+      const urlTemplatesData = urlTemplatesResponse.ok ? await urlTemplatesResponse.json() : {templates: []};
+      const urlTemplates = urlTemplatesData.templates || [];
+
       setStats({
         totalAds: 0, // 今後実装予定
         adTemplates: templates.length,
-        urlTemplates: 0, // 今後実装予定
+        urlTemplates: urlTemplates.length,
         articlesWithoutAds: 0, // 今後実装予定
       });
 
       // 最近の活動を設定（テンプレート作成日時から生成）
-      const recentActivities: Activity[] = templates
-        .slice(0, 10)
+      const adTemplateActivities: Activity[] = templates
         .map((template: AdTemplate, index: number) => ({
           id: index + 1,
           message: `広告テンプレート「${template.name}」が作成されました`,
           date: template.created_at ? new Date(template.created_at).toLocaleDateString('ja-JP') : '最近',
           type: 'create' as const,
+          created_at: template.created_at,
         }));
+
+      // URLテンプレートの活動を追加
+      const urlTemplateActivities: Activity[] = urlTemplates
+        .map((template: UrlTemplate, index: number) => ({
+          id: templates.length + index + 1,
+          message: `URLテンプレート「${template.name}」が作成されました`,
+          date: template.created_at ? new Date(template.created_at).toLocaleDateString('ja-JP') : '最近',
+          type: 'create' as const,
+          created_at: template.created_at,
+        }));
+
+      // 全ての活動を結合し、作成日時でソートして最新10件を取得
+      const allActivities = [...adTemplateActivities, ...urlTemplateActivities];
+      allActivities.sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA; // 新しい順
+      });
+
+      const recentActivities = allActivities.slice(0, 10);
 
       if (recentActivities.length === 0) {
         recentActivities.push({
