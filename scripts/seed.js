@@ -74,6 +74,33 @@ async function seed() {
             );
     `;
 
+    console.log('Creating url_templates table...');
+
+    // Create url_templates table
+    await sql`
+        CREATE TABLE IF NOT EXISTS url_templates
+        (
+            id
+            SERIAL
+            PRIMARY
+            KEY,
+            name
+            VARCHAR
+        (
+            255
+        ) NOT NULL,
+            url TEXT NOT NULL,
+            parameters JSON,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT NOW
+        (
+        ),
+            updated_at TIMESTAMP DEFAULT NOW
+        (
+        )
+            );
+    `;
+
     console.log('Seeding users...');
 
     // Hash passwords
@@ -234,11 +261,81 @@ async function seed() {
              '就活向け円形アイコンを使った横長広告');
     `;
 
+    console.log('Seeding url_templates...');
+
+    // Clear existing URL templates and insert new ones
+    await sql`DELETE FROM url_templates`;
+
+    // Insert sample URL templates with tracking parameters
+    await sql`
+        INSERT INTO url_templates (name, url, parameters, description)
+        VALUES
+            -- PORTキャリア計測用URL
+            ('PORTキャリア記事内キャンペーン',
+             'https://port-career.jp/career-support/',
+             '{"utm_campaign": "03", "utm_content": "102738", "utm_medium": "mirai", "utm_source": "kijinaka"}',
+             'PORTキャリア記事内に配置するキャリア支援サービスへの誘導URL'),
+
+            ('PORTキャリア転職支援',
+             'https://port-career.jp/job-change/',
+             '{"utm_campaign": "05", "utm_content": "102749", "utm_medium": "mirai", "utm_source": "cameleon"}',
+             'PORTキャリアから転職支援サービスへの誘導URL'),
+
+            ('PORTキャリア新卒支援',
+             'https://port-career.jp/fresh-graduate/',
+             '{"utm_campaign": "07", "utm_content": "103001", "utm_medium": "mirai", "utm_source": "kijinaka"}',
+             '新卒向け就職支援サービスへの誘導URL'),
+
+            -- 外部パートナーサイト用URL
+            ('就活エージェント A社',
+             'https://recruit-agent-a.com/register/',
+             '{"utm_campaign": "partner_a", "utm_content": "banner_01", "utm_medium": "referral", "utm_source": "port_career"}',
+             'パートナー就活エージェントA社への誘導URL'),
+
+            ('転職サイト B社',
+             'https://job-change-b.com/entry/',
+             '{"utm_campaign": "partner_b", "utm_content": "text_ad", "utm_medium": "cpc", "utm_source": "port_media"}',
+             'パートナー転職サイトB社への誘導URL'),
+
+            ('スキルアップ C社',
+             'https://skill-up-c.com/courses/',
+             '{"utm_campaign": "skill_up", "utm_content": "course_promo", "utm_medium": "display", "utm_source": "port_career"}',
+             'スキルアップサービスC社への誘導URL'),
+
+            -- 特別キャンペーン用URL
+            ('春の就活応援キャンペーン',
+             'https://port-career.jp/spring-campaign/',
+             '{"utm_campaign": "spring2024", "utm_content": "special_banner", "utm_medium": "email", "utm_source": "newsletter"}',
+             '春の就活応援特別キャンペーンURL'),
+
+            ('夏のインターン特集',
+             'https://port-career.jp/summer-internship/',
+             '{"utm_campaign": "summer_intern", "utm_content": "feature_article", "utm_medium": "organic", "utm_source": "search"}',
+             '夏のインターンシップ特集ページURL'),
+
+            ('年末転職相談会',
+             'https://port-career.jp/year-end-consultation/',
+             '{"utm_campaign": "year_end", "utm_content": "consultation_form", "utm_medium": "social", "utm_source": "twitter"}',
+             '年末転職相談会の申込URL'),
+
+            -- ランディングページ用URL
+            ('LPテスト A版',
+             'https://lp.port-career.jp/test-a/',
+             '{"utm_campaign": "lp_test", "utm_content": "version_a", "utm_medium": "paid_search", "utm_source": "google_ads"}',
+             'ランディングページA版のテスト用URL'),
+
+            ('LPテスト B版',
+             'https://lp.port-career.jp/test-b/',
+             '{"utm_campaign": "lp_test", "utm_content": "version_b", "utm_medium": "paid_search", "utm_source": "google_ads"}',
+             'ランディングページB版のテスト用URL');
+    `;
+
     console.log('Database seeded successfully!');
     console.log('Test credentials:');
     console.log('Admin: admin@example.com / password123');
     console.log('Editor: editor@example.com / password123');
     console.log('Sample job-hunting ad templates created.');
+    console.log('Sample URL templates with tracking parameters created.');
 
   } catch (error) {
     console.error('Error seeding database:', error);
