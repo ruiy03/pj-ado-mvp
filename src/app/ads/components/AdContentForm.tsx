@@ -96,9 +96,12 @@ export default function AdContentForm({
     setFormData(prev => ({
       ...prev,
       template_id: id,
-      content_data: {}, // テンプレート変更時はコンテンツデータをリセット
+      content_data: isEdit ? prev.content_data : {}, // 編集時はコンテンツデータを保持
     }));
-    setUploadedImages({}); // 画像もリセット
+    // 編集時は画像をリセットしない
+    if (!isEdit) {
+      setUploadedImages({});
+    }
   };
 
   // URLテンプレート選択時の処理
@@ -431,7 +434,7 @@ export default function AdContentForm({
                                 <ImageUpload
                                   onUpload={(image) => handleImageUpload(placeholder, image)}
                                   onRemove={() => handleImageRemove(placeholder)}
-                                  currentImageUrl={uploadedImages[placeholder]?.url}
+                                  currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data[placeholder] || '')}
                                   placeholder={`${cleanName}の画像をアップロード`}
                                   className={hasError ? 'border-red-300' : ''}
                                 />

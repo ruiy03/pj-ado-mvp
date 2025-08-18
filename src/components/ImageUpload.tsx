@@ -32,6 +32,7 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (file: File) => {
@@ -114,9 +115,21 @@ export default function ImageUpload({
   };
 
 
+  // 画像エラーハンドラ
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  // currentImageUrlが変わったときにimageErrorをリセット
+  const [prevImageUrl, setPrevImageUrl] = useState(currentImageUrl);
+  if (currentImageUrl !== prevImageUrl) {
+    setPrevImageUrl(currentImageUrl);
+    setImageError(false);
+  }
+
   return (
     <div className={`relative ${className}`}>
-      {currentImageUrl ? (
+      {currentImageUrl && !imageError ? (
         // 画像が選択されている状態
         <div className="relative">
           <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300">
@@ -126,6 +139,7 @@ export default function ImageUpload({
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
+              onError={handleImageError}
             />
           </div>
           <div className="mt-2 flex justify-between items-center">

@@ -2,7 +2,7 @@
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
 import {useState, useEffect} from 'react';
-import type {AdTemplate, UrlTemplate} from '@/lib/definitions';
+import type {AdTemplate, UrlTemplate, AdContent} from '@/lib/definitions';
 
 interface DashboardStats {
   totalAds: number;
@@ -47,8 +47,12 @@ export default function Dashboard() {
       const urlTemplatesData = urlTemplatesResponse.ok ? await urlTemplatesResponse.json() : {templates: []};
       const urlTemplates = urlTemplatesData.templates || [];
 
+      // 広告コンテンツ数を取得
+      const adContentsResponse = await fetch('/api/ad-contents');
+      const adContents = adContentsResponse.ok ? await adContentsResponse.json() : [];
+
       setStats({
-        totalAds: 0, // 今後実装予定
+        totalAds: adContents.length,
         adTemplates: templates.length,
         urlTemplates: urlTemplates.length,
         articlesWithoutAds: 0, // 今後実装予定
@@ -74,8 +78,18 @@ export default function Dashboard() {
           created_at: template.created_at,
         }));
 
+      // 広告コンテンツの活動を追加
+      const adContentActivities: Activity[] = adContents
+        .map((content: AdContent, index: number) => ({
+          id: templates.length + urlTemplates.length + index + 1,
+          message: `広告コンテンツ「${content.name}」が作成されました`,
+          date: content.created_at ? new Date(content.created_at).toLocaleDateString('ja-JP') : '最近',
+          type: 'create' as const,
+          created_at: content.created_at,
+        }));
+
       // 全ての活動を結合し、作成日時でソートして最新10件を取得
-      const allActivities = [...adTemplateActivities, ...urlTemplateActivities];
+      const allActivities = [...adTemplateActivities, ...urlTemplateActivities, ...adContentActivities];
       allActivities.sort((a, b) => {
         const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
