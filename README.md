@@ -20,7 +20,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 - **📊 ダッシュボード** - システム概要と活動フィード
 - **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、CSV インポート/エクスポート機能、作成・更新タイムスタンプ表示
 - **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、CSV インポート/エクスポート機能
-- **📢 広告管理** - 広告の作成・編集・検索機能
+- **📢 広告コンテンツ管理** - 広告の作成・編集・画像アップロード・プレビュー機能、ステータス管理
 - **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
 - **👥 アカウント管理** - ユーザーアカウント管理システム
 
@@ -58,7 +58,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    ```bash
    node scripts/seed.js
    ```
-   > このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
+   > このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
    ```bash
@@ -91,6 +91,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
 - **NextAuth.js 5.0.0-beta.29** - 認証システム (Credentials provider)
 - **Neon Database** - PostgreSQL サーバーレスデータベース
+- **Vercel Blob** - 画像ファイルストレージサービス
 - **bcrypt** - パスワードハッシュ化
 - **Zod 4.0.15** - スキーマバリデーション
 
@@ -134,18 +135,29 @@ pj-ado-mvp/
 │   ├── app/                    # App Router ページ
 │   │   ├── api/              # API ルート
 │   │   │   ├── auth/[...nextauth]/ # NextAuth API ルート
+│   │   │   ├── ad-contents/  # 広告コンテンツ API
+│   │   │   │   ├── route.ts  # GET, POST (全広告コンテンツ)
+│   │   │   │   └── [id]/route.ts # GET, PUT, DELETE (個別)
 │   │   │   ├── templates/    # 広告テンプレート API
 │   │   │   │   ├── route.ts  # GET, POST (全テンプレート)
 │   │   │   │   ├── [id]/route.ts # GET, PUT, DELETE (個別)
 │   │   │   │   ├── import/route.ts # POST (CSVインポート)
 │   │   │   │   └── export/route.ts # GET (CSVエクスポート)
+│   │   │   ├── upload/       # ファイルアップロード API
+│   │   │   │   └── route.ts  # POST (画像アップロード)
 │   │   │   └── url-templates/ # URLテンプレート API
 │   │   │       ├── route.ts  # GET, POST (全URLテンプレート)
 │   │   │       ├── [id]/route.ts # GET, PUT, DELETE (個別)
 │   │   │       ├── import/route.ts # POST (CSVインポート)
 │   │   │       └── export/route.ts # GET (CSVエクスポート)
 │   │   ├── dashboard/         # ダッシュボード
-│   │   ├── ads/              # 広告管理
+│   │   ├── ads/              # 広告コンテンツ管理
+│   │   │   ├── components/   # 広告コンテンツ管理専用コンポーネント
+│   │   │   │   ├── AdContentCard.tsx # 広告コンテンツカード表示
+│   │   │   │   ├── AdContentForm.tsx # 広告コンテンツ作成・編集フォーム
+│   │   │   │   ├── AdContentClient.tsx # 広告コンテンツ管理UI
+│   │   │   │   └── AdPreview.tsx # 広告プレビュー機能
+│   │   │   └── hooks/        # 広告コンテンツ管理hooks
 │   │   ├── ad-templates/     # 広告テンプレート管理
 │   │   │   ├── components/   # テンプレート管理専用コンポーネント
 │   │   │   │   ├── TemplateForm.tsx # テンプレート作成・編集フォーム
@@ -172,12 +184,14 @@ pj-ado-mvp/
 │   │   ├── ClientLayout.tsx # クライアントレイアウト
 │   │   ├── ClientProtectedPage.tsx # クライアントサイド認証保護ラッパー
 │   │   ├── HTMLCodeEditor.tsx # Monaco Editor HTMLエディター
+│   │   ├── ImageUpload.tsx  # 画像アップロードコンポーネント
 │   │   ├── LoginForm.tsx    # ログインフォーム
 │   │   ├── ProtectedPage.tsx # サーバーサイド認証保護ラッパー
 │   │   ├── SessionProvider.tsx # セッションプロバイダー
 │   │   └── Sidebar.tsx      # サイドバーナビゲーション
 │   ├── lib/                 # ユーティリティ・設定
 │   │   ├── actions.ts       # 認証サーバーアクション
+│   │   ├── ad-content-actions.ts # 広告コンテンツ管理アクション
 │   │   ├── authorization.ts # 認可ロジック
 │   │   ├── definitions.ts   # TypeScript型定義
 │   │   ├── template-actions.ts # テンプレート管理アクション
@@ -228,6 +242,17 @@ pj-ado-mvp/
 | `/api/url-templates/import`  | POST   | CSVからURLテンプレートインポート | 必須 |
 | `/api/url-templates/export`  | GET    | URLテンプレートをCSVエクスポート | 必須 |
 
+### 広告コンテンツ API
+
+| エンドポイント                 | メソッド   | 説明               | 認証 |
+|-------------------------|--------|------------------|----| 
+| `/api/ad-contents`      | GET    | 全広告コンテンツ取得       | 必須 |
+| `/api/ad-contents`      | POST   | 新規広告コンテンツ作成      | 必須 |
+| `/api/ad-contents/[id]` | GET    | 個別広告コンテンツ取得      | 必須 |
+| `/api/ad-contents/[id]` | PUT    | 広告コンテンツ更新        | 必須 |
+| `/api/ad-contents/[id]` | DELETE | 広告コンテンツ削除        | 必須 |
+| `/api/upload`           | POST   | 画像ファイルアップロード     | 必須 |
+
 ### 認証 API
 
 | エンドポイント                   | メソッド     | 説明                  |
@@ -253,8 +278,8 @@ pj-ado-mvp/
 
 | 役割               | レベル | 権限                      |
 |------------------|-----|-------------------------|
-| **管理者 (admin)**  | 2   | 全機能アクセス、ユーザー管理、テンプレート管理 |
-| **編集者 (editor)** | 1   | テンプレート作成・編集、広告管理        |
+| **管理者 (admin)**  | 2   | 全機能アクセス、ユーザー管理、テンプレート管理、広告コンテンツ管理 |
+| **編集者 (editor)** | 1   | テンプレート作成・編集、広告コンテンツ管理        |
 
 #### 認可ヘルパー関数
 
@@ -294,6 +319,34 @@ pj-ado-mvp/
 | `description`  | TEXT         | テンプレート説明   |               |
 | `created_at`   | TIMESTAMP    | 作成日時       | DEFAULT NOW() |
 | `updated_at`   | TIMESTAMP    | 更新日時       | DEFAULT NOW() |
+
+### ad_contents テーブル
+
+| カラム               | 型            | 説明                | 制約                          |
+|--------------------|--------------|-------------------|------------------------------|
+| `id`               | SERIAL       | プライマリキー           | PRIMARY KEY                  |
+| `name`             | VARCHAR(255) | 広告コンテンツ名         | NOT NULL                     |
+| `template_id`      | INTEGER      | 広告テンプレートID（FK）   | REFERENCES ad_templates(id)  |
+| `url_template_id`  | INTEGER      | URLテンプレートID（FK）  | REFERENCES url_templates(id) |
+| `content_data`     | JSON         | コンテンツデータ         |                              |
+| `status`           | VARCHAR(20)  | ステータス            | NOT NULL, DEFAULT 'draft'    |
+| `created_by`       | INTEGER      | 作成者ID（FK）        | REFERENCES users(id)         |
+| `created_at`       | TIMESTAMP    | 作成日時             | DEFAULT NOW()                |
+| `updated_at`       | TIMESTAMP    | 更新日時             | DEFAULT NOW()                |
+
+### ad_images テーブル
+
+| カラム                | 型            | 説明              | 制約                        |
+|---------------------|--------------|-----------------|---------------------------|
+| `id`                | SERIAL       | プライマリキー         | PRIMARY KEY               |
+| `ad_content_id`     | INTEGER      | 広告コンテンツID（FK）   | REFERENCES ad_contents(id)|
+| `blob_url`          | TEXT         | Vercel Blob URL  | NOT NULL                  |
+| `original_filename` | VARCHAR(255) | 元ファイル名          |                           |
+| `file_size`         | INTEGER      | ファイルサイズ（バイト）    |                           |
+| `mime_type`         | VARCHAR(100) | MIMEタイプ         |                           |
+| `alt_text`          | TEXT         | 代替テキスト          |                           |
+| `placeholder_name`  | VARCHAR(100) | プレースホルダー名      |                           |
+| `created_at`        | TIMESTAMP    | 作成日時            | DEFAULT NOW()             |
 
 ### url_templates テーブル
 
@@ -380,9 +433,34 @@ pj-ado-mvp/
 - **メール配信用URL** - メールマーケティング用トラッキング
 - **広告配信用URL** - 広告プラットフォーム別トラッキング
 
+## 広告コンテンツ管理システム
+
+### 主要機能
+
+- **画像アップロード**: Vercel Blobを使用したドラッグ&ドロップ対応画像アップロード機能
+- **ステータス管理**: 下書き・アクティブ・一時停止・アーカイブの4段階ワークフロー
+- **プレビュー機能**: テンプレートとコンテンツデータを組み合わせたリアルタイムプレビュー
+- **プレースホルダー対応**: テンプレートのプレースホルダーと画像・コンテンツの動的結合
+- **URLテンプレート連携**: URLテンプレートを使用したトラッキングURL生成
+- **CRUD操作**: 広告コンテンツの作成・読み取り・更新・削除
+
+### 広告コンテンツワークフロー
+
+1. **下書き作成**: テンプレート選択、コンテンツデータ入力、画像アップロード
+2. **プレビュー確認**: リアルタイムでの広告表示確認
+3. **アクティブ化**: 審査後の公開状態への移行
+4. **運用管理**: ステータス変更、コンテンツ更新、効果測定
+
+### 技術的特徴
+
+- **Vercel Blob**: スケーラブルな画像ストレージサービス
+- **型安全性**: TypeScriptによる厳格な型定義
+- **認可制御**: ロールベースでの作成・編集権限管理
+- **エラーハンドリング**: 包括的なバリデーションとエラー処理
+
 ## テスト
 
-プロジェクトにはJestとReact Testing Libraryを使用した包括的なテストスイート（25スイート、285テスト）が含まれています：
+プロジェクトにはJestとReact Testing Libraryを使用した包括的なテストスイート（33スイート、403テスト）が含まれています：
 
 ```bash
 # 全テスト実行
@@ -397,9 +475,9 @@ npm test -- --coverage
 
 ### テストファイル
 
-- `__tests__/components/` - React コンポーネントのテスト（Button、LoginForm、Sidebar、AdTemplates、Dashboard等）
-- `__tests__/lib/` - ユーティリティ関数のテスト（authorization、template-utils、url-template-actions等）
-- `__tests__/api/` - API エンドポイントのテスト（テンプレート、URLテンプレート API等）
+- `__tests__/components/` - React コンポーネントのテスト（Button、LoginForm、Sidebar、AdTemplates、AdContentCard、Dashboard等）
+- `__tests__/lib/` - ユーティリティ関数のテスト（authorization、template-utils、ad-content-actions、url-template-actions等）
+- `__tests__/api/` - API エンドポイントのテスト（テンプレート、URLテンプレート、広告コンテンツ API等）
 - `__tests__/hooks/` - React Hooksのテスト（useTemplates、useUrlTemplates等）
 
 ### テスト環境
