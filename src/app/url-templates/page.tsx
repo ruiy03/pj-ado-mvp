@@ -1,33 +1,10 @@
 import ProtectedPage from '@/components/ProtectedPage';
+import UrlTemplateClient from './components/UrlTemplateClient';
 
 export default function UrlTemplates() {
   return (
     <ProtectedPage>
-      <div>
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">URLテンプレート管理</h1>
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer">
-              新しいテンプレートを作成
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <div className="text-center py-12 text-gray-500">
-                <div className="text-4xl mb-4">🔗</div>
-                <h3 className="text-lg font-medium mb-2">URLテンプレートがありません</h3>
-                <p className="text-gray-400">計測パラメータ付きのURLテンプレートを作成して始めましょう</p>
-                <button
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer">
-                  最初のテンプレートを作成
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <UrlTemplateClient />
     </ProtectedPage>
   );
 }

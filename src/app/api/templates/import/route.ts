@@ -148,8 +148,6 @@ export async function POST(request: NextRequest) {
 
         if (values.length !== headers.length) {
           result.errors.push(`行 ${i + 1}: カラム数が一致しません (期待: ${headers.length}, 実際: ${values.length})`);
-          console.log(`Debug - Row ${i + 1}:`, values);
-          console.log(`Debug - Headers:`, headers);
           continue;
         }
 

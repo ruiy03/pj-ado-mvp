@@ -28,8 +28,8 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - **Authentication config**: `auth.config.ts` and `auth.ts` handle NextAuth setup
 - **Middleware**: `middleware.ts` protects routes except public files and login
 - **Database**: Uses Neon PostgreSQL with bcrypt for password hashing
-- **Session management**: Server-side session checking in layout for conditional UI
-- **Protected components**: `ProtectedPage.tsx` redirects unauthenticated users to `/login`
+- **Session management**: Client-side session checking with `SessionProvider.tsx` and `ClientLayout.tsx` for conditional UI
+- **Protected components**: `ProtectedPage.tsx` and `ClientProtectedPage.tsx` redirect unauthenticated users to `/login`
 - **Role-based access**: Two-tier system with `admin` (level 2) and `editor` (level 1) roles
 - **Authorization helpers**: `src/lib/authorization.ts` provides role checking utilities (`hasMinimumRole`, `isAdmin`, `canEdit`, `withAuthorization`)
 - **User management**: Full CRUD operations restricted to admin users only
@@ -38,7 +38,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 
 - **Conditional layout**: Authenticated users see sidebar + main content (`ml-64` offset), unauthenticated users see
   centered login
-- **Authentication flow**: Layout checks session and conditionally renders sidebar navigation vs login-only header
+- **Authentication flow**: Client layout checks session and conditionally renders sidebar navigation vs login-only header
 - **Navigation**: Six main sections accessible via fixed sidebar when authenticated
 - **Styling**: Consistent gray/blue design system using Tailwind CSS
 
@@ -46,7 +46,10 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 
 - `src/app/layout.tsx` - Root layout with conditional authentication-based rendering
 - `src/components/Sidebar.tsx` - Fixed sidebar with menu items, active state, and logout functionality
-- `src/components/ProtectedPage.tsx` - Wrapper component for route protection
+- `src/components/ProtectedPage.tsx` - Server-side wrapper component for route protection
+- `src/components/ClientProtectedPage.tsx` - Client-side wrapper component for route protection
+- `src/components/SessionProvider.tsx` - NextAuth session provider wrapper
+- `src/components/ClientLayout.tsx` - Client-side layout with session management
 - `src/components/LoginForm.tsx` - Authentication form component
 - `src/components/HTMLCodeEditor.tsx` - Monaco-based HTML code editor with validation
 - `src/lib/definitions.ts` - TypeScript interfaces (User model with role field, AdTemplate models)
@@ -64,17 +67,19 @@ Uses Neon PostgreSQL with the following structure:
 
 - **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
 - **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`, `updated_at`
+- **url_templates table**: `id` (serial), `name`, `base_url`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `custom_params` (JSON), `description`, `is_active`, `created_at`, `updated_at`
 - **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via `scripts/seed.js`
 
 ### Testing Setup
 
-The application uses Jest with React Testing Library for unit and component testing:
+The application uses Jest with React Testing Library for comprehensive unit and component testing:
 
 - **Jest configuration**: `jest.config.js` with Next.js integration and path mapping
-- **Setup file**: `jest.setup.js` for global test configuration including Web API mocks
-- **Test environment**: jsdom for DOM testing with React components  
+- **Setup file**: `jest.setup.js` for global test configuration including comprehensive Web API mocks (Request, Response, FormData, Headers, etc.)
+- **Test environment**: jsdom for DOM testing with React components
 - **Test location**: `__tests__/` directory with component and utility tests
-- **Coverage**: Tests for components (Button, LoginForm, Sidebar, AdTemplates, Dashboard, etc.) and utility functions (authorization, template-utils)
+- **Coverage**: 25 test suites with 285 tests covering components, hooks, API routes, utilities, and accessibility
+- **Test types**: Component testing, API endpoint testing, utility function testing, hook testing, and integration tests
 
 ### Page Structure
 
@@ -83,7 +88,7 @@ Each main feature has its own page directory under `src/app/`:
 - `/login` - Authentication page (accessible without login)
 - `/dashboard` - Overview dashboard with metrics cards and activity feed
 - `/ad-templates` - Advertisement template management with full CRUD operations, import/export functionality
-- `/url-templates` - URL template management (for tracking parameters)
+- `/url-templates` - URL template management with UTM parameter tracking and custom parameters
 - `/ads` - Advertisement management with search/filter table
 - `/article-ad-mapping` - Article to advertisement mapping management
 - `/accounts` - Account management system with full CRUD operations (admin only)
@@ -93,6 +98,8 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/templates/[id]` - Individual template operations (GET, PUT, DELETE)
 - `/api/templates/import` - Template import functionality (POST)
 - `/api/templates/export` - Template export functionality (GET)
+- `/api/url-templates` - REST API for URL template CRUD operations (GET, POST)
+- `/api/url-templates/[id]` - Individual URL template operations (GET, PUT, DELETE)
 
 Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese text and icons.
 
@@ -115,7 +122,8 @@ Most pages are implemented with full functionality. Some protected pages show pl
 - Uses Turbopack for faster development builds
 - Japanese language interface throughout (`lang="ja"` in layout)
 - Path alias `@/*` maps to `./src/*` (configured in tsconfig.json)
-- Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, etc.)
+- Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, ClientLayout, SessionProvider, etc.)
+- ESLint uses flat config format (`eslint.config.mjs`) with Next.js TypeScript rules
 - Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 - Authentication state determines entire application layout and available routes
 - Tests are located in `__tests__/` directory with `.test.tsx` and `.test.ts` extensions
@@ -133,3 +141,17 @@ The ad template system is a core feature with several important components:
 - **Template hooks**: `src/app/ad-templates/hooks/useTemplates.tsx` manages template state and operations
 
 Templates support dynamic placeholders in `{{variableName}}` format and automatically enforce `rel="nofollow"` on external links for SEO compliance.
+
+## URL Template System Architecture
+
+The URL template system provides comprehensive tracking parameter management for advertisement campaigns:
+
+- **URL template management**: `src/lib/url-template-actions.ts` provides server actions for URL template CRUD with authorization checks
+- **UTM parameter support**: Comprehensive UTM tracking (source, medium, campaign, term, content)
+- **Custom parameters**: JSON-based custom parameter storage for advanced tracking
+- **Template validation**: URL format validation and parameter consistency checks
+- **URL template hooks**: `src/app/url-templates/hooks/useUrlTemplates.tsx` manages URL template state and operations
+- **UI components**: `UrlTemplateCard.tsx`, `UrlTemplateForm.tsx`, and `UrlTemplateClient.tsx` for complete CRUD interface
+- **Template activation**: Boolean flag system for enabling/disabling URL templates
+
+URL templates support standard UTM parameters and custom JSON parameters for flexible campaign tracking and analytics integration.
