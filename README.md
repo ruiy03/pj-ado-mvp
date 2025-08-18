@@ -58,7 +58,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    ```bash
    node scripts/seed.js
    ```
-   > このコマンドにより、usersテーブルとad_templatesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
+   > このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
    ```bash
@@ -134,11 +134,14 @@ pj-ado-mvp/
 │   ├── app/                    # App Router ページ
 │   │   ├── api/              # API ルート
 │   │   │   ├── auth/[...nextauth]/ # NextAuth API ルート
-│   │   │   └── templates/    # 広告テンプレート API
-│   │   │       ├── route.ts  # GET, POST (全テンプレート)
-│   │   │       ├── [id]/route.ts # GET, PUT, DELETE (個別)
-│   │   │       ├── import/route.ts # POST (CSVインポート)
-│   │   │       └── export/route.ts # GET (CSVエクスポート)
+│   │   │   ├── templates/    # 広告テンプレート API
+│   │   │   │   ├── route.ts  # GET, POST (全テンプレート)
+│   │   │   │   ├── [id]/route.ts # GET, PUT, DELETE (個別)
+│   │   │   │   ├── import/route.ts # POST (CSVインポート)
+│   │   │   │   └── export/route.ts # GET (CSVエクスポート)
+│   │   │   └── url-templates/ # URLテンプレート API
+│   │   │       ├── route.ts  # GET, POST (全URLテンプレート)
+│   │   │       └── [id]/route.ts # GET, PUT, DELETE (個別)
 │   │   ├── dashboard/         # ダッシュボード
 │   │   ├── ads/              # 広告管理
 │   │   ├── ad-templates/     # 広告テンプレート管理
@@ -150,6 +153,12 @@ pj-ado-mvp/
 │   │   │   │   └── ValidationGuide.tsx # バリデーションガイド
 │   │   │   └── hooks/        # テンプレート管理hooks
 │   │   ├── url-templates/    # URLテンプレート管理
+│   │   │   ├── components/   # URLテンプレート管理専用コンポーネント
+│   │   │   │   ├── UrlTemplateCard.tsx # URLテンプレートカード表示
+│   │   │   │   ├── UrlTemplateForm.tsx # URLテンプレート作成・編集フォーム
+│   │   │   │   └── UrlTemplateClient.tsx # URLテンプレート管理UI
+│   │   │   └── hooks/        # URLテンプレート管理hooks
+│   │   │       └── useUrlTemplates.tsx # URLテンプレート状態管理
 │   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
 │   │   ├── accounts/         # アカウント管理
 │   │   ├── login/           # ログインページ
@@ -158,9 +167,10 @@ pj-ado-mvp/
 │   ├── components/           # 共通コンポーネント
 │   │   ├── Button.tsx       # ボタンコンポーネント
 │   │   ├── ClientLayout.tsx # クライアントレイアウト
+│   │   ├── ClientProtectedPage.tsx # クライアントサイド認証保護ラッパー
 │   │   ├── HTMLCodeEditor.tsx # Monaco Editor HTMLエディター
 │   │   ├── LoginForm.tsx    # ログインフォーム
-│   │   ├── ProtectedPage.tsx # 認証保護ラッパー
+│   │   ├── ProtectedPage.tsx # サーバーサイド認証保護ラッパー
 │   │   ├── SessionProvider.tsx # セッションプロバイダー
 │   │   └── Sidebar.tsx      # サイドバーナビゲーション
 │   ├── lib/                 # ユーティリティ・設定
@@ -169,6 +179,7 @@ pj-ado-mvp/
 │   │   ├── definitions.ts   # TypeScript型定義
 │   │   ├── template-actions.ts # テンプレート管理アクション
 │   │   ├── template-utils.ts   # テンプレートユーティリティ
+│   │   ├── url-template-actions.ts # URLテンプレート管理アクション
 │   │   ├── template-utils/  # テンプレート処理専用モジュール
 │   │   │   ├── validation.ts # HTMLとプレースホルダーのバリデーション
 │   │   │   ├── placeholder-extraction.ts # プレースホルダー抽出
@@ -202,6 +213,16 @@ pj-ado-mvp/
 | `/api/templates/import` | POST   | CSVからテンプレートインポート | 必須 |
 | `/api/templates/export` | GET    | テンプレートをCSVエクスポート | 必須 |
 
+### URLテンプレート API
+
+| エンドポイント                     | メソッド   | 説明                | 認証 |
+|------------------------------|--------|-------------------|----|
+| `/api/url-templates`         | GET    | 全URLテンプレート取得      | 必須 |
+| `/api/url-templates`         | POST   | 新規URLテンプレート作成     | 必須 |
+| `/api/url-templates/[id]`    | GET    | 個別URLテンプレート取得     | 必須 |
+| `/api/url-templates/[id]`    | PUT    | URLテンプレート更新       | 必須 |
+| `/api/url-templates/[id]`    | DELETE | URLテンプレート削除       | 必須 |
+
 ### 認証 API
 
 | エンドポイント                   | メソッド     | 説明                  |
@@ -216,7 +237,7 @@ pj-ado-mvp/
 
 - **NextAuth.js v5 (beta)** を使用したクレデンシャル認証
 - **ミドルウェア** による全ルート保護 (`/login`以外は認証必須)
-- **サーバーサイドセッション管理** でセキュアな状態管理
+- **クライアントサイドセッション管理** でリアルタイムな状態管理
 - **bcrypt** によるパスワードハッシュ化
 - **セッションベース** の認証フロー
 - **条件付きレイアウト** で認証状態に応じた UI 表示
@@ -269,6 +290,24 @@ pj-ado-mvp/
 | `created_at`   | TIMESTAMP    | 作成日時       | DEFAULT NOW() |
 | `updated_at`   | TIMESTAMP    | 更新日時       | DEFAULT NOW() |
 
+### url_templates テーブル
+
+| カラム            | 型            | 説明              | 制約                          |
+|----------------|--------------|-----------------|-----------------------------|
+| `id`           | SERIAL       | プライマリキー         | PRIMARY KEY                 |
+| `name`         | VARCHAR(255) | URLテンプレート名      | NOT NULL                    |
+| `base_url`     | TEXT         | ベースURL          | NOT NULL                    |
+| `utm_source`   | VARCHAR(255) | UTMソース          |                             |
+| `utm_medium`   | VARCHAR(255) | UTMメディア         |                             |
+| `utm_campaign` | VARCHAR(255) | UTMキャンペーン       |                             |
+| `utm_term`     | VARCHAR(255) | UTMキーワード        |                             |
+| `utm_content`  | VARCHAR(255) | UTMコンテンツ        |                             |
+| `custom_params`| JSON         | カスタムパラメータ       |                             |
+| `description`  | TEXT         | 説明              |                             |
+| `is_active`    | BOOLEAN      | アクティブ状態        | NOT NULL, DEFAULT true     |
+| `created_at`   | TIMESTAMP    | 作成日時            | DEFAULT NOW()               |
+| `updated_at`   | TIMESTAMP    | 更新日時            | DEFAULT NOW()               |
+
 ## テンプレートシステム
 
 ### 主要機能
@@ -306,9 +345,37 @@ pj-ado-mvp/
 - **就活リボン型** - 特殊形状のリボンデザイン
 - **就活アイコン広告** - 円形アイコンを使った横長デザイン
 
+## URLテンプレートシステム
+
+### 主要機能
+
+- **UTMパラメータ管理**: 標準的なUTMトラッキングパラメータ（source、medium、campaign、term、content）の完全サポート
+- **カスタムパラメータ**: JSON形式でのカスタムトラッキングパラメータ対応
+- **テンプレート有効化**: ブール値フラグによるURLテンプレートの有効・無効制御
+- **URL生成**: ベースURLとパラメータの組み合わせによる完全なトラッキングURL生成
+- **バリデーション**: URL形式とパラメータ整合性の検証機能
+
+### URLテンプレート管理機能
+
+- **CRUD操作**: URLテンプレートの作成・読み取り・更新・削除
+- **UTMパラメータ設定**: キャンペーン別のトラッキングパラメータ管理
+- **プレビュー機能**: 生成されるトラッキングURLのリアルタイムプレビュー
+- **テンプレート一覧**: カード形式での直感的なテンプレート管理
+- **フィルタリング**: アクティブ・非アクティブテンプレートの切り替え表示
+
+### サンプルURLテンプレート
+
+シードスクリプトでは以下のURLテンプレートが作成されます：
+
+- **就活サイト基本URL** - PORTキャリア向け基本トラッキング
+- **キャンペーン専用URL** - 特定キャンペーン用UTMパラメータ付き
+- **SNS投稿用URL** - ソーシャルメディア投稿用カスタムパラメータ付き
+- **メール配信用URL** - メールマーケティング用トラッキング
+- **広告配信用URL** - 広告プラットフォーム別トラッキング
+
 ## テスト
 
-プロジェクトにはJestとReact Testing Libraryを使用した包括的なテストスイートが含まれています：
+プロジェクトにはJestとReact Testing Libraryを使用した包括的なテストスイート（25スイート、285テスト）が含まれています：
 
 ```bash
 # 全テスト実行
@@ -323,16 +390,19 @@ npm test -- --coverage
 
 ### テストファイル
 
-- `__tests__/components/` - React コンポーネントのテスト
-- `__tests__/lib/` - ユーティリティ関数のテスト
-- `__tests__/api/` - API エンドポイントのテスト
+- `__tests__/components/` - React コンポーネントのテスト（Button、LoginForm、Sidebar、AdTemplates、Dashboard等）
+- `__tests__/lib/` - ユーティリティ関数のテスト（authorization、template-utils、url-template-actions等）
+- `__tests__/api/` - API エンドポイントのテスト（テンプレート、URLテンプレート API等）
+- `__tests__/hooks/` - React Hooksのテスト（useTemplates、useUrlTemplates等）
 
 ### テスト環境
 
 - **jsdom環境**: DOM操作のテスト対応
-- **Web API モック**: Request/Response、FormData、Headers等の完全モック
+- **Web API モック**: Request/Response、FormData、Headers、fetch等の完全モック
 - **NextAuth.js モック**: 認証システムのテスト対応
 - **Monaco Editor モック**: エディターコンポーネントのテスト対応
+- **アクセシビリティテスト**: 適切なlabel属性とtest-id設定
+- **インテグレーションテスト**: API呼び出しとコンポーネント連携のテスト
 
 ## 開発者向け情報
 
