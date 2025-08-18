@@ -58,7 +58,7 @@ export default function UrlTemplateForm({template, onSubmit, onCancel, isEdit = 
 
   const buildFullUrl = () => {
     if (!formData.url) return '';
-    
+
     const url = new URL(formData.url);
     Object.entries(formData.parameters).forEach(([key, value]) => {
       url.searchParams.set(key, value);
@@ -157,7 +157,14 @@ export default function UrlTemplateForm({template, onSubmit, onCancel, isEdit = 
               </div>
             )}
 
-            <div className="flex justify-end space-x-3 pt-6 border-t">
+            <div className="flex justify-end space-x-3">
+              <button
+                type="submit"
+                disabled={submitting || !formData.name || !formData.url}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+              >
+                {submitting ? '保存中...' : (isEdit ? '更新する' : '作成する')}
+              </button>
               <button
                 type="button"
                 onClick={onCancel}
@@ -165,13 +172,6 @@ export default function UrlTemplateForm({template, onSubmit, onCancel, isEdit = 
                 disabled={submitting}
               >
                 キャンセル
-              </button>
-              <button
-                type="submit"
-                disabled={submitting || !formData.name || !formData.url}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
-              >
-                {submitting ? '保存中...' : (isEdit ? '更新する' : '作成する')}
               </button>
             </div>
           </form>

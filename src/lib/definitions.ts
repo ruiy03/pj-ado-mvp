@@ -50,6 +50,31 @@ export interface UpdateAdTemplateRequest {
   description?: string;
 }
 
+export interface UrlTemplate {
+  id: number;
+  name: string;
+  url: string;
+  parameters: Record<string, string>;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateUrlTemplateRequest {
+  name: string;
+  url: string;
+  parameters: Record<string, string>;
+  description?: string;
+}
+
+export interface UpdateUrlTemplateRequest {
+  id: number;
+  name?: string;
+  url?: string;
+  parameters?: Record<string, string>;
+  description?: string;
+}
+
 // NextAuth拡張用の型定義
 declare module "next-auth" {
   interface User {
