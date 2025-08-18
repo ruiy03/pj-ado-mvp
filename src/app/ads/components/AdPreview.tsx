@@ -192,15 +192,6 @@ export default function AdPreview({
               )}
             </div>
 
-            {/* ビューポート情報 */}
-            {template && showViewportToggle && (
-              <div className="mt-2 text-center">
-                <span className="inline-flex items-center px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded">
-                  {viewportConfigs[viewport].icon}
-                  <span className="ml-1">{viewportConfigs[viewport].name}プレビュー</span>
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>

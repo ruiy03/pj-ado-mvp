@@ -32,7 +32,7 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" role="form">
       <div className="flex-1 rounded-xl bg-white px-10 pb-10 pt-12 border border-gray-200 shadow-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
@@ -109,7 +109,8 @@ export default function LoginForm() {
             </div>
           </div>
         </div>
-        <Button className="mt-8 w-full py-4 text-base font-medium justify-center" aria-disabled={isPending}>
+        <Button type="submit" className="mt-8 w-full py-4 text-base font-medium justify-center"
+                aria-disabled={isPending}>
           {isPending ? (
             <div className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
