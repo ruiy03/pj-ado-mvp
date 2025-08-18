@@ -4,12 +4,23 @@ import {useState} from 'react';
 import {useUrlTemplates} from '../hooks/useUrlTemplates';
 import UrlTemplateForm from './UrlTemplateForm';
 import UrlTemplateCard from './UrlTemplateCard';
+import ImportExportButtons from './ImportExportButtons';
 import type {UrlTemplate, CreateUrlTemplateRequest} from '@/lib/definitions';
 
+interface ImportResult {
+  success: number;
+  errors: string[];
+  total: number;
+}
+
 export default function UrlTemplateClient() {
-  const {templates, loading, error, setError, createTemplate, updateTemplate, deleteTemplate} = useUrlTemplates();
+  const {templates, loading, error, setError, fetchTemplates, createTemplate, updateTemplate, deleteTemplate} = useUrlTemplates();
   const [showForm, setShowForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<UrlTemplate | null>(null);
+  const [showImportForm, setShowImportForm] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const handleCreateOrUpdate = async (formData: CreateUrlTemplateRequest) => {
     try {
@@ -43,6 +54,94 @@ export default function UrlTemplateClient() {
     }
   };
 
+  const handleImportClick = () => {
+    setShowForm(false);
+    setEditingTemplate(null);
+    setShowImportForm(true);
+  };
+
+  const handleImportCancel = () => {
+    setShowImportForm(false);
+    setImportResult(null);
+  };
+
+  const handleCreateClick = () => {
+    setShowForm(true);
+    setShowImportForm(false);
+    setImportResult(null);
+  };
+
+  const handleImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+
+    try {
+      setImportLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/url-templates/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'インポートに失敗しました');
+      }
+
+      setImportResult(result);
+
+      // テンプレートリストを再取得
+      await fetchTemplates();
+
+      if (result.errors.length === 0) {
+        setShowImportForm(false);
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エラーが発生しました');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+      setError(null);
+      const response = await fetch('/api/url-templates/export');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'エクスポートに失敗しました');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'url-templates.csv';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'エクスポートでエラーが発生しました');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -53,14 +152,17 @@ export default function UrlTemplateClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">URLテンプレート管理</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
-          新しいテンプレートを作成
-        </button>
-      </div>
+      <ImportExportButtons
+        onImport={handleImportClick}
+        onExport={handleExport}
+        onCreateClick={handleCreateClick}
+        onImportCancel={handleImportCancel}
+        exportLoading={exportLoading}
+        showImportForm={showImportForm}
+        importLoading={importLoading}
+        importResult={importResult}
+        handleImport={handleImport}
+      />
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -84,7 +186,7 @@ export default function UrlTemplateClient() {
               <h3 className="text-lg font-medium mb-2">URLテンプレートがありません</h3>
               <p className="text-gray-400">計測パラメータ付きのURLテンプレートを作成して始めましょう</p>
               <button
-                onClick={() => setShowForm(true)}
+                onClick={handleCreateClick}
                 className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">
                 最初のテンプレートを作成
               </button>

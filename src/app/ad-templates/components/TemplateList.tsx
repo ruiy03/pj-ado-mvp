@@ -11,6 +11,17 @@ interface TemplateListProps {
 }
 
 export default function TemplateList({ templates, onEdit, onDelete, onCreateClick }: TemplateListProps) {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const renderTemplate = (template: AdTemplate) => {
     let previewHtml = template.html;
 
@@ -91,6 +102,12 @@ export default function TemplateList({ templates, onEdit, onDelete, onCreateClic
                   <div className="bg-white rounded border p-2">
                     {renderTemplate(template)}
                   </div>
+                </div>
+                <div className="px-4 py-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                  <span>作成: {formatDate(template.created_at)}</span>
+                  {template.updated_at !== template.created_at && (
+                    <span>更新: {formatDate(template.updated_at)}</span>
+                  )}
                 </div>
               </div>
             ))}
