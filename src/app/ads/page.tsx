@@ -1,5 +1,9 @@
 import ProtectedPage from '@/components/ProtectedPage';
 
+// TODO: 広告管理機能の実装が必要
+// - 広告一覧表示
+// - 広告作成・編集・削除
+// - 検索・フィルタ機能
 export default function Ads() {
   return (
     <ProtectedPage>

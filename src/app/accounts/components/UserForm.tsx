@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useActionState } from 'react';
-import { User } from '@/lib/definitions';
-import { createUser, updateUser } from '@/lib/user-actions';
+import {useState, useEffect, useActionState} from 'react';
+import {User} from '@/lib/definitions';
+import {createUser, updateUser} from '@/lib/user-actions';
 
 interface UserFormProps {
   user?: User;
@@ -10,10 +10,10 @@ interface UserFormProps {
   onSuccess: () => void;
 }
 
-export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
+export default function UserForm({user, onClose, onSuccess}: UserFormProps) {
   const [createState, createFormAction] = useActionState(createUser, undefined);
   const [updateState, updateFormAction] = useActionState(updateUser, undefined);
-  
+
   // フォームの値を状態で管理
   const [formValues, setFormValues] = useState({
     name: user?.name || '',
@@ -32,7 +32,7 @@ export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   }, [state, onSuccess]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setFormValues(prev => ({
       ...prev,
       [name]: value
@@ -45,10 +45,10 @@ export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
         <h2 className="text-xl font-bold mb-4">
           {isEdit ? 'ユーザー編集' : '新しいユーザーを追加'}
         </h2>
-        
+
         <form action={formAction} className="space-y-4">
-          {isEdit && <input type="hidden" name="id" value={user.id} />}
-          
+          {isEdit && <input type="hidden" name="id" value={user.id}/>}
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               名前
@@ -79,7 +79,7 @@ export default function UserForm({ user, onClose, onSuccess }: UserFormProps) {
             />
           </div>
 
-          <input type="hidden" name="role" value="editor" />
+          <input type="hidden" name="role" value="editor"/>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">

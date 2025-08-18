@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { User } from '@/lib/definitions';
-import { deleteUser, getUsers } from '@/lib/user-actions';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import {useState, useEffect} from 'react';
+import {User} from '@/lib/definitions';
+import {deleteUser, getUsers} from '@/lib/user-actions';
+import {useSession} from 'next-auth/react';
+import {useRouter} from 'next/navigation';
 
 import UserForm from './components/UserForm';
 import UserList from './components/UserList';
 
 export default function AccountsPage() {
-  const { data: session, status } = useSession();
+  const {data: session, status} = useSession();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,12 +19,12 @@ export default function AccountsPage() {
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session?.user) {
       router.push('/login');
       return;
     }
-    
+
     loadUsers();
   }, [session, status, router]);
 
@@ -42,7 +42,7 @@ export default function AccountsPage() {
 
   const handleDelete = async (userId: number) => {
     if (!confirm('このユーザーを削除してもよろしいですか？')) return;
-    
+
     const result = await deleteUser(userId);
     if (result.success) {
       loadUsers();

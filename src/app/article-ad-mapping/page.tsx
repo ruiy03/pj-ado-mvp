@@ -1,5 +1,9 @@
 import ProtectedPage from '@/components/ProtectedPage';
 
+// TODO: 記事と広告の紐付け管理機能の実装が必要
+// - 記事一覧表示
+// - 広告との紐付け作成・編集・削除
+// - 紐付け状況の確認・管理
 export default function ArticleAdMapping() {
   return (
     <ProtectedPage>
