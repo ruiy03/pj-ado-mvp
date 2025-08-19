@@ -1,10 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import ClientLayout from '@/components/ClientLayout';
 
 // Mock next-auth/react
 jest.mock('next-auth/react', () => ({
   useSession: jest.fn(),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  usePathname: jest.fn(),
 }));
 
 // Mock Sidebar component
@@ -13,10 +19,12 @@ jest.mock('@/components/Sidebar', () => {
 });
 
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
+const mockUsePathname = usePathname as jest.MockedFunction<typeof usePathname>;
 
 describe('ClientLayout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePathname.mockReturnValue('/dashboard'); // デフォルトパス
   });
 
   it('shows loading spinner when session is loading', () => {
