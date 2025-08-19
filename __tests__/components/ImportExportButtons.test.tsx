@@ -1,17 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ImportExportButtons from '@/app/ad-templates/components/ImportExportButtons';
-
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type { ImportResult } from '@/lib/definitions';
 
 describe('ImportExportButtons', () => {
   const mockOnImport = jest.fn();
   const mockOnExport = jest.fn();
   const mockOnCreateClick = jest.fn();
   const mockOnImportCancel = jest.fn();
+  const mockOnImportResultClose = jest.fn();
   const mockHandleImport = jest.fn();
 
   const defaultProps = {
@@ -19,6 +15,7 @@ describe('ImportExportButtons', () => {
     onExport: mockOnExport,
     onCreateClick: mockOnCreateClick,
     onImportCancel: mockOnImportCancel,
+    onImportResultClose: mockOnImportResultClose,
     exportLoading: false,
     showImportForm: false,
     importLoading: false,
@@ -119,6 +116,11 @@ describe('ImportExportButtons', () => {
       success: 5,
       errors: [],
       total: 5,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' },
+        { id: 2, name: 'テンプレート2' }
+      ],
+      updatedItems: []
     };
     
     const propsWithSuccessResult = {
@@ -130,8 +132,15 @@ describe('ImportExportButtons', () => {
     render(<ImportExportButtons {...propsWithSuccessResult} />);
     
     expect(screen.getByText('インポート結果')).toBeInTheDocument();
-    expect(screen.getByText('処理総数:')).toBeInTheDocument();
-    expect(screen.getByText('成功:')).toBeInTheDocument();
+    expect(screen.getByText('処理総数')).toBeInTheDocument();
+    expect(screen.getByText('成功')).toBeInTheDocument();
+    expect(screen.getByText('エラー')).toBeInTheDocument();
+    // 統計カードの中身をチェック
+    expect(screen.getAllByText('5')).toHaveLength(2); // total と success の両方
+    expect(screen.getByText('0')).toBeInTheDocument(); // エラー数
+    expect(screen.getByText('新規作成されたテンプレート (2件)')).toBeInTheDocument();
+    expect(screen.getByText('テンプレート1')).toBeInTheDocument();
+    expect(screen.getByText('テンプレート2')).toBeInTheDocument();
   });
 
   it('displays import result with errors', () => {
@@ -139,6 +148,10 @@ describe('ImportExportButtons', () => {
       success: 3,
       errors: ['Error 1', 'Error 2'],
       total: 5,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' }
+      ],
+      updatedItems: []
     };
     
     const propsWithErrorResult = {
@@ -150,9 +163,16 @@ describe('ImportExportButtons', () => {
     render(<ImportExportButtons {...propsWithErrorResult} />);
     
     expect(screen.getByText('インポート結果')).toBeInTheDocument();
-    expect(screen.getByText('処理総数:')).toBeInTheDocument();
-    expect(screen.getByText('成功:')).toBeInTheDocument();
-    expect(screen.getByText('エラー:')).toBeInTheDocument();
+    expect(screen.getByText('処理総数')).toBeInTheDocument();
+    expect(screen.getByText('成功')).toBeInTheDocument();
+    expect(screen.getByText('エラー')).toBeInTheDocument();
+    // 統計カードの中身をチェック
+    expect(screen.getByText('5')).toBeInTheDocument(); // total
+    expect(screen.getByText('3')).toBeInTheDocument(); // success
+    expect(screen.getByText('2')).toBeInTheDocument(); // errors count
+    expect(screen.getByText('新規作成されたテンプレート (1件)')).toBeInTheDocument();
+    expect(screen.getByText('テンプレート1')).toBeInTheDocument();
+    expect(screen.getByText('エラー詳細 (2件)')).toBeInTheDocument();
     expect(screen.getByText('Error 1')).toBeInTheDocument();
     expect(screen.getByText('Error 2')).toBeInTheDocument();
   });
@@ -212,5 +232,57 @@ describe('ImportExportButtons', () => {
     
     const cancelButton = screen.getByText('キャンセル');
     expect(cancelButton).toBeDisabled();
+  });
+
+  it('calls onImportResultClose when close button is clicked in import result', () => {
+    const successResult: ImportResult = {
+      success: 2,
+      errors: [],
+      total: 2,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' }
+      ],
+      updatedItems: []
+    };
+    
+    const propsWithResult = {
+      ...defaultProps,
+      importResult: successResult,
+    };
+    
+    render(<ImportExportButtons {...propsWithResult} />);
+    
+    const closeButton = screen.getByLabelText('結果を閉じる');
+    fireEvent.click(closeButton);
+    
+    expect(mockOnImportResultClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays import result as independent section when result exists', () => {
+    const successResult: ImportResult = {
+      success: 2,
+      errors: [],
+      total: 2,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' }
+      ],
+      updatedItems: []
+    };
+    
+    const propsWithResult = {
+      ...defaultProps,
+      importResult: successResult,
+      showImportForm: false, // フォームは非表示
+    };
+    
+    render(<ImportExportButtons {...propsWithResult} />);
+    
+    // インポート結果は表示されている
+    expect(screen.getByText('インポート結果')).toBeInTheDocument();
+    expect(screen.getByText('新規作成されたテンプレート (1件)')).toBeInTheDocument();
+    expect(screen.getByLabelText('結果を閉じる')).toBeInTheDocument();
+    
+    // フォームは表示されていない
+    expect(screen.queryByText('CSVファイルからインポート')).not.toBeInTheDocument();
   });
 });

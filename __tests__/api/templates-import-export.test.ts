@@ -52,8 +52,10 @@ describe('/api/templates/import & /api/templates/export', () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // インポート成功をシミュレート
-      mockSql.mockResolvedValue([{ id: 1 }]);
+      // createAdTemplateのmockを設定
+      createAdTemplate
+        .mockResolvedValueOnce({ id: 1, name: 'テストバナー', html: '<div>{{title}}</div>', placeholders: ['title'], description: 'テスト用バナー' })
+        .mockResolvedValueOnce({ id: 2, name: 'テストカード', html: '<div>{{title}}{{description}}</div>', placeholders: ['title', 'description'], description: 'テスト用カード' });
 
       const request = new NextRequest('http://localhost:3000/api/templates/import', {
         method: 'POST',
@@ -68,6 +70,11 @@ describe('/api/templates/import & /api/templates/export', () => {
         success: 2,
         errors: [],
         total: 2,
+        createdItems: [
+          { id: 1, name: 'テストバナー' },
+          { id: 2, name: 'テストカード' }
+        ],
+        updatedItems: []
       });
     });
 
@@ -138,8 +145,8 @@ describe('/api/templates/import & /api/templates/export', () => {
       formData.append('file', file);
 
       // 最初のレコードは成功、2番目は失敗
-      mockSql
-        .mockResolvedValueOnce([{ id: 1 }]) // 成功
+      createAdTemplate
+        .mockResolvedValueOnce({ id: 1, name: '有効なテンプレート', html: '<div>{{title}}</div>', placeholders: ['title'], description: '有効な説明' })
         .mockRejectedValueOnce(new Error('Validation error')); // 失敗
 
       const request = new NextRequest('http://localhost:3000/api/templates/import', {
@@ -154,6 +161,10 @@ describe('/api/templates/import & /api/templates/export', () => {
       expect(data.success).toBe(1);
       expect(data.errors.length).toBe(1);
       expect(data.total).toBe(2);
+      expect(data.createdItems).toEqual([
+        { id: 1, name: '有効なテンプレート' }
+      ]);
+      expect(data.updatedItems).toEqual([]);
     });
 
     it('CSVファイル以外の形式は拒否される', async () => {
