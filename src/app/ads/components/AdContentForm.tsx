@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useEffect, useMemo, useCallback} from 'react';
 import type {
   AdContent,
   AdTemplate,
@@ -37,7 +37,7 @@ export default function AdContentForm({
                                         onCancel,
                                         isEdit = false,
                                       }: AdContentFormProps) {
-  const [formData, setFormData] = useState<Partial<CreateAdContentRequest> & {name: string}>({
+  const [formData, setFormData] = useState<Partial<CreateAdContentRequest> & { name: string }>({
     name: '',
     template_id: undefined,
     url_template_id: undefined,
@@ -151,17 +151,18 @@ export default function AdContentForm({
   // URLプレビューの生成
   const generateUrlPreview = (): string => {
     if (!selectedUrlTemplate) return '';
-
-    let url = selectedUrlTemplate.url_template;
-
-    // プレースホルダーをパラメータで置換
-    Object.entries(selectedUrlTemplate.parameters).forEach(([key, value]) => {
-      const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-      url = url.replace(regex, String(value || ''));
-    });
-
-    return url;
+    return selectedUrlTemplate.url_template;
   };
+
+  // URLテンプレートからプレースホルダーを抽出
+  const getUrlTemplatePlaceholders = useCallback((): string[] => {
+    if (!selectedUrlTemplate) return [];
+    const matches = selectedUrlTemplate.url_template.match(/\{\{([^}]+)\}\}/g);
+    if (!matches) return [];
+    return matches
+      .map(match => match.replace(/[{}]/g, '').trim())
+      .filter(placeholder => placeholder !== 'baseUrl'); // baseUrlは除外
+  }, [selectedUrlTemplate]);
 
   // リンクプレビューの生成（linkUrlはパラメータ付き、imageUrlはパラメータなし）
   const linkPreviews = useMemo(() => {
@@ -190,26 +191,27 @@ export default function AdContentForm({
           const cleanName = getCleanPlaceholderNameInternal(placeholder).toLowerCase();
           let finalUrl = baseUrl.trim();
           let hasUrlParams = false;
-          
-          // linkUrlの場合はURLテンプレートのパラメータを適用
+
+          // linkUrlの場合はURLテンプレートを適用
           if (cleanName.includes('link') && selectedUrlTemplate) {
             // URLテンプレートからパラメータを生成
             let urlWithParams = selectedUrlTemplate.url_template;
-            
-            // まずベースURLを置換
+
+            // ベースURLを置換
             const baseUrlRegex = /\{\{\s*baseUrl\s*\}\}/g;
             urlWithParams = urlWithParams.replace(baseUrlRegex, baseUrl.trim());
-            
-            // その他のプレースホルダーをパラメータで置換
-            Object.entries(selectedUrlTemplate.parameters).forEach(([key, value]) => {
-              const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
-              urlWithParams = urlWithParams.replace(regex, String(value || ''));
+
+            // URLテンプレートのプレースホルダーを実際の値で置換
+            getUrlTemplatePlaceholders().forEach(placeholder => {
+              const value = formData.content_data?.[placeholder] || placeholder;
+              const regex = new RegExp(`\\{\\{\\s*${placeholder}\\s*\\}\\}`, 'g');
+              urlWithParams = urlWithParams.replace(regex, String(value));
             });
-            
+
             finalUrl = urlWithParams;
             hasUrlParams = true;
           }
-          
+
           previews.push({
             placeholder,
             url: finalUrl,
@@ -221,7 +223,7 @@ export default function AdContentForm({
     });
 
     return previews;
-  }, [selectedTemplate, formData.content_data, selectedUrlTemplate]);
+  }, [selectedTemplate, formData.content_data, selectedUrlTemplate, getUrlTemplatePlaceholders]);
 
   // フォーム送信
   const handleSubmit = async (e: React.FormEvent) => {
@@ -254,7 +256,7 @@ export default function AdContentForm({
       selectedTemplate.placeholders.forEach(placeholder => {
         const cleanName = getCleanPlaceholderName(placeholder);
         const value = formData.content_data?.[placeholder];
-        
+
         if (!value || (typeof value === 'string' && !value.trim())) {
           // 画像の場合は uploadedImages もチェック
           if (isImagePlaceholder(placeholder)) {
@@ -268,13 +270,23 @@ export default function AdContentForm({
       });
     }
 
+    // URLテンプレートのプレースホルダーの必須チェック
+    if (selectedUrlTemplate) {
+      getUrlTemplatePlaceholders().forEach(placeholder => {
+        const value = formData.content_data?.[placeholder];
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          newErrors[`url_placeholder_${placeholder}`] = `${placeholder}は必須です`;
+        }
+      });
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       // 最初のエラーにフォーカス
       const firstErrorKey = Object.keys(newErrors)[0];
       const firstErrorElement = document.querySelector(`[data-error-key="${firstErrorKey}"]`);
       if (firstErrorElement) {
-        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstErrorElement.scrollIntoView({behavior: 'smooth', block: 'center'});
       }
       return;
     }
@@ -419,50 +431,144 @@ export default function AdContentForm({
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">コンテンツ入力</h3>
                     <div className="space-y-4">
-                      {selectedTemplate.placeholders.map((placeholder) => {
-                        const cleanName = getCleanPlaceholderName(placeholder);
-                        const errorKey = `placeholder_${placeholder}`;
-                        const hasError = errors[errorKey];
-                        return (
-                          <div key={placeholder} data-error-key={errorKey}>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {cleanName} <span className="text-red-500">*</span>
-                            </label>
-                            {isImagePlaceholder(placeholder) ? (
-                              <div>
-                                <ImageUpload
-                                  onUpload={(image) => handleImageUpload(placeholder, image)}
-                                  onRemove={() => handleImageRemove(placeholder)}
-                                  currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data?.[placeholder] || '')}
-                                  placeholder={`${cleanName}の画像をアップロード`}
-                                  className={hasError ? 'border-red-300' : ''}
-                                  adContentId={adContent?.id}
-                                  placeholderName={cleanName}
-                                  altText={cleanName}
-                                />
-                                {hasError && (
-                                  <p className="text-sm text-red-600 mt-1">{hasError}</p>
-                                )}
-                              </div>
-                            ) : (
-                              <div>
-                                <input
-                                  type="text"
-                                  value={String(formData.content_data?.[placeholder] || '')}
-                                  onChange={(e) => updatePlaceholderValue(placeholder, e.target.value)}
-                                  className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
-                                    hasError ? 'border-red-300' : 'border-gray-300'
-                                  }`}
-                                  placeholder={`${cleanName}を入力...`}
-                                />
-                                {hasError && (
-                                  <p className="text-sm text-red-600 mt-1">{hasError}</p>
-                                )}
-                              </div>
-                            )}
+                      {selectedTemplate.placeholders
+                        .filter(placeholder => {
+                          const cleanName = getCleanPlaceholderName(placeholder).toLowerCase();
+                          return !cleanName.includes('link') && (!cleanName.includes('url') || cleanName.includes('image')) && !cleanName.includes('href');
+                        })
+                        .map((placeholder) => {
+                          const cleanName = getCleanPlaceholderName(placeholder);
+                          const errorKey = `placeholder_${placeholder}`;
+                          const hasError = errors[errorKey];
+                          return (
+                            <div key={placeholder} data-error-key={errorKey}>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                {cleanName} <span className="text-red-500">*</span>
+                              </label>
+                              {isImagePlaceholder(placeholder) ? (
+                                <div>
+                                  <ImageUpload
+                                    onUpload={(image) => handleImageUpload(placeholder, image)}
+                                    onRemove={() => handleImageRemove(placeholder)}
+                                    currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data?.[placeholder] || '')}
+                                    placeholder={`${cleanName}の画像をアップロード`}
+                                    className={hasError ? 'border-red-300' : ''}
+                                    adContentId={adContent?.id}
+                                    placeholderName={cleanName}
+                                    altText={cleanName}
+                                  />
+                                  {hasError && (
+                                    <p className="text-sm text-red-600 mt-1">{hasError}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div>
+                                  <input
+                                    type="text"
+                                    value={String(formData.content_data?.[placeholder] || '')}
+                                    onChange={(e) => updatePlaceholderValue(placeholder, e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
+                                      hasError ? 'border-red-300' : 'border-gray-300'
+                                    }`}
+                                    placeholder={`${cleanName}を入力...`}
+                                  />
+                                  {hasError && (
+                                    <p className="text-sm text-red-600 mt-1">{hasError}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                {/* リンクURL・計測パラメータ入力 */}
+                {(selectedTemplate && selectedTemplate.placeholders.some(placeholder => {
+                  const cleanName = getCleanPlaceholderName(placeholder).toLowerCase();
+                  return cleanName.includes('link') || (cleanName.includes('url') && !cleanName.includes('image')) || cleanName.includes('href');
+                }) || (selectedUrlTemplate && getUrlTemplatePlaceholders().length > 0)) && (
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">リンクURL・計測パラメータ</h3>
+                    <div className="space-y-4">
+                      {/* リンクURL入力 */}
+                      {selectedTemplate && selectedTemplate.placeholders
+                        .filter(placeholder => {
+                          const cleanName = getCleanPlaceholderName(placeholder).toLowerCase();
+                          return cleanName.includes('link') || (cleanName.includes('url') && !cleanName.includes('image')) || cleanName.includes('href');
+                        })
+                        .map((placeholder) => {
+                          const cleanName = getCleanPlaceholderName(placeholder);
+                          const errorKey = `placeholder_${placeholder}`;
+                          const hasError = errors[errorKey];
+                          return (
+                            <div key={placeholder} data-error-key={errorKey}>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                {cleanName} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="url"
+                                value={String(formData.content_data?.[placeholder] || '')}
+                                onChange={(e) => updatePlaceholderValue(placeholder, e.target.value)}
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
+                                  hasError ? 'border-red-300' : 'border-gray-300'
+                                }`}
+                                placeholder={`${cleanName}を入力...`}
+                              />
+                              {hasError && (
+                                <p className="text-sm text-red-600 mt-1">{hasError}</p>
+                              )}
+                              <p className="text-sm text-gray-500 mt-1">
+                                例: https://port-career.jp/article/123
+                              </p>
+                            </div>
+                          );
+                        })}
+
+                      {/* 計測パラメータ入力 */}
+                      {selectedUrlTemplate && getUrlTemplatePlaceholders().length > 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="text-md font-medium text-gray-900 mb-3">計測パラメータ</h4>
+                          <div className="space-y-3">
+                            {getUrlTemplatePlaceholders().map((placeholder) => {
+                              const currentValue = String(formData.content_data?.[placeholder] || '');
+                              const errorKey = `url_placeholder_${placeholder}`;
+                              const hasError = errors[errorKey];
+                              return (
+                                <div key={placeholder} data-error-key={errorKey}>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    {placeholder} <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={currentValue}
+                                    onChange={(e) => updatePlaceholderValue(placeholder, e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
+                                      hasError ? 'border-red-300' : 'border-gray-300'
+                                    }`}
+                                    placeholder={`${placeholder}の値を入力`}
+                                    required
+                                  />
+                                  {hasError && (
+                                    <p className="text-sm text-red-600 mt-1">{hasError}</p>
+                                  )}
+                                  {placeholder === 'utm_content' && !hasError && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      例: 春キャンペーン、新卒向け、banner01
+                                    </p>
+                                  )}
+                                  {placeholder === 'utm_campaign' && !hasError && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      例: 2024spring、newgrad-campaign、career-fair
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -482,6 +588,7 @@ export default function AdContentForm({
                   showViewportToggle={true}
                   className="mb-4"
                 />
+
 
                 {/* リンクプレビュー */}
                 {selectedTemplate && linkPreviews.length > 0 && (
