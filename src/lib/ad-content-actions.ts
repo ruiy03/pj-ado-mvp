@@ -82,7 +82,6 @@ export async function getAdContents(): Promise<AdContent[]> {
                -- URLテンプレート情報
                ut.name         as url_template_name,
                ut.url_template as url_template_url,
-               ut.parameters   as url_template_parameters,
                -- 作成者情報
                u.name          as created_by_name,
                u.email         as created_by_email
@@ -114,7 +113,6 @@ export async function getAdContents(): Promise<AdContent[]> {
         id: row.url_template_id,
         name: row.url_template_name,
         url_template: row.url_template_url,
-        parameters: parseJsonData(row.url_template_parameters),
       } : undefined,
       created_by_user: row.created_by ? {
         id: row.created_by,
@@ -155,7 +153,6 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
                -- URLテンプレート情報
                ut.name         as url_template_name,
                ut.url_template as url_template_url,
-               ut.parameters   as url_template_parameters,
                -- 作成者情報
                u.name          as created_by_name,
                u.email         as created_by_email
@@ -192,7 +189,6 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
         id: row.url_template_id,
         name: row.url_template_name,
         url_template: row.url_template_url,
-        parameters: parseJsonData(row.url_template_parameters),
       } : undefined,
       created_by_user: row.created_by ? {
         id: row.created_by,

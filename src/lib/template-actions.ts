@@ -81,6 +81,101 @@ export async function getAdTemplateById(id: number): Promise<AdTemplate | null> 
   }
 }
 
+export async function getAdTemplateByName(name: string): Promise<AdTemplate | null> {
+  try {
+    const result = await sql`
+        SELECT id,
+               name,
+               html,
+               placeholders,
+               description,
+               created_at,
+               updated_at
+        FROM ad_templates
+        WHERE name = ${name}
+    `;
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const row = result[0];
+    return {
+      ...row,
+      placeholders: typeof row.placeholders === 'string'
+        ? JSON.parse(row.placeholders)
+        : row.placeholders || [],
+      created_at: row.created_at?.toISOString(),
+      updated_at: row.updated_at?.toISOString(),
+    } as AdTemplate;
+  } catch (error) {
+    console.error('Failed to fetch ad template by name:', error);
+    throw new Error('広告テンプレートの取得に失敗しました');
+  }
+}
+
+function isTemplateContentEqual(existing: AdTemplate, incoming: CreateAdTemplateRequest): boolean {
+  const existingPlaceholders = [...existing.placeholders].sort();
+  const incomingPlaceholders = [...incoming.placeholders].sort();
+  
+  return (
+    existing.html === incoming.html &&
+    existing.description === (incoming.description || '') &&
+    existingPlaceholders.length === incomingPlaceholders.length &&
+    existingPlaceholders.every((placeholder, index) => placeholder === incomingPlaceholders[index])
+  );
+}
+
+export async function createOrUpdateAdTemplate(data: CreateAdTemplateRequest): Promise<{
+  template: AdTemplate;
+  action: 'created' | 'updated' | 'skipped';
+}> {
+  try {
+    const validatedData = CreateAdTemplateSchema.parse(data);
+    
+    // 既存のテンプレートを名前で検索
+    const existingTemplate = await getAdTemplateByName(validatedData.name);
+    
+    if (!existingTemplate) {
+      // 存在しない場合は新規作成
+      const newTemplate = await createAdTemplate(validatedData);
+      return {
+        template: newTemplate,
+        action: 'created'
+      };
+    }
+    
+    // 既存のテンプレートと内容を比較
+    if (isTemplateContentEqual(existingTemplate, validatedData)) {
+      // 内容が同じ場合はスキップ
+      return {
+        template: existingTemplate,
+        action: 'skipped'
+      };
+    }
+    
+    // 内容が異なる場合は更新
+    const updatedTemplate = await updateAdTemplate({
+      id: existingTemplate.id,
+      html: validatedData.html,
+      placeholders: validatedData.placeholders,
+      description: validatedData.description
+    });
+    
+    return {
+      template: updatedTemplate,
+      action: 'updated'
+    };
+    
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(error.issues[0].message);
+    }
+    console.error('Failed to create or update ad template:', error);
+    throw new Error('広告テンプレートの作成または更新に失敗しました');
+  }
+}
+
 export async function createAdTemplate(data: CreateAdTemplateRequest): Promise<AdTemplate> {
   try {
     const validatedData = CreateAdTemplateSchema.parse(data);
