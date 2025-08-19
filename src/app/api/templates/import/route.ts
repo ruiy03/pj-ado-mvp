@@ -2,13 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {auth} from '@/auth';
 import {createAdTemplate} from '@/lib/template-actions';
 import {hasMinimumRole} from '@/lib/authorization';
-import type {CreateAdTemplateRequest} from '@/lib/definitions';
-
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type {CreateAdTemplateRequest, ImportResult} from '@/lib/definitions';
 
 function parseCSV(csvText: string): string[][] {
   const result: string[][] = [];
@@ -138,7 +132,9 @@ export async function POST(request: NextRequest) {
     const result: ImportResult = {
       success: 0,
       errors: [],
-      total: rows.length - 1
+      total: rows.length - 1,
+      createdItems: [],
+      updatedItems: []
     };
 
     // データ行を処理
@@ -165,8 +161,12 @@ export async function POST(request: NextRequest) {
         }
 
         // テンプレート作成
-        await createAdTemplate(validatedData);
+        const createdTemplate = await createAdTemplate(validatedData);
         result.success++;
+        result.createdItems.push({
+          id: createdTemplate.id,
+          name: createdTemplate.name
+        });
 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '不明なエラー';
