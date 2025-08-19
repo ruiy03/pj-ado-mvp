@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {auth} from '@/auth';
-import {createUrlTemplate} from '@/lib/url-template-actions';
+import {createOrUpdateUrlTemplate} from '@/lib/url-template-actions';
 import {hasMinimumRole} from '@/lib/authorization';
 import type {CreateUrlTemplateRequest, ImportResult} from '@/lib/definitions';
 
@@ -87,23 +87,9 @@ function validateUrlTemplateData(data: Record<string, string>): CreateUrlTemplat
     return null;
   }
 
-  let parameters: Record<string, string> = {};
-  if (data.parameters) {
-    try {
-      parameters = JSON.parse(data.parameters);
-      if (typeof parameters !== 'object' || parameters === null || Array.isArray(parameters)) {
-        parameters = {};
-      }
-    } catch {
-      // JSON parse failed, treat as empty object
-      parameters = {};
-    }
-  }
-
   return {
     name: data.name.trim(),
     url_template: data.url_template.trim(),
-    parameters,
     description: data.description || '',
   };
 }
@@ -140,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     const headers = rows[0].map(h => h.toLowerCase().trim());
-    const expectedHeaders = ['name', 'url_template', 'parameters', 'description'];
+    const expectedHeaders = ['name', 'url_template', 'description'];
 
     // ヘッダー検証
     const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
@@ -155,7 +141,8 @@ export async function POST(request: NextRequest) {
       errors: [],
       total: rows.length - 1,
       createdItems: [],
-      updatedItems: []
+      updatedItems: [],
+      skippedItems: []
     };
 
     // データ行を処理
@@ -164,7 +151,11 @@ export async function POST(request: NextRequest) {
         const values = rows[i];
 
         if (values.length !== headers.length) {
-          result.errors.push(`行 ${i + 1}: カラム数が一致しません (期待: ${headers.length}, 実際: ${values.length})`);
+          result.errors.push({
+            row: i + 1,
+            name: values[headers.indexOf('name')] || '',
+            message: `カラム数が一致しません (期待: ${headers.length}, 実際: ${values.length})`
+          });
           continue;
         }
 
@@ -177,21 +168,47 @@ export async function POST(request: NextRequest) {
         // バリデーション
         const validatedData = validateUrlTemplateData(rowData);
         if (!validatedData) {
-          result.errors.push(`行 ${i + 1}: データが無効です`);
+          result.errors.push({
+            row: i + 1,
+            name: rowData.name || '',
+            message: 'データが無効です'
+          });
           continue;
         }
 
-        // URLテンプレート作成
-        const createdTemplate = await createUrlTemplate(validatedData);
+        // URLテンプレート作成、更新、またはスキップ
+        const {template, action} = await createOrUpdateUrlTemplate(validatedData);
         result.success++;
-        result.createdItems.push({
-          id: createdTemplate.id,
-          name: createdTemplate.name
-        });
+        
+        const templateItem = {
+          id: template.id,
+          name: template.name
+        };
+        
+        switch (action) {
+          case 'created':
+            result.createdItems.push(templateItem);
+            break;
+          case 'updated':
+            result.updatedItems.push(templateItem);
+            break;
+          case 'skipped':
+            result.skippedItems.push(templateItem);
+            break;
+        }
 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '不明なエラー';
-        result.errors.push(`行 ${i + 1}: ${errorMessage}`);
+        const values = rows[i];
+        const rowData: Record<string, string> = {};
+        headers.forEach((header, index) => {
+          rowData[header] = values[index] || '';
+        });
+        result.errors.push({
+          row: i + 1,
+          name: rowData.name || '',
+          message: errorMessage
+        });
       }
     }
 
