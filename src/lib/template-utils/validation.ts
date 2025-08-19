@@ -1,13 +1,11 @@
-import { VALID_PLACEHOLDER_KEYWORDS, REQUIRED_PLACEHOLDERS } from './constants';
+import { VALID_PLACEHOLDERS, REQUIRED_PLACEHOLDERS } from './constants';
 import { extractPlaceholders } from './placeholder-extraction';
 
 export function validatePlaceholderNaming(placeholder: string): boolean {
   if (!placeholder || placeholder.trim() === '') return false;
   
   const lowerPlaceholder = placeholder.toLowerCase();
-  return VALID_PLACEHOLDER_KEYWORDS.some(keyword =>
-    lowerPlaceholder.includes(keyword.toLowerCase())
-  );
+  return VALID_PLACEHOLDERS.includes(lowerPlaceholder);
 }
 
 export function validatePlaceholders(html: string, placeholders: string[]): string[] {

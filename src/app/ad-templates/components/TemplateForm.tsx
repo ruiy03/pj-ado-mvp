@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { AdTemplate, CreateAdTemplateRequest } from '@/lib/definitions';
 import { extractPlaceholders, validatePlaceholderNaming, addNofollowToLinks, removeNofollowFromLinks } from '@/lib/template-utils';
 import HTMLCodeEditor, { HTMLCodeEditorRef } from '@/components/HTMLCodeEditor';
@@ -9,7 +9,6 @@ import ValidationGuide from './ValidationGuide';
 interface TemplateFormProps {
   formData: CreateAdTemplateRequest;
   setFormData: (data: CreateAdTemplateRequest | ((prev: CreateAdTemplateRequest) => CreateAdTemplateRequest)) => void;
-  validationErrors: string[];
   autoNofollow: boolean;
   setAutoNofollow: (value: boolean) => void;
   showNamingGuide: boolean;
@@ -17,13 +16,11 @@ interface TemplateFormProps {
   editingTemplate: AdTemplate | null;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
-  autoExtractPlaceholders: () => void;
 }
 
 export default function TemplateForm({
   formData,
   setFormData,
-  validationErrors,
   autoNofollow,
   setAutoNofollow,
   showNamingGuide,
@@ -31,30 +28,28 @@ export default function TemplateForm({
   editingTemplate,
   onSubmit,
   onCancel,
-  autoExtractPlaceholders,
 }: TemplateFormProps) {
   const htmlEditorRef = useRef<HTMLCodeEditorRef>(null);
+  const [extractedPlaceholders, setExtractedPlaceholders] = useState<string[]>([]);
+  const [placeholderWarnings, setPlaceholderWarnings] = useState<string[]>([]);
 
-  const addPlaceholder = () => {
-    setFormData((prev: CreateAdTemplateRequest) => ({
-      ...prev,
-      placeholders: [...prev.placeholders, '']
-    }));
-  };
+  // リアルタイムでプレースホルダーを抽出
+  useEffect(() => {
+    if (formData.html.trim()) {
+      const extracted = extractPlaceholders(formData.html);
+      setExtractedPlaceholders(extracted);
+      
+      // 命名規則違反の警告を生成
+      const warnings = extracted
+        .filter(placeholder => !validatePlaceholderNaming(placeholder))
+        .map(placeholder => `"${placeholder}" は命名規則に違反しています`);
+      setPlaceholderWarnings(warnings);
+    } else {
+      setExtractedPlaceholders([]);
+      setPlaceholderWarnings([]);
+    }
+  }, [formData.html]);
 
-  const updatePlaceholder = (index: number, value: string) => {
-    setFormData((prev: CreateAdTemplateRequest) => ({
-      ...prev,
-      placeholders: prev.placeholders.map((p: string, i: number) => i === index ? value : p)
-    }));
-  };
-
-  const removePlaceholder = (index: number) => {
-    setFormData((prev: CreateAdTemplateRequest) => ({
-      ...prev,
-      placeholders: prev.placeholders.filter((_: string, i: number) => i !== index)
-    }));
-  };
 
   return (
     <div className="space-y-4">
@@ -146,92 +141,66 @@ export default function TemplateForm({
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            プレースホルダー
-          </label>
-
-          {(validationErrors.length > 0 || (formData.html.trim() && extractPlaceholders(formData.html).length > 0 && formData.placeholders.length === 0)) && (
-            <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="flex items-start">
-                <div className="text-orange-600 mr-2">⚠️</div>
-                <div>
-                  {validationErrors.length > 0 ? (
-                    <>
-                      <p className="text-sm font-medium text-orange-800 mb-1">プレースホルダーの整合性に問題があります:</p>
-                      <ul className="text-sm text-orange-700 space-y-1 mb-2">
-                        {validationErrors.map((error, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="w-1 h-1 bg-orange-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                            {error}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <p className="text-sm font-medium text-orange-800 mb-2">
-                      HTMLにプレースホルダーが見つかりましたが、リストが空です
-                    </p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={autoExtractPlaceholders}
-                    className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 px-2 py-1 rounded transition-colors cursor-pointer"
-                  >
-                    自動修正
-                  </button>
-                </div>
+        {/* リアルタイムプレースホルダー表示 */}
+        {extractedPlaceholders.length > 0 && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              検出されたプレースホルダー
+            </label>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {extractedPlaceholders.map((placeholder, index) => {
+                  const isValid = validatePlaceholderNaming(placeholder);
+                  const getPlaceholderStyle = (placeholder: string) => {
+                    if (!isValid) return 'bg-orange-100 text-orange-800 border border-orange-200';
+                    
+                    switch (placeholder.toLowerCase()) {
+                      case 'image': return 'bg-blue-100 text-blue-700';
+                      case 'link': return 'bg-green-100 text-green-700';
+                      case 'title': return 'bg-purple-100 text-purple-700';
+                      case 'text': return 'bg-gray-100 text-gray-700';
+                      case 'button': return 'bg-red-100 text-red-700';
+                      case 'price': return 'bg-yellow-100 text-yellow-700';
+                      case 'date': return 'bg-indigo-100 text-indigo-700';
+                      case 'service': return 'bg-emerald-100 text-emerald-700';
+                      case 'benefit': return 'bg-lime-100 text-lime-700';
+                      case 'rating': return 'bg-amber-100 text-amber-700';
+                      default: return 'bg-gray-100 text-gray-700';
+                    }
+                  };
+                  
+                  return (
+                    <span 
+                      key={index} 
+                      className={`px-2 py-1 text-xs rounded font-mono ${getPlaceholderStyle(placeholder)}`}
+                    >
+                      {placeholder}
+                      {!isValid && <span className="ml-1">⚠️</span>}
+                    </span>
+                  );
+                })}
               </div>
+              {placeholderWarnings.length > 0 && (
+                <div className="text-xs text-orange-700">
+                  <div className="font-medium mb-1">命名規則の警告:</div>
+                  <ul className="space-y-1">
+                    {placeholderWarnings.map((warning, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="w-1 h-1 bg-orange-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                        {warning}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
           <ValidationGuide 
             showNamingGuide={showNamingGuide} 
             setShowNamingGuide={setShowNamingGuide} 
           />
-
-          <div className="space-y-2">
-            {formData.placeholders.map((placeholder: string, index: number) => {
-              const isValid = validatePlaceholderNaming(placeholder);
-              return (
-                <div key={index} className="flex gap-2">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={placeholder}
-                      onChange={(e) => updatePlaceholder(index, e.target.value)}
-                      placeholder="プレースホルダー名（例：title, imageUrl, linkUrl）"
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                        placeholder.trim() && !isValid
-                          ? 'border-red-300 bg-red-50'
-                          : 'border-gray-300'
-                      }`}
-                    />
-                    {placeholder.trim() && !isValid && (
-                      <p className="text-xs text-red-600 mt-1">
-                        命名規則に違反しています。推奨キーワードを含めてください
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removePlaceholder(index)}
-                    className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 cursor-pointer"
-                  >
-                    削除
-                  </button>
-                </div>
-              );
-            })}
-            <button
-              type="button"
-              onClick={addPlaceholder}
-              className="px-4 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 cursor-pointer"
-            >
-              プレースホルダーを追加
-            </button>
-          </div>
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -259,12 +228,7 @@ export default function TemplateForm({
           </button>
           <button
             type="submit"
-            disabled={validationErrors.length > 0}
-            className={`px-6 py-2 rounded-lg transition-colors ${
-              validationErrors.length > 0
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
-            }`}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
           >
             {editingTemplate ? '更新' : '作成'}
           </button>

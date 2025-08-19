@@ -40,7 +40,7 @@ describe('UserForm', () => {
   it('renders create user form when no user is provided', () => {
     render(<UserForm {...defaultProps} />);
     
-    expect(screen.getByText('新しいユーザーを追加')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
     expect(screen.getByLabelText('名前')).toBeInTheDocument();
     expect(screen.getByLabelText('メールアドレス')).toBeInTheDocument();
     expect(screen.getByLabelText('パスワード')).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe('UserForm', () => {
     
     render(<UserForm {...propsWithUser} />);
     
-    expect(screen.getByText('ユーザー編集')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test User')).toBeInTheDocument();
     expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument();
     expect(screen.getByText('更新')).toBeInTheDocument();

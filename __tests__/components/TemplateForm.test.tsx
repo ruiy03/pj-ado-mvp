@@ -39,7 +39,6 @@ describe('TemplateForm', () => {
   const mockSetShowNamingGuide = jest.fn();
   const mockOnSubmit = jest.fn();
   const mockOnCancel = jest.fn();
-  const mockAutoExtractPlaceholders = jest.fn();
 
   const defaultFormData: CreateAdTemplateRequest = {
     name: 'Test Template',
@@ -51,7 +50,6 @@ describe('TemplateForm', () => {
   const defaultProps = {
     formData: defaultFormData,
     setFormData: mockSetFormData,
-    validationErrors: [],
     autoNofollow: false,
     setAutoNofollow: mockSetAutoNofollow,
     showNamingGuide: false,
@@ -59,7 +57,6 @@ describe('TemplateForm', () => {
     editingTemplate: null,
     onSubmit: mockOnSubmit,
     onCancel: mockOnCancel,
-    autoExtractPlaceholders: mockAutoExtractPlaceholders,
   };
 
   beforeEach(() => {
@@ -87,14 +84,14 @@ describe('TemplateForm', () => {
 
     render(<TemplateForm {...defaultProps} editingTemplate={editingTemplate} />);
     
-    expect(screen.getByText('テンプレートを編集')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
     expect(screen.getByText('更新')).toBeInTheDocument();
   });
 
   it('calls onSubmit when form is submitted', () => {
     render(<TemplateForm {...defaultProps} />);
     
-    const form = screen.getByRole('button', { name: '作成' }).closest('form');
+    const form = screen.getByText('作成').closest('form');
     fireEvent.submit(form!);
     
     expect(mockOnSubmit).toHaveBeenCalledTimes(1);
@@ -126,22 +123,7 @@ describe('TemplateForm', () => {
     expect(mockSetFormData).toHaveBeenCalledWith(expect.any(Function));
   });
 
-  it('adds new placeholder when add button is clicked', () => {
-    render(<TemplateForm {...defaultProps} />);
-    
-    fireEvent.click(screen.getByText('プレースホルダーを追加'));
-    
-    expect(mockSetFormData).toHaveBeenCalledWith(expect.any(Function));
-  });
 
-  it('removes placeholder when delete button is clicked', () => {
-    render(<TemplateForm {...defaultProps} />);
-    
-    const deleteButtons = screen.getAllByText('削除');
-    fireEvent.click(deleteButtons[0]);
-    
-    expect(mockSetFormData).toHaveBeenCalledWith(expect.any(Function));
-  });
 
   it('toggles autoNofollow when checkbox is clicked', () => {
     render(<TemplateForm {...defaultProps} />);
@@ -152,41 +134,20 @@ describe('TemplateForm', () => {
     expect(mockSetAutoNofollow).toHaveBeenCalledWith(true);
   });
 
-  it('shows validation errors when present', () => {
-    const propsWithErrors = {
-      ...defaultProps,
-      validationErrors: ['Error 1', 'Error 2'],
-    };
-    
-    render(<TemplateForm {...propsWithErrors} />);
-    
-    expect(screen.getByText('Error 1')).toBeInTheDocument();
-    expect(screen.getByText('Error 2')).toBeInTheDocument();
-  });
 
-  it('disables submit button when validation errors exist', () => {
-    const propsWithErrors = {
-      ...defaultProps,
-      validationErrors: ['Error 1'],
-    };
-    
-    render(<TemplateForm {...propsWithErrors} />);
-    
-    const submitButton = screen.getByText('作成');
-    expect(submitButton).toBeDisabled();
-  });
 
-  it('calls autoExtractPlaceholders when auto-fix button is clicked', () => {
-    const propsWithErrors = {
+  it('displays extracted placeholders in real-time', () => {
+    const propsWithPlaceholders = {
       ...defaultProps,
-      validationErrors: ['Error 1'],
+      formData: {
+        ...defaultFormData,
+        html: '<div>{{title}}</div><img src="{{image}}" />',
+      },
     };
     
-    render(<TemplateForm {...propsWithErrors} />);
+    render(<TemplateForm {...propsWithPlaceholders} />);
     
-    fireEvent.click(screen.getByText('自動修正'));
-    
-    expect(mockAutoExtractPlaceholders).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('検出されたプレースホルダー')).toBeInTheDocument();
   });
 
   it('updates description when textarea changes', () => {

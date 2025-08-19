@@ -1,5 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {cleanupAllUnusedImages} from '@/lib/image-cleanup';
+import {logger} from '@/lib/logger';
 
 // 自動クリーンアップAPI（Cron Job用）
 export async function GET(request: NextRequest) {
@@ -12,13 +13,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({error: 'Unauthorized'}, {status: 401});
     }
 
-    console.log('Starting automated cleanup...');
+    logger.info('Starting automated cleanup...');
 
     // デフォルト設定での包括的クリーンアップを実行
     const result = await cleanupAllUnusedImages(7);
 
     // 詳細ログ出力
-    console.log('Automated cleanup completed:', {
+    logger.info('Automated cleanup completed:', {
       timestamp: new Date().toISOString(),
       success: result.success,
       totalImages: result.stats.totalImages,

@@ -1,9 +1,8 @@
 'use client';
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
-import {useState, useEffect, useCallback, useRef} from 'react';
+import {useState, useRef} from 'react';
 import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
-import {extractPlaceholders, validatePlaceholders} from '@/lib/template-utils';
 
 import {useTemplates} from './hooks/useTemplates';
 import ImportExportButtons from './components/ImportExportButtons';
@@ -32,7 +31,6 @@ export default function AdTemplates() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [showNamingGuide, setShowNamingGuide] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [previewMode, setPreviewMode] = useState<'sample' | 'custom'>('sample');
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [previewSize, setPreviewSize] = useState<'desktop' | 'mobile'>('desktop');
@@ -48,11 +46,6 @@ export default function AdTemplates() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (validationErrors.length > 0) {
-      setError('プレースホルダーの問題を修正してから保存してください');
-      return;
-    }
 
     try {
       if (editingTemplate) {
@@ -135,38 +128,7 @@ export default function AdTemplates() {
     }, 100);
   };
 
-  const autoExtractPlaceholders = () => {
-    if (!formData.html.trim()) {
-      setError('HTMLコードを入力してください');
-      return;
-    }
 
-    const extracted = extractPlaceholders(formData.html);
-    setFormData((prev: CreateAdTemplateRequest) => ({
-      ...prev,
-      placeholders: extracted
-    }));
-
-    if (extracted.length === 0) {
-      setError('プレースホルダーが見つかりませんでした。{{placeholder}}の形式で記述してください。');
-    } else {
-      setError(null);
-    }
-  };
-
-  const validateCurrentPlaceholders = useCallback(() => {
-    if (!formData.html.trim()) {
-      setValidationErrors([]);
-      return;
-    }
-
-    const errors = validatePlaceholders(formData.html, formData.placeholders);
-    setValidationErrors(errors);
-  }, [formData.html, formData.placeholders]);
-
-  useEffect(() => {
-    validateCurrentPlaceholders();
-  }, [formData.html, formData.placeholders, validateCurrentPlaceholders]);
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,7 +256,6 @@ export default function AdTemplates() {
                   <TemplateForm
                     formData={formData}
                     setFormData={setFormData}
-                    validationErrors={validationErrors}
                     autoNofollow={autoNofollow}
                     setAutoNofollow={setAutoNofollow}
                     showNamingGuide={showNamingGuide}
@@ -302,7 +263,6 @@ export default function AdTemplates() {
                     editingTemplate={editingTemplate}
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
-                    autoExtractPlaceholders={autoExtractPlaceholders}
                   />
                 </div>
 
