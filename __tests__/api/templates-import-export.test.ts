@@ -16,6 +16,7 @@ jest.mock('@/auth', () => ({
 jest.mock('@/lib/template-actions', () => ({
   getAdTemplates: jest.fn(),
   createAdTemplate: jest.fn(),
+  createOrUpdateAdTemplate: jest.fn(),
 }));
 
 // authorization をモック
@@ -25,7 +26,7 @@ jest.mock('@/lib/authorization', () => ({
 
 const { neon } = require('@neondatabase/serverless');
 const { auth } = require('@/auth');
-const { getAdTemplates, createAdTemplate } = require('@/lib/template-actions');
+const { getAdTemplates, createAdTemplate, createOrUpdateAdTemplate } = require('@/lib/template-actions');
 const { hasMinimumRole } = require('@/lib/authorization');
 
 const mockSql = jest.fn();
@@ -52,10 +53,16 @@ describe('/api/templates/import & /api/templates/export', () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // createAdTemplateのmockを設定
-      createAdTemplate
-        .mockResolvedValueOnce({ id: 1, name: 'テストバナー', html: '<div>{{title}}</div>', placeholders: ['title'], description: 'テスト用バナー' })
-        .mockResolvedValueOnce({ id: 2, name: 'テストカード', html: '<div>{{title}}{{description}}</div>', placeholders: ['title', 'description'], description: 'テスト用カード' });
+      // createOrUpdateAdTemplateのmockを設定
+      createOrUpdateAdTemplate
+        .mockResolvedValueOnce({ 
+          template: { id: 1, name: 'テストバナー', html: '<div>{{title}}</div>', placeholders: ['title'], description: 'テスト用バナー' },
+          action: 'created'
+        })
+        .mockResolvedValueOnce({ 
+          template: { id: 2, name: 'テストカード', html: '<div>{{title}}{{description}}</div>', placeholders: ['title', 'description'], description: 'テスト用カード' },
+          action: 'created'
+        });
 
       const request = new NextRequest('http://localhost:3000/api/templates/import', {
         method: 'POST',
@@ -74,7 +81,51 @@ describe('/api/templates/import & /api/templates/export', () => {
           { id: 1, name: 'テストバナー' },
           { id: 2, name: 'テストカード' }
         ],
-        updatedItems: []
+        updatedItems: [],
+        skippedItems: []
+      });
+    });
+
+    it('重複したテンプレートは更新またはスキップされる', async () => {
+      const csvContent = `name,html,placeholders,description
+テストバナー,"<div>{{title}}</div>","title","テスト用バナー - 更新版"
+既存テンプレート,"<div>{{content}}</div>","content","同じ内容"`;
+      
+      const file = new File([csvContent], 'templates.csv', { type: 'text/csv' });
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // createOrUpdateAdTemplateのmockを設定（更新とスキップのケース）
+      createOrUpdateAdTemplate
+        .mockResolvedValueOnce({ 
+          template: { id: 1, name: 'テストバナー', html: '<div>{{title}}</div>', placeholders: ['title'], description: 'テスト用バナー - 更新版' },
+          action: 'updated'
+        })
+        .mockResolvedValueOnce({ 
+          template: { id: 2, name: '既存テンプレート', html: '<div>{{content}}</div>', placeholders: ['content'], description: '同じ内容' },
+          action: 'skipped'
+        });
+
+      const request = new NextRequest('http://localhost:3000/api/templates/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual({
+        success: 2,
+        errors: [],
+        total: 2,
+        createdItems: [],
+        updatedItems: [
+          { id: 1, name: 'テストバナー' }
+        ],
+        skippedItems: [
+          { id: 2, name: '既存テンプレート' }
+        ]
       });
     });
 
@@ -145,8 +196,11 @@ describe('/api/templates/import & /api/templates/export', () => {
       formData.append('file', file);
 
       // 最初のレコードは成功、2番目は失敗
-      createAdTemplate
-        .mockResolvedValueOnce({ id: 1, name: '有効なテンプレート', html: '<div>{{title}}</div>', placeholders: ['title'], description: '有効な説明' })
+      createOrUpdateAdTemplate
+        .mockResolvedValueOnce({ 
+          template: { id: 1, name: '有効なテンプレート', html: '<div>{{title}}</div>', placeholders: ['title'], description: '有効な説明' },
+          action: 'created'
+        })
         .mockRejectedValueOnce(new Error('Validation error')); // 失敗
 
       const request = new NextRequest('http://localhost:3000/api/templates/import', {
@@ -165,6 +219,7 @@ describe('/api/templates/import & /api/templates/export', () => {
         { id: 1, name: '有効なテンプレート' }
       ]);
       expect(data.updatedItems).toEqual([]);
+      expect(data.skippedItems).toEqual([]);
     });
 
     it('CSVファイル以外の形式は拒否される', async () => {

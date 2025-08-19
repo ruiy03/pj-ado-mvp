@@ -7,8 +7,6 @@ const mockTemplate: UrlTemplate = {
   name: 'Test URL Template',
   description: 'Test description',
   url_template: 'https://example.com/page?utm_source={{source}}&utm_medium={{medium}}',
-  parameters: {},
-  active: true,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
 };
@@ -82,7 +80,6 @@ describe('UrlTemplateForm', () => {
       expect(mockHandlers.onSubmit).toHaveBeenCalledWith({
         name: 'Test Template',
         url_template: 'https://test.com?utm_source=test',
-        parameters: {},
         description: 'Test description',
       });
     });

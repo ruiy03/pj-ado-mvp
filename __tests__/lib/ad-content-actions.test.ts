@@ -67,7 +67,6 @@ describe('ad-content-actions', () => {
           template_placeholders: JSON.stringify(['title']),
           url_template_name: 'Test URL Template',
           url_template_url: 'https://example.com?utm_source={{source}}',
-          url_template_parameters: JSON.stringify({source: 'test'}),
           created_by_name: 'Test User',
           created_by_email: 'test@example.com',
         },
@@ -94,7 +93,6 @@ describe('ad-content-actions', () => {
           id: 1,
           name: 'Test URL Template',
           url_template: 'https://example.com?utm_source={{source}}',
-          parameters: {source: 'test'},
         },
         created_by_user: {
           id: 1,

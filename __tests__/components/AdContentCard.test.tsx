@@ -41,9 +41,7 @@ describe('AdContentCard', () => {
       id: 1,
       name: 'テストURLテンプレート',
       url_template: 'https://example.com',
-      parameters: { utm_source: 'test' },
       description: 'テスト用URLテンプレート',
-      is_active: true,
       created_at: '2023-01-01T00:00:00.000Z',
       updated_at: '2023-01-01T00:00:00.000Z'
     },
