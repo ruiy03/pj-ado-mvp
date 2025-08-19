@@ -11,11 +11,7 @@ import TemplateForm from './components/TemplateForm';
 import TemplatePreview from './components/TemplatePreview';
 import TemplateList from './components/TemplateList';
 
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type {ImportResult} from '@/lib/definitions';
 
 export default function AdTemplates() {
   const {
@@ -121,6 +117,10 @@ export default function AdTemplates() {
     setImportResult(null);
   };
 
+  const handleImportResultClose = () => {
+    setImportResult(null);
+  };
+
   const handleCreateClick = () => {
     setShowCreateForm(true);
     setShowImportForm(false);
@@ -191,10 +191,6 @@ export default function AdTemplates() {
 
       // テンプレートリストを再取得
       await fetchTemplates();
-
-      if (result.errors.length === 0) {
-        setShowImportForm(false);
-      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'エラーが発生しました');
     } finally {
@@ -283,6 +279,7 @@ export default function AdTemplates() {
             onExport={handleExport}
             onCreateClick={handleCreateClick}
             onImportCancel={handleImportCancel}
+            onImportResultClose={handleImportResultClose}
             exportLoading={exportLoading}
             showImportForm={showImportForm}
             importLoading={importLoading}

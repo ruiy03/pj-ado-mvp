@@ -13,13 +13,12 @@ export async function GET() {
     const templates = await getUrlTemplates();
 
     // CSV ヘッダー
-    const csvHeaders = ['name', 'url_template', 'parameters', 'description'];
+    const csvHeaders = ['name', 'url_template', 'description'];
 
     // CSV データ生成
     const csvRows = templates.map(template => [
       `"${template.name.replace(/"/g, '""')}"`, // エスケープ処理
       `"${template.url_template.replace(/"/g, '""')}"`,
-      `"${JSON.stringify(template.parameters).replace(/"/g, '""')}"`,
       `"${(template.description || '').replace(/"/g, '""')}"`
     ]);
 

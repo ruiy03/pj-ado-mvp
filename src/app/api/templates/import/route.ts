@@ -1,14 +1,8 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {auth} from '@/auth';
-import {createAdTemplate} from '@/lib/template-actions';
+import {createOrUpdateAdTemplate} from '@/lib/template-actions';
 import {hasMinimumRole} from '@/lib/authorization';
-import type {CreateAdTemplateRequest} from '@/lib/definitions';
-
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type {CreateAdTemplateRequest, ImportResult} from '@/lib/definitions';
 
 function parseCSV(csvText: string): string[][] {
   const result: string[][] = [];
@@ -138,7 +132,10 @@ export async function POST(request: NextRequest) {
     const result: ImportResult = {
       success: 0,
       errors: [],
-      total: rows.length - 1
+      total: rows.length - 1,
+      createdItems: [],
+      updatedItems: [],
+      skippedItems: []
     };
 
     // データ行を処理
@@ -147,7 +144,11 @@ export async function POST(request: NextRequest) {
         const values = rows[i];
 
         if (values.length !== headers.length) {
-          result.errors.push(`行 ${i + 1}: カラム数が一致しません (期待: ${headers.length}, 実際: ${values.length})`);
+          result.errors.push({
+            row: i + 1,
+            name: values[headers.indexOf('name')] || '',
+            message: `カラム数が一致しません (期待: ${headers.length}, 実際: ${values.length})`
+          });
           continue;
         }
 
@@ -160,17 +161,47 @@ export async function POST(request: NextRequest) {
         // バリデーション
         const validatedData = validateTemplateData(rowData);
         if (!validatedData) {
-          result.errors.push(`行 ${i + 1}: データが無効です`);
+          result.errors.push({
+            row: i + 1,
+            name: rowData.name || '',
+            message: 'データが無効です'
+          });
           continue;
         }
 
-        // テンプレート作成
-        await createAdTemplate(validatedData);
+        // テンプレート作成、更新、またはスキップ
+        const {template, action} = await createOrUpdateAdTemplate(validatedData);
         result.success++;
+        
+        const templateItem = {
+          id: template.id,
+          name: template.name
+        };
+        
+        switch (action) {
+          case 'created':
+            result.createdItems.push(templateItem);
+            break;
+          case 'updated':
+            result.updatedItems.push(templateItem);
+            break;
+          case 'skipped':
+            result.skippedItems.push(templateItem);
+            break;
+        }
 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '不明なエラー';
-        result.errors.push(`行 ${i + 1}: ${errorMessage}`);
+        const values = rows[i];
+        const rowData: Record<string, string> = {};
+        headers.forEach((header, index) => {
+          rowData[header] = values[index] || '';
+        });
+        result.errors.push({
+          row: i + 1,
+          name: rowData.name || '',
+          message: errorMessage
+        });
       }
     }
 

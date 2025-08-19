@@ -7,12 +7,6 @@ const mockTemplate: UrlTemplate = {
   name: 'Test URL Template',
   description: 'Test description',
   url_template: 'https://example.com/page?utm_source={{source}}&utm_medium={{medium}}&utm_campaign={{campaign}}',
-  parameters: {
-    utm_source: 'newsletter',
-    utm_medium: 'email',
-    utm_campaign: 'spring_sale',
-  },
-  active: true,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-02T00:00:00Z',
 };

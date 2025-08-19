@@ -54,7 +54,6 @@ export interface UrlTemplate {
   id: number;
   name: string;
   url_template: string; // プレースホルダーを含むURLテンプレート（例: "{{baseUrl}}?utm_source=kijinaka&utm_campaign=03"）
-  parameters: Record<string, string>; // 実際のUTMパラメータ値
   description?: string;
   created_at?: string;
   updated_at?: string;
@@ -63,7 +62,6 @@ export interface UrlTemplate {
 export interface CreateUrlTemplateRequest {
   name: string;
   url_template: string;
-  parameters: Record<string, string>;
   description?: string;
 }
 
@@ -71,7 +69,6 @@ export interface UpdateUrlTemplateRequest {
   id: number;
   name?: string;
   url_template?: string;
-  parameters?: Record<string, string>;
   description?: string;
 }
 
@@ -92,8 +89,8 @@ export interface AdImage {
 export interface AdContent {
   id: number;
   name: string;
-  template_id?: number;
-  url_template_id?: number;
+  template_id: number;
+  url_template_id: number;
   content_data: Record<string, string | number | boolean>;
   status: AdContentStatus;
   created_by?: number;
@@ -141,6 +138,27 @@ export interface UpdateAdImageRequest {
   id: number;
   alt_text?: string;
   placeholder_name?: string;
+}
+
+// Import result interfaces
+export interface ImportedItem {
+  id: number;
+  name: string;
+}
+
+export interface ImportError {
+  row: number;
+  name?: string;
+  message: string;
+}
+
+export interface ImportResult {
+  success: number;
+  errors: ImportError[];
+  total: number;
+  createdItems: ImportedItem[];
+  updatedItems: ImportedItem[];
+  skippedItems: ImportedItem[];
 }
 
 // NextAuth拡張用の型定義

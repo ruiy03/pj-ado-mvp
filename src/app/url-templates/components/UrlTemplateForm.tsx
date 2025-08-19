@@ -14,7 +14,6 @@ export default function UrlTemplateForm({template, onSubmit, onCancel, isEdit = 
   const [formData, setFormData] = useState<CreateUrlTemplateRequest>({
     name: '',
     url_template: '',
-    parameters: {},
     description: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -24,7 +23,6 @@ export default function UrlTemplateForm({template, onSubmit, onCancel, isEdit = 
       setFormData({
         name: template.name,
         url_template: template.url_template,
-        parameters: {},
         description: template.description || '',
       });
     }

@@ -35,8 +35,7 @@ describe('/api/url-templates', () => {
           id: 1,
           name: 'Test Template',
           url: 'https://example.com',
-          parameters: {utm_campaign: 'test'},
-          description: 'Test description'
+            description: 'Test description'
         }
       ];
 
@@ -84,7 +83,6 @@ describe('/api/url-templates', () => {
         id: 1,
         name: 'New Template',
         url: 'https://example.com',
-        parameters: {utm_campaign: 'new'},
         description: 'New description'
       };
 
@@ -93,7 +91,6 @@ describe('/api/url-templates', () => {
       const requestBody = {
         name: 'New Template',
         url: 'https://example.com',
-        parameters: {utm_campaign: 'new'},
         description: 'New description'
       };
 
@@ -157,7 +154,6 @@ describe('/api/url-templates', () => {
         id: 1,
         name: 'Test Template',
         url: 'https://example.com',
-        parameters: {utm_campaign: 'test'},
         description: 'Test description'
       };
 
@@ -217,7 +213,6 @@ describe('/api/url-templates', () => {
         id: 1,
         name: 'Updated Template',
         url: 'https://updated.com',
-        parameters: {utm_campaign: 'updated'},
         description: 'Updated description'
       };
 
@@ -226,7 +221,6 @@ describe('/api/url-templates', () => {
       const requestBody = {
         name: 'Updated Template',
         url: 'https://updated.com',
-        parameters: {utm_campaign: 'updated'},
         description: 'Updated description'
       };
 

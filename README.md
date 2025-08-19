@@ -18,9 +18,9 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
 - **🔐 認証システム** - NextAuth.js v5 (beta) を使用したセキュアなログイン/ログアウト機能
 - **📊 ダッシュボード** - システム概要と活動フィード
-- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、CSV
-  インポート/エクスポート機能、作成・更新タイムスタンプ表示
-- **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、CSV インポート/エクスポート機能
+- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、改良されたCSV
+  インポート/エクスポート機能（詳細な結果表示、作成されたアイテム一覧付き）、作成・更新タイムスタンプ表示
+- **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、改良されたCSV インポート/エクスポート機能（詳細な結果表示付き）
 - **📢 広告コンテンツ管理** - 広告の作成・編集・画像アップロード・プレビュー機能、ステータス管理
 - **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
 - **👥 アカウント管理** - ユーザーアカウント管理システム
@@ -168,7 +168,7 @@ pj-ado-mvp/
 │   │   │   │   ├── TemplateForm.tsx # テンプレート作成・編集フォーム
 │   │   │   │   ├── TemplateList.tsx # テンプレート一覧表示（タイムスタンプ付き）
 │   │   │   │   ├── TemplatePreview.tsx # テンプレートプレビュー
-│   │   │   │   ├── ImportExportButtons.tsx # CSV機能UI
+│   │   │   │   ├── ImportExportButtons.tsx # CSV機能UI（共通コンポーネント使用）
 │   │   │   │   └── ValidationGuide.tsx # バリデーションガイド
 │   │   │   └── hooks/        # テンプレート管理hooks
 │   │   ├── url-templates/    # URLテンプレート管理
@@ -176,7 +176,7 @@ pj-ado-mvp/
 │   │   │   │   ├── UrlTemplateCard.tsx # URLテンプレートカード表示
 │   │   │   │   ├── UrlTemplateForm.tsx # URLテンプレート作成・編集フォーム
 │   │   │   │   ├── UrlTemplateClient.tsx # URLテンプレート管理UI
-│   │   │   │   └── ImportExportButtons.tsx # CSV機能UI
+│   │   │   │   └── ImportExportButtons.tsx # CSV機能UI（共通コンポーネント使用）
 │   │   │   └── hooks/        # URLテンプレート管理hooks
 │   │   │       └── useUrlTemplates.tsx # URLテンプレート状態管理
 │   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
@@ -190,10 +190,13 @@ pj-ado-mvp/
 │   │   ├── ClientProtectedPage.tsx # クライアントサイド認証保護ラッパー
 │   │   ├── HTMLCodeEditor.tsx # Monaco Editor HTMLエディター
 │   │   ├── ImageUpload.tsx  # 画像アップロードコンポーネント
+│   │   ├── ImportExportButtons.tsx # CSV機能共通コンポーネント
 │   │   ├── LoginForm.tsx    # ログインフォーム
 │   │   ├── ProtectedPage.tsx # サーバーサイド認証保護ラッパー
 │   │   ├── SessionProvider.tsx # セッションプロバイダー
 │   │   └── Sidebar.tsx      # サイドバーナビゲーション
+│   ├── hooks/               # 共通カスタムフック
+│   │   └── useImportExport.tsx # CSV機能共通フック
 │   ├── lib/                 # ユーティリティ・設定
 │   │   ├── actions.ts       # 認証サーバーアクション
 │   │   ├── ad-content-actions.ts # 広告コンテンツ管理アクション
@@ -385,7 +388,7 @@ pj-ado-mvp/
 - **プレースホルダーシステム**: `{{variableName}}` 形式の動的コンテンツ対応
 - **バリデーション**: HTMLとプレースホルダーの整合性チェック
 - **SEO対応**: 自動 `rel="nofollow"` 属性追加・削除機能
-- **CSV インポート/エクスポート**: テンプレートの一括管理機能
+- **改良されたCSV インポート/エクスポート**: テンプレートの一括管理機能、詳細な結果表示と作成済みアイテム一覧表示
 - **タイムスタンプ表示**: テンプレート作成・更新日時のリアルタイム表示
 
 ### HTMLコードエディター機能
@@ -424,7 +427,7 @@ pj-ado-mvp/
 - **テンプレート有効化**: ブール値フラグによるURLテンプレートの有効・無効制御
 - **URL生成**: ベースURLとパラメータの組み合わせによる完全なトラッキングURL生成
 - **バリデーション**: URL形式とパラメータ整合性の検証機能
-- **CSV インポート/エクスポート**: URLテンプレートの一括管理機能
+- **改良されたCSV インポート/エクスポート**: URLテンプレートの一括管理機能、詳細な結果表示と作成済みアイテム一覧表示
 
 ### URLテンプレート管理機能
 

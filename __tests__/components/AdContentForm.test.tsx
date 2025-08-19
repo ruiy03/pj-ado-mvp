@@ -51,10 +51,8 @@ const mockUrlTemplates: UrlTemplate[] = [
   {
     id: 1,
     name: 'Test URL Template',
-    url_template: '{{baseUrl}}?utm_source={{source}}',
-    parameters: {source: 'test'},
+    url_template: '{{baseUrl}}?utm_source=test&utm_campaign={{utm_campaign}}',
     description: 'Test URL template',
-    active: true,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
@@ -324,6 +322,9 @@ describe('AdContentForm', () => {
     const uploadButton = screen.getByText('Upload');
     fireEvent.click(uploadButton);
 
+    const utmCampaignInput = screen.getByPlaceholderText('utm_campaignの値を入力');
+    fireEvent.change(utmCampaignInput, {target: {value: 'test-campaign'}});
+
     const submitButton = screen.getByText('作成する');
     fireEvent.click(submitButton);
 
@@ -335,6 +336,7 @@ describe('AdContentForm', () => {
         content_data: {
           '{{title}}': 'Test Title',
           '{{image}}': 'test-image.jpg',
+          'utm_campaign': 'test-campaign',
         },
         status: 'draft',
       });
@@ -386,6 +388,9 @@ describe('AdContentForm', () => {
     const uploadButton = screen.getByText('Upload');
     fireEvent.click(uploadButton);
 
+    const utmCampaignInput = screen.getByPlaceholderText('utm_campaignの値を入力');
+    fireEvent.change(utmCampaignInput, {target: {value: 'test-campaign'}});
+
     const submitButton = screen.getByText('作成する');
     fireEvent.click(submitButton);
 
@@ -426,7 +431,7 @@ describe('AdContentForm', () => {
     fireEvent.change(urlTemplateSelect, {target: {value: '1'}});
 
     expect(screen.getByText('リンクURLプレビュー')).toBeInTheDocument();
-    expect(screen.getByText('{{baseUrl}}?utm_source=test')).toBeInTheDocument();
+    expect(screen.getByText('{{baseUrl}}?utm_source=test&utm_campaign={{utm_campaign}}')).toBeInTheDocument();
   });
 
   it('should preserve content data when editing', () => {

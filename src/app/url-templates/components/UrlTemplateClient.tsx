@@ -5,13 +5,7 @@ import {useUrlTemplates} from '../hooks/useUrlTemplates';
 import UrlTemplateForm from './UrlTemplateForm';
 import UrlTemplateCard from './UrlTemplateCard';
 import ImportExportButtons from './ImportExportButtons';
-import type {UrlTemplate, CreateUrlTemplateRequest} from '@/lib/definitions';
-
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type {UrlTemplate, CreateUrlTemplateRequest, ImportResult} from '@/lib/definitions';
 
 export default function UrlTemplateClient() {
   const {templates, loading, error, setError, fetchTemplates, createTemplate, updateTemplate, deleteTemplate} = useUrlTemplates();
@@ -65,6 +59,10 @@ export default function UrlTemplateClient() {
     setImportResult(null);
   };
 
+  const handleImportResultClose = () => {
+    setImportResult(null);
+  };
+
   const handleCreateClick = () => {
     setShowForm(true);
     setShowImportForm(false);
@@ -94,10 +92,6 @@ export default function UrlTemplateClient() {
 
       // テンプレートリストを再取得
       await fetchTemplates();
-
-      if (result.errors.length === 0) {
-        setShowImportForm(false);
-      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'エラーが発生しました');
     } finally {
@@ -157,6 +151,7 @@ export default function UrlTemplateClient() {
         onExport={handleExport}
         onCreateClick={handleCreateClick}
         onImportCancel={handleImportCancel}
+        onImportResultClose={handleImportResultClose}
         exportLoading={exportLoading}
         showImportForm={showImportForm}
         importLoading={importLoading}

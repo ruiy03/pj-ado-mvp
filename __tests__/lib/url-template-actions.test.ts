@@ -30,8 +30,7 @@ describe('URL Template Actions', () => {
         {
           id: 1,
           name: 'Test Template 1',
-          url_template: 'https://example.com',
-          parameters: '{"utm_campaign": "test1"}',
+          url_template: 'https://example.com?utm_campaign=utm_campaign',
           description: 'Test description 1',
           created_at: new Date('2023-01-01'),
           updated_at: new Date('2023-01-01')
@@ -39,8 +38,7 @@ describe('URL Template Actions', () => {
         {
           id: 2,
           name: 'Test Template 2',
-          url_template: 'https://example2.com',
-          parameters: '{"utm_campaign": "test2"}',
+          url_template: 'https://example2.com?utm_campaign=utm_campaign',
           description: 'Test description 2',
           created_at: new Date('2023-01-02'),
           updated_at: new Date('2023-01-02')
@@ -53,8 +51,8 @@ describe('URL Template Actions', () => {
 
       expect(mockSql).toHaveBeenCalledTimes(1);
       expect(result).toHaveLength(2);
-      expect(result[0].parameters).toEqual({utm_campaign: 'test1'});
-      expect(result[1].parameters).toEqual({utm_campaign: 'test2'});
+      expect(result[0].url_template).toContain('utm_campaign');
+      expect(result[1].url_template).toContain('utm_campaign');
     });
 
     it('should handle database errors', async () => {
@@ -69,8 +67,7 @@ describe('URL Template Actions', () => {
       const mockData = [{
         id: 1,
         name: 'Test Template',
-        url_template: 'https://example.com',
-        parameters: '{"utm_campaign": "test", "utm_source": "web"}',
+        url_template: 'https://example.com?utm_campaign=utm_campaign&utm_source={{utm_source}}',
         description: 'Test description',
         created_at: new Date('2023-01-01'),
         updated_at: new Date('2023-01-01')
@@ -83,7 +80,7 @@ describe('URL Template Actions', () => {
       expect(mockSql).toHaveBeenCalledTimes(1);
       expect(result).toBeDefined();
       expect(result?.id).toBe(1);
-      expect(result?.parameters).toEqual({utm_campaign: 'test', utm_source: 'web'});
+      expect(result?.url_template).toContain('utm_campaign');
     });
 
     it('should return null if template not found', async () => {
@@ -106,8 +103,7 @@ describe('URL Template Actions', () => {
       const mockData = [{
         id: 1,
         name: 'New Template',
-        url_template: 'https://example.com',
-        parameters: '{"utm_campaign": "new"}',
+        url_template: 'https://example.com?utm_campaign=utm_campaign',
         description: 'New description',
         created_at: new Date('2023-01-01'),
         updated_at: new Date('2023-01-01')
@@ -117,8 +113,7 @@ describe('URL Template Actions', () => {
 
       const createData: CreateUrlTemplateRequest = {
         name: 'New Template',
-        url_template: 'https://example.com',
-        parameters: {utm_campaign: 'new'},
+        url_template: 'https://example.com?utm_campaign=utm_campaign',
         description: 'New description'
       };
 
@@ -127,14 +122,13 @@ describe('URL Template Actions', () => {
       expect(mockSql).toHaveBeenCalledTimes(1);
       expect(result.id).toBe(1);
       expect(result.name).toBe('New Template');
-      expect(result.parameters).toEqual({utm_campaign: 'new'});
+      expect(result.url_template).toContain('utm_campaign');
     });
 
     it('should validate required fields', async () => {
       const invalidData: CreateUrlTemplateRequest = {
         name: '',
         url_template: 'https://example.com',
-        parameters: {},
         description: ''
       };
 
@@ -145,7 +139,6 @@ describe('URL Template Actions', () => {
       const invalidData: CreateUrlTemplateRequest = {
         name: 'Test',
         url_template: 'invalid-url',
-        parameters: {},
         description: ''
       };
 
@@ -158,7 +151,6 @@ describe('URL Template Actions', () => {
       const createData: CreateUrlTemplateRequest = {
         name: 'Test Template',
         url_template: 'https://example.com',
-        parameters: {},
         description: ''
       };
 
@@ -171,8 +163,7 @@ describe('URL Template Actions', () => {
       const mockData = [{
         id: 1,
         name: 'Updated Template',
-        url_template: 'https://updated.com',
-        parameters: '{"utm_campaign": "updated"}',
+        url_template: 'https://updated.com?utm_campaign=utm_campaign&utm_content={{utm_content}}',
         description: 'Updated description',
         created_at: new Date('2023-01-01'),
         updated_at: new Date('2023-01-02')
@@ -183,8 +174,7 @@ describe('URL Template Actions', () => {
       const updateData: UpdateUrlTemplateRequest = {
         id: 1,
         name: 'Updated Template',
-        url_template: 'https://updated.com',
-        parameters: {utm_campaign: 'updated'},
+        url_template: 'https://updated.com?utm_campaign=utm_campaign&utm_content={{utm_content}}',
         description: 'Updated description'
       };
 
@@ -192,7 +182,7 @@ describe('URL Template Actions', () => {
 
       expect(mockSql).toHaveBeenCalledTimes(1);
       expect(result.name).toBe('Updated Template');
-      expect(result.parameters).toEqual({utm_campaign: 'updated'});
+      expect(result.url_template).toContain('utm_campaign');
     });
 
     it('should throw error if template not found', async () => {

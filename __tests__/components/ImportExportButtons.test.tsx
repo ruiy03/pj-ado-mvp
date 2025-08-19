@@ -1,17 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ImportExportButtons from '@/app/ad-templates/components/ImportExportButtons';
-
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type { ImportResult } from '@/lib/definitions';
 
 describe('ImportExportButtons', () => {
   const mockOnImport = jest.fn();
   const mockOnExport = jest.fn();
   const mockOnCreateClick = jest.fn();
   const mockOnImportCancel = jest.fn();
+  const mockOnImportResultClose = jest.fn();
   const mockHandleImport = jest.fn();
 
   const defaultProps = {
@@ -19,6 +15,7 @@ describe('ImportExportButtons', () => {
     onExport: mockOnExport,
     onCreateClick: mockOnCreateClick,
     onImportCancel: mockOnImportCancel,
+    onImportResultClose: mockOnImportResultClose,
     exportLoading: false,
     showImportForm: false,
     importLoading: false,
@@ -119,6 +116,12 @@ describe('ImportExportButtons', () => {
       success: 5,
       errors: [],
       total: 5,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' },
+        { id: 2, name: 'テンプレート2' }
+      ],
+      updatedItems: [],
+      skippedItems: []
     };
     
     const propsWithSuccessResult = {
@@ -130,15 +133,34 @@ describe('ImportExportButtons', () => {
     render(<ImportExportButtons {...propsWithSuccessResult} />);
     
     expect(screen.getByText('インポート結果')).toBeInTheDocument();
-    expect(screen.getByText('処理総数:')).toBeInTheDocument();
-    expect(screen.getByText('成功:')).toBeInTheDocument();
+    expect(screen.getByText('処理総数')).toBeInTheDocument();
+    expect(screen.getByText('成功')).toBeInTheDocument();
+    expect(screen.getByText('新規作成')).toBeInTheDocument();
+    expect(screen.getByText('更新')).toBeInTheDocument();
+    expect(screen.getByText('スキップ')).toBeInTheDocument();
+    expect(screen.getByText('エラー')).toBeInTheDocument();
+    // 統計カードの中身をチェック
+    expect(screen.getAllByText('5')).toHaveLength(2); // total と success の両方
+    expect(screen.getByText('2')).toBeInTheDocument(); // 新規作成数
+    expect(screen.getAllByText('0')).toHaveLength(3); // 更新数、スキップ数、エラー数
+    expect(screen.getByText('新規作成されたテンプレート (2件)')).toBeInTheDocument();
+    expect(screen.getByText('テンプレート1')).toBeInTheDocument();
+    expect(screen.getByText('テンプレート2')).toBeInTheDocument();
   });
 
   it('displays import result with errors', () => {
     const resultWithErrors: ImportResult = {
       success: 3,
-      errors: ['Error 1', 'Error 2'],
+      errors: [
+        { row: 1, name: 'エラーテンプレート1', message: 'Error 1' },
+        { row: 3, name: 'エラーテンプレート2', message: 'Error 2' }
+      ],
       total: 5,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' }
+      ],
+      updatedItems: [],
+      skippedItems: []
     };
     
     const propsWithErrorResult = {
@@ -150,9 +172,20 @@ describe('ImportExportButtons', () => {
     render(<ImportExportButtons {...propsWithErrorResult} />);
     
     expect(screen.getByText('インポート結果')).toBeInTheDocument();
-    expect(screen.getByText('処理総数:')).toBeInTheDocument();
-    expect(screen.getByText('成功:')).toBeInTheDocument();
-    expect(screen.getByText('エラー:')).toBeInTheDocument();
+    expect(screen.getByText('処理総数')).toBeInTheDocument();
+    expect(screen.getByText('成功')).toBeInTheDocument();
+    expect(screen.getByText('エラー')).toBeInTheDocument();
+    // 統計カードの中身をチェック
+    expect(screen.getByText('5')).toBeInTheDocument(); // total
+    expect(screen.getByText('3')).toBeInTheDocument(); // success
+    expect(screen.getByText('2')).toBeInTheDocument(); // errors count
+    expect(screen.getByText('新規作成されたテンプレート (1件)')).toBeInTheDocument();
+    expect(screen.getByText('テンプレート1')).toBeInTheDocument();
+    expect(screen.getByText('エラー詳細 (2件)')).toBeInTheDocument();
+    expect(screen.getByText('行 1')).toBeInTheDocument();
+    expect(screen.getByText('行 3')).toBeInTheDocument();
+    expect(screen.getByText('"エラーテンプレート1"')).toBeInTheDocument();
+    expect(screen.getByText('"エラーテンプレート2"')).toBeInTheDocument();
     expect(screen.getByText('Error 1')).toBeInTheDocument();
     expect(screen.getByText('Error 2')).toBeInTheDocument();
   });
@@ -212,5 +245,100 @@ describe('ImportExportButtons', () => {
     
     const cancelButton = screen.getByText('キャンセル');
     expect(cancelButton).toBeDisabled();
+  });
+
+  it('calls onImportResultClose when close button is clicked in import result', () => {
+    const successResult: ImportResult = {
+      success: 2,
+      errors: [],
+      total: 2,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' }
+      ],
+      updatedItems: []
+    };
+    
+    const propsWithResult = {
+      ...defaultProps,
+      importResult: successResult,
+    };
+    
+    render(<ImportExportButtons {...propsWithResult} />);
+    
+    const closeButton = screen.getByLabelText('結果を閉じる');
+    fireEvent.click(closeButton);
+    
+    expect(mockOnImportResultClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays import result as independent section when result exists', () => {
+    const successResult: ImportResult = {
+      success: 2,
+      errors: [],
+      total: 2,
+      createdItems: [
+        { id: 1, name: 'テンプレート1' }
+      ],
+      updatedItems: []
+    };
+    
+    const propsWithResult = {
+      ...defaultProps,
+      importResult: successResult,
+      showImportForm: false, // フォームは非表示
+    };
+    
+    render(<ImportExportButtons {...propsWithResult} />);
+    
+    // インポート結果は表示されている
+    expect(screen.getByText('インポート結果')).toBeInTheDocument();
+    expect(screen.getByText('新規作成されたテンプレート (1件)')).toBeInTheDocument();
+    expect(screen.getByLabelText('結果を閉じる')).toBeInTheDocument();
+    
+    // フォームは表示されていない
+    expect(screen.queryByText('CSVファイルからインポート')).not.toBeInTheDocument();
+  });
+
+  it('displays import result with updated and skipped items', () => {
+    const resultWithMixedActions: ImportResult = {
+      success: 4,
+      errors: [],
+      total: 4,
+      createdItems: [
+        { id: 1, name: '新しいテンプレート' }
+      ],
+      updatedItems: [
+        { id: 2, name: '更新されたテンプレート' }
+      ],
+      skippedItems: [
+        { id: 3, name: 'スキップされたテンプレート1' },
+        { id: 4, name: 'スキップされたテンプレート2' }
+      ]
+    };
+    
+    const propsWithMixedResult = {
+      ...defaultProps,
+      showImportForm: true,
+      importResult: resultWithMixedActions,
+    };
+    
+    render(<ImportExportButtons {...propsWithMixedResult} />);
+    
+    expect(screen.getByText('インポート結果')).toBeInTheDocument();
+    expect(screen.getAllByText('4')).toHaveLength(2); // 処理総数と成功総数
+    expect(screen.getAllByText('1')).toHaveLength(2); // 新規作成数と更新数（それぞれ1つずつ）
+    expect(screen.getByText('2')).toBeInTheDocument(); // スキップ数（1つだけ）
+    
+    // 各セクションが表示される
+    expect(screen.getByText('新規作成されたテンプレート (1件)')).toBeInTheDocument();
+    expect(screen.getByText('新しいテンプレート')).toBeInTheDocument();
+    
+    expect(screen.getByText('更新されたテンプレート (1件)')).toBeInTheDocument();
+    expect(screen.getByText('更新されたテンプレート')).toBeInTheDocument();
+    
+    expect(screen.getByText('スキップされたテンプレート (2件)')).toBeInTheDocument();
+    expect(screen.getByText('スキップされたテンプレート1')).toBeInTheDocument();
+    expect(screen.getByText('スキップされたテンプレート2')).toBeInTheDocument();
+    expect(screen.getAllByText('(内容が同一のため)')).toHaveLength(2);
   });
 });

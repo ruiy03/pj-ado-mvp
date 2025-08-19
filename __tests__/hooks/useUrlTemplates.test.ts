@@ -27,8 +27,7 @@ describe('useUrlTemplates', () => {
         {
           id: 1,
           name: 'Template 1',
-          url: 'https://example1.com',
-          parameters: {utm_campaign: 'test1'},
+          url_template: 'https://example1.com',
           description: 'Description 1',
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z'
@@ -36,8 +35,7 @@ describe('useUrlTemplates', () => {
         {
           id: 2,
           name: 'Template 2',
-          url: 'https://example2.com',
-          parameters: {utm_campaign: 'test2'},
+          url_template: 'https://example2.com',
           description: 'Description 2',
           created_at: '2023-01-02T00:00:00Z',
           updated_at: '2023-01-03T00:00:00Z'
@@ -99,8 +97,7 @@ describe('useUrlTemplates', () => {
         {
           id: 1,
           name: 'Existing Template',
-          url: 'https://existing.com',
-          parameters: {},
+          url_template: 'https://existing.com',
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z'
         }
@@ -109,8 +106,7 @@ describe('useUrlTemplates', () => {
       const newTemplate: UrlTemplate = {
         id: 2,
         name: 'New Template',
-        url: 'https://new.com',
-        parameters: {utm_campaign: 'new'},
+        url_template: 'https://new.com',
         description: 'New description',
         created_at: '2023-01-02T00:00:00Z',
         updated_at: '2023-01-02T00:00:00Z'
@@ -136,8 +132,7 @@ describe('useUrlTemplates', () => {
 
       const createData: CreateUrlTemplateRequest = {
         name: 'New Template',
-        url: 'https://new.com',
-        parameters: {utm_campaign: 'new'},
+        url_template: 'https://new.com',
         description: 'New description'
       };
 
@@ -177,7 +172,7 @@ describe('useUrlTemplates', () => {
 
       const createData: CreateUrlTemplateRequest = {
         name: 'Test',
-        url: 'https://test.com',
+        url_template: 'https://test.com',
         parameters: {}
       };
 
@@ -193,16 +188,14 @@ describe('useUrlTemplates', () => {
         {
           id: 1,
           name: 'Template 1',
-          url: 'https://example1.com',
-          parameters: {},
+          url_template: 'https://example1.com',
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z'
         },
         {
           id: 2,
           name: 'Template 2',
-          url: 'https://example2.com',
-          parameters: {},
+          url_template: 'https://example2.com',
           created_at: '2023-01-02T00:00:00Z',
           updated_at: '2023-01-02T00:00:00Z'
         }
@@ -234,7 +227,7 @@ describe('useUrlTemplates', () => {
 
       const updateData: CreateUrlTemplateRequest = {
         name: 'Updated Template 2',
-        url: 'https://example2.com',
+        url_template: 'https://example2.com',
         parameters: {}
       };
 
@@ -274,7 +267,7 @@ describe('useUrlTemplates', () => {
 
       const updateData: CreateUrlTemplateRequest = {
         name: 'Test',
-        url: 'https://test.com',
+        url_template: 'https://test.com',
         parameters: {}
       };
 
@@ -290,16 +283,14 @@ describe('useUrlTemplates', () => {
         {
           id: 1,
           name: 'Template 1',
-          url: 'https://example1.com',
-          parameters: {},
+          url_template: 'https://example1.com',
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z'
         },
         {
           id: 2,
           name: 'Template 2',
-          url: 'https://example2.com',
-          parameters: {},
+          url_template: 'https://example2.com',
           created_at: '2023-01-02T00:00:00Z',
           updated_at: '2023-01-02T00:00:00Z'
         }

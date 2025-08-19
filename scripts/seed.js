@@ -95,7 +95,6 @@ async function seed() {
             name
                          VARCHAR(255) NOT NULL,
             url_template TEXT         NOT NULL,
-            parameters   JSON,
             description  TEXT,
             created_at   TIMESTAMP DEFAULT NOW
                                            (
@@ -108,9 +107,12 @@ async function seed() {
 
     console.log('Creating ad_contents table...');
 
+    // Drop existing ad_contents table to ensure schema matches
+    await sql`DROP TABLE IF EXISTS ad_contents CASCADE`;
+
     // Create ad_contents table
     await sql`
-        CREATE TABLE IF NOT EXISTS ad_contents
+        CREATE TABLE ad_contents
         (
             id
             SERIAL
@@ -124,12 +126,12 @@ async function seed() {
             template_id INTEGER REFERENCES ad_templates
         (
             id
-        ) ON DELETE SET NULL,
+        ) ON DELETE CASCADE,
             url_template_id INTEGER REFERENCES url_templates
         (
             id
         )
-          ON DELETE SET NULL,
+          ON DELETE CASCADE,
             content_data JSON DEFAULT '{}',
             status VARCHAR
         (
@@ -151,9 +153,12 @@ async function seed() {
 
     console.log('Creating ad_images table...');
 
+    // Drop existing ad_images table to ensure schema matches
+    await sql`DROP TABLE IF EXISTS ad_images CASCADE`;
+
     // Create ad_images table
     await sql`
-        CREATE TABLE IF NOT EXISTS ad_images
+        CREATE TABLE ad_images
         (
             id
             SERIAL
@@ -377,77 +382,64 @@ async function seed() {
     await sql`DELETE
               FROM url_templates`;
 
-    // Insert sample URL templates with tracking parameters
+    /* Insert sample URL templates with tracking parameters */
     await sql`
-        INSERT INTO url_templates (name, url_template, parameters, description)
+        INSERT INTO url_templates (name, url_template, description)
         VALUES
             -- 記事系広告
             ('記事内広告 (kijinaka)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "kijinaka", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=kijinaka&utm_medium=port-career&utm_content={{utm_content}}',
              '記事内に配置する広告のトラッキングURL'),
 
             ('記事下広告 (kijisita)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "kijisita", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=kijisita&utm_medium=port-career&utm_content={{utm_content}}',
              '記事下に配置する広告のトラッキングURL'),
 
             ('例文内広告 (reibunnaka)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "reibunnaka", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=reibunnaka&utm_medium=port-career&utm_content={{utm_content}}',
              '例文内に配置する広告のトラッキングURL'),
 
             ('記事バナー広告 (kijibanner)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "kijibanner", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=kijibanner&utm_medium=port-career&utm_content={{utm_content}}',
              '記事バナー形式の広告のトラッキングURL'),
 
             -- Webプッシュ系広告
             ('Webプッシュ スマホ (webpush_sp)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "webpush_sp", "utm_medium": "push", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=webpush_sp&utm_medium=push&utm_content={{utm_content}}',
              'スマートフォン向けWebプッシュ広告のトラッキングURL'),
 
             ('Webプッシュ PC位置1 (webpush_pc1)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "webpush_pc1", "utm_medium": "push", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=webpush_pc1&utm_medium=push&utm_content={{utm_content}}',
              'PC向けWebプッシュ広告（位置1）のトラッキングURL'),
 
             ('Webプッシュ PC位置2 (webpush_pc2)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "webpush_pc2", "utm_medium": "push", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=webpush_pc2&utm_medium=push&utm_content={{utm_content}}',
              'PC向けWebプッシュ広告（位置2）のトラッキングURL'),
 
             ('Webプッシュ PC位置3 (webpush_pc3)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "webpush_pc3", "utm_medium": "push", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=webpush_pc3&utm_medium=push&utm_content={{utm_content}}',
              'PC向けWebプッシュ広告（位置3）のトラッキングURL'),
 
             ('Webプッシュ 画像 (webpush_image)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "webpush_image", "utm_medium": "push", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=webpush_image&utm_medium=push&utm_content={{utm_content}}',
              '画像付きWebプッシュ広告のトラッキングURL'),
 
             -- Chameleon系広告
             ('Chameleon広告 (chameleon)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "chameleon", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=chameleon&utm_medium=port-career&utm_content={{utm_content}}',
              'Chameleon広告のトラッキングURL'),
 
             ('Chameleon広告2 (chameleon2)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "chameleon2", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=chameleon2&utm_medium=port-career&utm_content={{utm_content}}',
              'Chameleon広告2のトラッキングURL'),
 
             ('Chameleon下部広告 (chameleonsita)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_content={{utm_content}}',
-             '{"utm_source": "chameleonsita", "utm_medium": "port-career", "utm_content": "default"}',
+             '{{baseUrl}}?utm_source=chameleonsita&utm_medium=port-career&utm_content={{utm_content}}',
              'Chameleon下部広告のトラッキングURL'),
 
             -- ランキング系広告（特別対応）
             ('ランキング広告 (ranking)',
-             '{{baseUrl}}?utm_source={{utm_source}}&utm_medium={{utm_medium}}&utm_campaign={{utm_campaign}}&utm_content={{utm_content}}&rank={{rank}}',
-             '{"utm_source": "ranking", "utm_medium": "port-career", "utm_campaign": "default", "utm_content": "default", "rank": "1"}',
+             '{{baseUrl}}?utm_source=ranking&utm_medium=port-career&utm_campaign={{utm_campaign}}&utm_content={{utm_content}}&rank={{rank}}',
              'ランキング広告のトラッキングURL（キャンペーンとランク位置付き）');
     `;
 
