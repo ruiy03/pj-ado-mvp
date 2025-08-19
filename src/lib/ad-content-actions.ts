@@ -16,7 +16,15 @@ import type {
 
 // JSON解析処理を共通化
 function parseJsonData(data: unknown): unknown {
-  return typeof data === 'string' ? JSON.parse(data) : data || {};
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      // パース失敗時は空オブジェクトを返す
+      return {};
+    }
+  }
+  return data || {};
 }
 
 function parseContentData(data: unknown): Record<string, string | number | boolean> {
