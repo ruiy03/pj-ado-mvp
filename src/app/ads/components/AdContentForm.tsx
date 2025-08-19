@@ -8,6 +8,7 @@ import type {
   CreateAdContentRequest,
   AdContentStatus
 } from '@/lib/definitions';
+import {isImagePlaceholder, getCleanPlaceholderName} from '@/lib/image-utils';
 import ImageUpload from '@/components/ImageUpload';
 import AdPreview from './AdPreview';
 
@@ -16,6 +17,7 @@ interface UploadedImage {
   filename: string;
   size: number;
   mimeType: string;
+  imageId?: number;
 }
 
 interface AdContentFormProps {
@@ -145,22 +147,6 @@ export default function AdContentForm({
     });
     updatePlaceholderValue(placeholder, '');
   };
-
-  // プレースホルダーが画像用かどうかを判定
-  const isImagePlaceholder = (placeholder: string): boolean => {
-    return placeholder.toLowerCase().includes('image') ||
-      placeholder.toLowerCase().includes('img') ||
-      placeholder.toLowerCase().includes('photo') ||
-      placeholder.toLowerCase().includes('picture') ||
-      placeholder.toLowerCase().includes('logo');
-  };
-
-  // プレースホルダーから波括弧を除去して表示用に整える
-  const getCleanPlaceholderName = (placeholder: string): string => {
-    return placeholder.replace(/\{\{|\}\}/g, '').trim();
-  };
-
-
 
   // URLプレビューの生成
   const generateUrlPreview = (): string => {
@@ -437,6 +423,9 @@ export default function AdContentForm({
                                   currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data[placeholder] || '')}
                                   placeholder={`${cleanName}の画像をアップロード`}
                                   className={hasError ? 'border-red-300' : ''}
+                                  adContentId={adContent?.id}
+                                  placeholderName={cleanName}
+                                  altText={cleanName}
                                 />
                                 {hasError && (
                                   <p className="text-sm text-red-600 mt-1">{hasError}</p>
