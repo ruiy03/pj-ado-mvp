@@ -4,12 +4,12 @@ import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import {logout} from '@/lib/actions';
-import { useSession } from 'next-auth/react';
+import {useSession} from 'next-auth/react';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isHydrated, setIsHydrated] = useState(false);
-  const { data: session } = useSession();
+  const {data: session} = useSession();
 
   useEffect(() => {
     setIsHydrated(true);

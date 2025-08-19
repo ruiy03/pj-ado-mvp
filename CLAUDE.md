@@ -17,7 +17,9 @@ NextAuth.js for authentication.
 - **Test**: `npm test` - Runs Jest test suites for components and utilities
 - **Test (watch mode)**: `npm run test:watch` - Runs tests in watch mode for development
 - **Run single test**: `npm test -- --testNamePattern="test name"` or `npm test Button.test.tsx`
-- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test users (admin@example.com/password123, editor@example.com/password123)
+- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test users (admin@example.com/password123,
+  editor@example.com/password123)
+- **Image cleanup**: Image cleanup runs automatically via Vercel Cron Jobs (Sundays at 2 AM UTC)
 
 ## Architecture Overview
 
@@ -28,17 +30,20 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - **Authentication config**: `auth.config.ts` and `auth.ts` handle NextAuth setup
 - **Middleware**: `middleware.ts` protects routes except public files and login
 - **Database**: Uses Neon PostgreSQL with bcrypt for password hashing
-- **Session management**: Client-side session checking with `SessionProvider.tsx` and `ClientLayout.tsx` for conditional UI
+- **Session management**: Client-side session checking with `SessionProvider.tsx` and `ClientLayout.tsx` for conditional
+  UI
 - **Protected components**: `ProtectedPage.tsx` and `ClientProtectedPage.tsx` redirect unauthenticated users to `/login`
 - **Role-based access**: Two-tier system with `admin` (level 2) and `editor` (level 1) roles
-- **Authorization helpers**: `src/lib/authorization.ts` provides role checking utilities (`hasMinimumRole`, `isAdmin`, `canEdit`, `withAuthorization`)
+- **Authorization helpers**: `src/lib/authorization.ts` provides role checking utilities (`hasMinimumRole`, `isAdmin`,
+  `canEdit`, `withAuthorization`)
 - **User management**: Full CRUD operations restricted to admin users only
 
 ### Application Structure
 
 - **Conditional layout**: Authenticated users see sidebar + main content (`ml-64` offset), unauthenticated users see
   centered login
-- **Authentication flow**: Client layout checks session and conditionally renders sidebar navigation vs login-only header
+- **Authentication flow**: Client layout checks session and conditionally renders sidebar navigation vs login-only
+  header
 - **Navigation**: Six main sections accessible via fixed sidebar when authenticated
 - **Styling**: Consistent gray/blue design system using Tailwind CSS
 
@@ -58,6 +63,8 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/lib/template-actions.ts` - Server actions for ad template CRUD operations with validation
 - `src/lib/authorization.ts` - Role checking utilities and permission helpers
 - `src/lib/template-utils.ts` - Utility functions for template processing and validation
+- `src/lib/image-cleanup.ts` - Automated image cleanup utilities for orphaned and old unused images
+- `src/lib/image-utils.ts` - Common helper functions for image processing and content_data manipulation
 - `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
 - `middleware.ts` - Route protection middleware
 
@@ -65,19 +72,26 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 
 Uses Neon PostgreSQL with the following structure:
 
-- **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor), `created_at`, `updated_at`
-- **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`, `updated_at`
-- **url_templates table**: `id` (serial), `name`, `url_template`, `parameters` (JSON), `description`, `created_at`, `updated_at`
-- **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON), `status` (enum), `created_by` (FK), `created_at`, `updated_at`
-- **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`, `alt_text`, `placeholder_name`, `created_at`
-- **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via `scripts/seed.js`
+- **users table**: `id` (serial), `name`, `email` (unique), `password` (bcrypt hashed), `role` (admin/editor),
+  `created_at`, `updated_at`
+- **ad_templates table**: `id` (serial), `name`, `html`, `placeholders` (JSON array), `description`, `created_at`,
+  `updated_at`
+- **url_templates table**: `id` (serial), `name`, `url_template`, `parameters` (JSON), `description`, `created_at`,
+  `updated_at`
+- **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON),
+  `status` (enum), `created_by` (FK), `created_at`, `updated_at`
+- **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`,
+  `alt_text`, `placeholder_name`, `created_at`
+- **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via
+  `scripts/seed.js`
 
 ### Testing Setup
 
 The application uses Jest with React Testing Library for comprehensive unit and component testing:
 
 - **Jest configuration**: `jest.config.js` with Next.js integration and path mapping
-- **Setup file**: `jest.setup.js` for global test configuration including comprehensive Web API mocks (Request, Response, FormData, Headers, etc.)
+- **Setup file**: `jest.setup.js` for global test configuration including comprehensive Web API mocks (Request,
+  Response, FormData, Headers, etc.)
 - **Test environment**: jsdom for DOM testing with React components
 - **Test location**: `__tests__/` directory with component and utility tests
 - **Coverage**: 33 test suites with 403 tests covering components, hooks, API routes, utilities, and accessibility
@@ -96,6 +110,7 @@ Each main feature has its own page directory under `src/app/`:
 - `/accounts` - Account management system with full CRUD operations (admin only)
 
 **API Routes**:
+
 - `/api/templates` - REST API for ad template CRUD operations (GET, POST)
 - `/api/templates/[id]` - Individual template operations (GET, PUT, DELETE)
 - `/api/templates/import` - Template import functionality (POST)
@@ -107,8 +122,10 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/ad-contents` - REST API for ad content CRUD operations (GET, POST)
 - `/api/ad-contents/[id]` - Individual ad content operations (GET, PUT, DELETE)
 - `/api/upload` - File upload handling for ad images using Vercel Blob storage
+- `/api/admin/cleanup-images` - Automated image cleanup API for removing orphaned and old unused images (Cron job)
 
-Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese text and icons.
+Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese
+text and icons.
 
 ## Key Technologies
 
@@ -130,7 +147,8 @@ Most pages are implemented with full functionality. Some protected pages show pl
 - Uses Turbopack for faster development builds
 - Japanese language interface throughout (`lang="ja"` in layout)
 - Path alias `@/*` maps to `./src/*` (configured in tsconfig.json)
-- Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, ClientLayout, SessionProvider, etc.)
+- Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, ClientLayout,
+  SessionProvider, etc.)
 - ESLint uses flat config format (`eslint.config.mjs`) with Next.js TypeScript rules
 - Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 - Authentication state determines entire application layout and available routes
@@ -142,39 +160,54 @@ Most pages are implemented with full functionality. Some protected pages show pl
 The ad template system is a core feature with several important components:
 
 - **Template validation**: `src/lib/template-utils/validation.ts` validates HTML structure and placeholders
-- **Placeholder extraction**: `src/lib/template-utils/placeholder-extraction.ts` extracts `{{variable}}` placeholders from HTML
+- **Placeholder extraction**: `src/lib/template-utils/placeholder-extraction.ts` extracts `{{variable}}` placeholders
+  from HTML
 - **Link processing**: `src/lib/template-utils/link-processing.ts` handles `rel="nofollow"` attributes for SEO
-- **Template actions**: `src/lib/template-actions.ts` provides server actions for template CRUD with authorization checks
+- **Template actions**: `src/lib/template-actions.ts` provides server actions for template CRUD with authorization
+  checks
 - **HTML Editor**: `src/components/HTMLCodeEditor.tsx` uses Monaco Editor with HTML syntax highlighting
 - **Template hooks**: `src/app/ad-templates/hooks/useTemplates.tsx` manages template state and operations
 
-Templates support dynamic placeholders in `{{variableName}}` format and automatically enforce `rel="nofollow"` on external links for SEO compliance.
+Templates support dynamic placeholders in `{{variableName}}` format and automatically enforce `rel="nofollow"` on
+external links for SEO compliance.
 
 ## URL Template System Architecture
 
 The URL template system provides comprehensive tracking parameter management for advertisement campaigns:
 
-- **URL template management**: `src/lib/url-template-actions.ts` provides server actions for URL template CRUD with authorization checks
+- **URL template management**: `src/lib/url-template-actions.ts` provides server actions for URL template CRUD with
+  authorization checks
 - **UTM parameter support**: Comprehensive UTM tracking (source, medium, campaign, term, content)
 - **Custom parameters**: JSON-based custom parameter storage for advanced tracking
 - **Template validation**: URL format validation and parameter consistency checks
 - **URL template hooks**: `src/app/url-templates/hooks/useUrlTemplates.tsx` manages URL template state and operations
-- **UI components**: `UrlTemplateCard.tsx`, `UrlTemplateForm.tsx`, and `UrlTemplateClient.tsx` for complete CRUD interface
+- **UI components**: `UrlTemplateCard.tsx`, `UrlTemplateForm.tsx`, and `UrlTemplateClient.tsx` for complete CRUD
+  interface
 - **Template activation**: Boolean flag system for enabling/disabling URL templates
 
-URL templates support standard UTM parameters and custom JSON parameters for flexible campaign tracking and analytics integration.
+URL templates support standard UTM parameters and custom JSON parameters for flexible campaign tracking and analytics
+integration.
 
 ## Ad Content Management System
 
 The ad content management system provides comprehensive advertisement creation and management with image handling:
 
-- **Ad content management**: `src/lib/ad-content-actions.ts` provides server actions for ad content CRUD with authorization checks
-- **Image upload system**: `src/components/ImageUpload.tsx` handles file uploads with drag-and-drop support and Vercel Blob integration
-- **Content data structure**: JSON-based content storage linking to templates and URL templates with dynamic placeholder support
+- **Ad content management**: `src/lib/ad-content-actions.ts` provides server actions for ad content CRUD with
+  authorization checks
+- **Image upload system**: `src/components/ImageUpload.tsx` handles file uploads with drag-and-drop support and Vercel
+  Blob integration
+- **Content data structure**: JSON-based content storage linking to templates and URL templates with dynamic placeholder
+  support
 - **Status management**: Four-state workflow (draft, active, paused, archived) for ad lifecycle management
-- **Image association**: Links uploaded images to specific placeholder names in ad templates for dynamic content insertion
+- **Image association**: Links uploaded images to specific placeholder names in ad templates for dynamic content
+  insertion
 - **Ad content hooks**: `src/app/ads/hooks/useAdContents.tsx` manages ad content state and operations
-- **UI components**: `AdContentCard.tsx`, `AdContentForm.tsx`, `AdPreview.tsx`, and `AdContentClient.tsx` for complete CRUD interface
+- **UI components**: `AdContentCard.tsx`, `AdContentForm.tsx`, `AdPreview.tsx`, and `AdContentClient.tsx` for complete
+  CRUD interface
 - **File storage**: Vercel Blob storage integration for scalable image hosting with metadata tracking
+- **Image cleanup system**: `src/lib/image-cleanup.ts` provides automated cleanup of orphaned and old unused images
+- **Image utilities**: `src/lib/image-utils.ts` contains common helper functions for image processing and content_data
+  manipulation
 
-Ad contents combine templates, URL templates, and user-uploaded images to create complete advertisement instances with comprehensive tracking and preview capabilities.
+Ad contents combine templates, URL templates, and user-uploaded images to create complete advertisement instances with
+comprehensive tracking and preview capabilities. The system includes automated image cleanup to prevent storage bloat.

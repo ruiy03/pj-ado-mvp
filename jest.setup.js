@@ -272,3 +272,20 @@ global.NextRequest = class NextRequest extends global.Request {
 
 // Mock DOM methods for testing
 Element.prototype.scrollIntoView = jest.fn();
+
+// Mock next-auth for API tests
+jest.mock('next-auth', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+// Mock auth module
+jest.mock('./src/auth', () => ({
+  auth: jest.fn(),
+}));
+
+// Mock Vercel Blob
+jest.mock('@vercel/blob', () => ({
+  put: jest.fn(),
+  del: jest.fn(),
+}));
