@@ -2,6 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {auth} from '@/auth';
 import {getAdContents, createAdContent, associateImagesWithAdContent} from '@/lib/ad-content-actions';
 import {hasMinimumRole} from '@/lib/authorization';
+import {extractImageUrls} from '@/lib/image-utils';
 import type {CreateAdContentRequest} from '@/lib/definitions';
 
 export async function GET() {
@@ -41,20 +42,7 @@ export async function POST(request: NextRequest) {
 
     // 画像URLがcontent_dataに含まれている場合、ad_imagesテーブルに関連付ける
     if (newContent.content_data) {
-      const imageUrls: Record<string, string> = {};
-
-      // content_dataから画像URLを抽出
-      Object.entries(newContent.content_data).forEach(([key, value]) => {
-        if (typeof value === 'string' &&
-          (value.startsWith('https://') || value.startsWith('http://')) &&
-          (key.toLowerCase().includes('image') ||
-            key.toLowerCase().includes('img') ||
-            key.toLowerCase().includes('photo') ||
-            key.toLowerCase().includes('picture') ||
-            key.toLowerCase().includes('logo'))) {
-          imageUrls[key] = value;
-        }
-      });
+      const imageUrls = extractImageUrls(newContent.content_data);
 
       if (Object.keys(imageUrls).length > 0) {
         try {

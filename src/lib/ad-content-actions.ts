@@ -14,6 +14,15 @@ import type {
   AdContentStatus
 } from './definitions';
 
+// JSON解析処理を共通化
+function parseJsonData(data: unknown): unknown {
+  return typeof data === 'string' ? JSON.parse(data) : data || {};
+}
+
+function parseContentData(data: unknown): Record<string, string | number | boolean> {
+  return parseJsonData(data) as Record<string, string | number | boolean>;
+}
+
 const CreateAdContentSchema = z.object({
   name: z.string().min(1, '広告名は必須です'),
   template_id: z.number().optional(),
@@ -77,9 +86,7 @@ export async function getAdContents(): Promise<AdContent[]> {
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string'
-        ? JSON.parse(row.content_data)
-        : row.content_data || {},
+      content_data: parseContentData(row.content_data),
       status: row.status as AdContentStatus,
       created_by: row.created_by,
       created_at: row.created_at?.toISOString(),
@@ -88,17 +95,13 @@ export async function getAdContents(): Promise<AdContent[]> {
         id: row.template_id,
         name: row.template_name,
         html: row.template_html,
-        placeholders: typeof row.template_placeholders === 'string'
-          ? JSON.parse(row.template_placeholders)
-          : row.template_placeholders || [],
+        placeholders: parseJsonData(row.template_placeholders),
       } : undefined,
       url_template: row.url_template_id ? {
         id: row.url_template_id,
         name: row.url_template_name,
         url_template: row.url_template_url,
-        parameters: typeof row.url_template_parameters === 'string'
-          ? JSON.parse(row.url_template_parameters)
-          : row.url_template_parameters || {},
+        parameters: parseJsonData(row.url_template_parameters),
       } : undefined,
       created_by_user: row.created_by ? {
         id: row.created_by,
@@ -161,9 +164,7 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string'
-        ? JSON.parse(row.content_data)
-        : row.content_data || {},
+      content_data: parseContentData(row.content_data),
       status: row.status as AdContentStatus,
       created_by: row.created_by,
       created_at: row.created_at?.toISOString(),
@@ -172,17 +173,13 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
         id: row.template_id,
         name: row.template_name,
         html: row.template_html,
-        placeholders: typeof row.template_placeholders === 'string'
-          ? JSON.parse(row.template_placeholders)
-          : row.template_placeholders || [],
+        placeholders: parseJsonData(row.template_placeholders),
       } : undefined,
       url_template: row.url_template_id ? {
         id: row.url_template_id,
         name: row.url_template_name,
         url_template: row.url_template_url,
-        parameters: typeof row.url_template_parameters === 'string'
-          ? JSON.parse(row.url_template_parameters)
-          : row.url_template_parameters || {},
+        parameters: parseJsonData(row.url_template_parameters),
       } : undefined,
       created_by_user: row.created_by ? {
         id: row.created_by,
@@ -245,9 +242,7 @@ export async function createAdContent(data: CreateAdContentRequest): Promise<AdC
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string'
-        ? JSON.parse(row.content_data)
-        : row.content_data || {},
+      content_data: parseContentData(row.content_data),
       status: row.status,
       created_by: row.created_by,
       created_at: row.created_at?.toISOString(),
@@ -303,9 +298,7 @@ export async function updateAdContent(data: UpdateAdContentRequest): Promise<AdC
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string'
-        ? JSON.parse(row.content_data)
-        : row.content_data || {},
+      content_data: parseContentData(row.content_data),
       status: row.status,
       created_by: row.created_by,
       created_at: row.created_at?.toISOString(),

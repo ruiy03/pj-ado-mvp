@@ -7,6 +7,7 @@ import {
   associateImagesWithAdContent
 } from '@/lib/ad-content-actions';
 import {hasMinimumRole} from '@/lib/authorization';
+import {extractImageUrls} from '@/lib/image-utils';
 import type {UpdateAdContentRequest} from '@/lib/definitions';
 
 export async function GET(
@@ -70,20 +71,7 @@ export async function PUT(
 
     // 画像URLがcontent_dataに含まれている場合、ad_imagesテーブルに関連付ける
     if (updatedContent.content_data) {
-      const imageUrls: Record<string, string> = {};
-
-      // content_dataから画像URLを抽出
-      Object.entries(updatedContent.content_data).forEach(([key, value]) => {
-        if (typeof value === 'string' &&
-          (value.startsWith('https://') || value.startsWith('http://')) &&
-          (key.toLowerCase().includes('image') ||
-            key.toLowerCase().includes('img') ||
-            key.toLowerCase().includes('photo') ||
-            key.toLowerCase().includes('picture') ||
-            key.toLowerCase().includes('logo'))) {
-          imageUrls[key] = value;
-        }
-      });
+      const imageUrls = extractImageUrls(updatedContent.content_data);
 
       if (Object.keys(imageUrls).length > 0) {
         try {
