@@ -77,13 +77,18 @@ function validateUrlTemplateData(data: Record<string, string>): CreateUrlTemplat
     return null;
   }
 
-  if (!data.url || typeof data.url !== 'string' || data.url.trim() === '') {
+  if (!data.url_template || typeof data.url_template !== 'string' || data.url_template.trim() === '') {
     return null;
   }
 
-  // URLの形式をチェック
+  // URLテンプレートの基本形式をチェック（プレースホルダーを適切な値に置換してURLチェック）
   try {
-    new URL(data.url);
+    let tempUrl = data.url_template;
+    // baseUrlのようなURLベース部分は完全なURLに置換
+    tempUrl = tempUrl.replace(/\{\{baseUrl\}\}/g, 'https://example.com');
+    // その他のプレースホルダーは適切な値に置換
+    tempUrl = tempUrl.replace(/\{\{[^}]+\}\}/g, 'placeholder');
+    new URL(tempUrl);
   } catch {
     return null;
   }
@@ -103,7 +108,7 @@ function validateUrlTemplateData(data: Record<string, string>): CreateUrlTemplat
 
   return {
     name: data.name.trim(),
-    url_template: data.url.trim(),
+    url_template: data.url_template.trim(),
     parameters,
     description: data.description || '',
   };
@@ -141,7 +146,7 @@ export async function POST(request: NextRequest) {
     }
 
     const headers = rows[0].map(h => h.toLowerCase().trim());
-    const expectedHeaders = ['name', 'url', 'parameters', 'description'];
+    const expectedHeaders = ['name', 'url_template', 'parameters', 'description'];
 
     // ヘッダー検証
     const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));

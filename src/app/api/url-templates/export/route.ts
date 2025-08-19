@@ -13,7 +13,7 @@ export async function GET() {
     const templates = await getUrlTemplates();
 
     // CSV ヘッダー
-    const csvHeaders = ['name', 'url', 'parameters', 'description'];
+    const csvHeaders = ['name', 'url_template', 'parameters', 'description'];
 
     // CSV データ生成
     const csvRows = templates.map(template => [
