@@ -171,6 +171,19 @@ The ad template system is a core feature with several important components:
 Templates support dynamic placeholders in `{{variableName}}` format and automatically enforce `rel="nofollow"` on
 external links for SEO compliance.
 
+### CSV Import/Export System
+
+The application features comprehensive CSV import/export functionality for batch operations:
+
+- **CSV utilities**: `src/lib/csv-utils.ts` provides robust CSV parsing with support for quoted fields and multiline values
+- **Import/export hooks**: `src/hooks/useImportExport.tsx` manages import/export state and operations
+- **Shared components**: `src/components/ImportExportButtons.tsx` provides consistent UI for import/export operations
+- **Result handling**: `ImportResult` interface provides detailed feedback including success count, errors, and item-level results
+- **Batch operations**: Support for creating, updating, and skipping items during import with detailed error reporting
+- **File format validation**: CSV format validation with helpful error messages and format guidance
+
+CSV functionality is available for ad templates and URL templates, enabling efficient bulk management operations.
+
 ## URL Template System Architecture
 
 The URL template system provides comprehensive tracking parameter management for advertisement campaigns:
