@@ -66,9 +66,9 @@ export default function ImportExportButtons({
               以下の形式でCSVファイルを作成してください（1行目はヘッダー行です）
             </p>
             <div className="bg-white p-3 rounded border text-xs font-mono overflow-x-auto">
-              <div>name,url,parameters,description</div>
+              <div>name,url_template,parameters,description</div>
               <div
-                className="text-gray-600">&quot;Google Analytics&quot;,&quot;https://example.com&quot;,&quot;&#123;&quot;utm_source&quot;:&quot;website&quot;,&quot;utm_medium&quot;:&quot;banner&quot;&#125;&quot;,&quot;サンプルURL&quot;</div>
+                className="text-gray-600">&quot;Google Analytics&quot;,&quot;https://example.com?utm_source=&#123;&#123;source&#125;&#125;&quot;,&quot;&#123;&quot;utm_source&quot;:&quot;website&quot;,&quot;utm_medium&quot;:&quot;banner&quot;&#125;&quot;,&quot;サンプルURL&quot;</div>
             </div>
             <div className="mt-3 text-xs text-blue-600">
               <strong>注意:</strong> parameters列には、JSONオブジェクトを文字列として記載してください
