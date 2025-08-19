@@ -4,6 +4,7 @@ import {z} from 'zod';
 import {revalidatePath} from 'next/cache';
 import {auth} from '@/auth';
 import {sql} from '@/lib/db';
+import {del} from '@vercel/blob';
 import type {
   AdContent,
   CreateAdContentRequest,
@@ -19,7 +20,7 @@ function parseJsonData(data: unknown): unknown {
   if (typeof data === 'string') {
     try {
       return JSON.parse(data);
-    } catch (e) {
+    } catch {
       // パース失敗時は空オブジェクトを返す
       return {};
     }
@@ -61,32 +62,32 @@ const CreateAdImageSchema = z.object({
 export async function getAdContents(): Promise<AdContent[]> {
   try {
     const result = await sql`
-      SELECT 
-        ac.id,
-        ac.name,
-        ac.template_id,
-        ac.url_template_id,
-        ac.content_data,
-        ac.status,
-        ac.created_by,
-        ac.created_at,
-        ac.updated_at,
-        -- テンプレート情報
-        at.name as template_name,
-        at.html as template_html,
-        at.placeholders as template_placeholders,
-        -- URLテンプレート情報
-        ut.name as url_template_name,
-        ut.url_template as url_template_url,
-        ut.parameters as url_template_parameters,
-        -- 作成者情報
-        u.name as created_by_name,
-        u.email as created_by_email
-      FROM ad_contents ac
-      LEFT JOIN ad_templates at ON ac.template_id = at.id
-      LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
-      LEFT JOIN users u ON ac.created_by = u.id
-      ORDER BY ac.updated_at DESC
+        SELECT ac.id,
+               ac.name,
+               ac.template_id,
+               ac.url_template_id,
+               ac.content_data,
+               ac.status,
+               ac.created_by,
+               ac.created_at,
+               ac.updated_at,
+               -- テンプレート情報
+               at.name         as template_name,
+               at.html         as template_html,
+               at.placeholders as template_placeholders,
+               -- URLテンプレート情報
+               ut.name         as url_template_name,
+               ut.url_template as url_template_url,
+               ut.parameters   as url_template_parameters,
+               -- 作成者情報
+               u.name          as created_by_name,
+               u.email         as created_by_email
+        FROM ad_contents ac
+                 LEFT JOIN ad_templates at
+        ON ac.template_id = at.id
+            LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
+            LEFT JOIN users u ON ac.created_by = u.id
+        ORDER BY ac.updated_at DESC
     `;
 
     const contents = result.map(row => ({
@@ -134,32 +135,32 @@ export async function getAdContents(): Promise<AdContent[]> {
 export async function getAdContentById(id: number): Promise<AdContent | null> {
   try {
     const result = await sql`
-      SELECT 
-        ac.id,
-        ac.name,
-        ac.template_id,
-        ac.url_template_id,
-        ac.content_data,
-        ac.status,
-        ac.created_by,
-        ac.created_at,
-        ac.updated_at,
-        -- テンプレート情報
-        at.name as template_name,
-        at.html as template_html,
-        at.placeholders as template_placeholders,
-        -- URLテンプレート情報
-        ut.name as url_template_name,
-        ut.url_template as url_template_url,
-        ut.parameters as url_template_parameters,
-        -- 作成者情報
-        u.name as created_by_name,
-        u.email as created_by_email
-      FROM ad_contents ac
-      LEFT JOIN ad_templates at ON ac.template_id = at.id
-      LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
-      LEFT JOIN users u ON ac.created_by = u.id
-      WHERE ac.id = ${id}
+        SELECT ac.id,
+               ac.name,
+               ac.template_id,
+               ac.url_template_id,
+               ac.content_data,
+               ac.status,
+               ac.created_by,
+               ac.created_at,
+               ac.updated_at,
+               -- テンプレート情報
+               at.name         as template_name,
+               at.html         as template_html,
+               at.placeholders as template_placeholders,
+               -- URLテンプレート情報
+               ut.name         as url_template_name,
+               ut.url_template as url_template_url,
+               ut.parameters   as url_template_parameters,
+               -- 作成者情報
+               u.name          as created_by_name,
+               u.email         as created_by_email
+        FROM ad_contents ac
+                 LEFT JOIN ad_templates at
+        ON ac.template_id = at.id
+            LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
+            LEFT JOIN users u ON ac.created_by = u.id
+        WHERE ac.id = ${id}
     `;
 
     if (result.length === 0) {
@@ -216,23 +217,18 @@ export async function createAdContent(data: CreateAdContentRequest): Promise<AdC
     const validatedData = CreateAdContentSchema.parse(data);
 
     const result = await sql`
-      INSERT INTO ad_contents (
-        name, 
-        template_id, 
-        url_template_id, 
-        content_data, 
-        status, 
-        created_by
-      )
-      VALUES (
-        ${validatedData.name},
-        ${validatedData.template_id || null},
-        ${validatedData.url_template_id || null},
-        ${JSON.stringify(validatedData.content_data)},
-        ${validatedData.status},
-        ${parseInt(session.user.id)}
-      ) 
-      RETURNING 
+        INSERT INTO ad_contents (name,
+                                 template_id,
+                                 url_template_id,
+                                 content_data,
+                                 status,
+                                 created_by)
+        VALUES (${validatedData.name},
+                ${validatedData.template_id || null},
+                ${validatedData.url_template_id || null},
+                ${JSON.stringify(validatedData.content_data)},
+                ${validatedData.status},
+                ${parseInt(session.user.id)}) RETURNING 
         id,
         name,
         template_id,
@@ -275,16 +271,14 @@ export async function updateAdContent(data: UpdateAdContentRequest): Promise<AdC
     const {id, ...updateFields} = validatedData;
 
     const result = await sql`
-      UPDATE ad_contents
-      SET 
-        name = COALESCE(${updateFields.name || null}, name),
-        template_id = COALESCE(${updateFields.template_id || null}, template_id),
-        url_template_id = COALESCE(${updateFields.url_template_id || null}, url_template_id),
-        content_data = COALESCE(${updateFields.content_data ? JSON.stringify(updateFields.content_data) : null}, content_data),
-        status = COALESCE(${updateFields.status || null}, status),
-        updated_at = NOW()
-      WHERE id = ${id}
-      RETURNING 
+        UPDATE ad_contents
+        SET name            = COALESCE(${updateFields.name || null}, name),
+            template_id     = COALESCE(${updateFields.template_id || null}, template_id),
+            url_template_id = COALESCE(${updateFields.url_template_id || null}, url_template_id),
+            content_data    = COALESCE(${updateFields.content_data ? JSON.stringify(updateFields.content_data) : null}, content_data),
+            status          = COALESCE(${updateFields.status || null}, status),
+            updated_at      = NOW()
+        WHERE id = ${id} RETURNING 
         id,
         name,
         template_id,
@@ -329,15 +323,42 @@ export async function updateAdContent(data: UpdateAdContentRequest): Promise<AdC
 
 export async function deleteAdContent(id: number): Promise<void> {
   try {
+    // 削除前に関連画像を取得
+    const relatedImages = await getAdImagesByContentId(id);
+
+    // 広告コンテンツを削除
     const result = await sql`
-      DELETE FROM ad_contents
-      WHERE id = ${id}
-      RETURNING id
+        DELETE
+        FROM ad_contents
+        WHERE id = ${id} RETURNING id
     `;
 
     if (result.length === 0) {
       throw new Error('広告コンテンツが見つかりません');
     }
+
+    // 関連画像を削除（Vercel Blobとad_imagesテーブルの両方）
+    const imageDeletePromises = relatedImages.map(async (image) => {
+      try {
+        // Vercel Blobから画像ファイルを削除
+        await del(image.blob_url);
+
+        // ad_imagesテーブルからレコードを削除
+        await sql`
+            DELETE
+            FROM ad_images
+            WHERE id = ${image.id}
+        `;
+
+        console.log(`Successfully deleted image: ${image.blob_url}`);
+      } catch (imageError) {
+        console.error(`Failed to delete image ${image.blob_url}:`, imageError);
+        // 個別の画像削除失敗は全体の削除を阻止しない
+      }
+    });
+
+    // 全ての画像削除処理を並行実行
+    await Promise.allSettled(imageDeletePromises);
 
     revalidatePath('/ads');
   } catch (error) {
@@ -350,19 +371,18 @@ export async function deleteAdContent(id: number): Promise<void> {
 export async function getAdImagesByContentId(contentId: number): Promise<AdImage[]> {
   try {
     const result = await sql`
-      SELECT 
-        id,
-        ad_content_id,
-        blob_url,
-        original_filename,
-        file_size,
-        mime_type,
-        alt_text,
-        placeholder_name,
-        created_at
-      FROM ad_images
-      WHERE ad_content_id = ${contentId}
-      ORDER BY created_at DESC
+        SELECT id,
+               ad_content_id,
+               blob_url,
+               original_filename,
+               file_size,
+               mime_type,
+               alt_text,
+               placeholder_name,
+               created_at
+        FROM ad_images
+        WHERE ad_content_id = ${contentId}
+        ORDER BY created_at DESC
     `;
 
     return result.map(row => ({
@@ -380,25 +400,20 @@ export async function createAdImage(data: CreateAdImageRequest): Promise<AdImage
     const validatedData = CreateAdImageSchema.parse(data);
 
     const result = await sql`
-      INSERT INTO ad_images (
-        ad_content_id,
-        blob_url,
-        original_filename,
-        file_size,
-        mime_type,
-        alt_text,
-        placeholder_name
-      )
-      VALUES (
-        ${validatedData.ad_content_id},
-        ${validatedData.blob_url},
-        ${validatedData.original_filename || null},
-        ${validatedData.file_size || null},
-        ${validatedData.mime_type || null},
-        ${validatedData.alt_text || null},
-        ${validatedData.placeholder_name || null}
-      )
-      RETURNING 
+        INSERT INTO ad_images (ad_content_id,
+                               blob_url,
+                               original_filename,
+                               file_size,
+                               mime_type,
+                               alt_text,
+                               placeholder_name)
+        VALUES (${validatedData.ad_content_id},
+                ${validatedData.blob_url},
+                ${validatedData.original_filename || null},
+                ${validatedData.file_size || null},
+                ${validatedData.mime_type || null},
+                ${validatedData.alt_text || null},
+                ${validatedData.placeholder_name || null}) RETURNING 
         id,
         ad_content_id,
         blob_url,
@@ -432,12 +447,10 @@ export async function updateAdImage(data: UpdateAdImageRequest): Promise<AdImage
     const {id, ...updateFields} = data;
 
     const result = await sql`
-      UPDATE ad_images
-      SET 
-        alt_text = COALESCE(${updateFields.alt_text || null}, alt_text),
-        placeholder_name = COALESCE(${updateFields.placeholder_name || null}, placeholder_name)
-      WHERE id = ${id}
-      RETURNING 
+        UPDATE ad_images
+        SET alt_text         = COALESCE(${updateFields.alt_text || null}, alt_text),
+            placeholder_name = COALESCE(${updateFields.placeholder_name || null}, placeholder_name)
+        WHERE id = ${id} RETURNING 
         id,
         ad_content_id,
         blob_url,
@@ -470,9 +483,9 @@ export async function updateAdImage(data: UpdateAdImageRequest): Promise<AdImage
 export async function deleteAdImage(id: number): Promise<void> {
   try {
     const result = await sql`
-      DELETE FROM ad_images
-      WHERE id = ${id}
-      RETURNING id
+        DELETE
+        FROM ad_images
+        WHERE id = ${id} RETURNING id
     `;
 
     if (result.length === 0) {

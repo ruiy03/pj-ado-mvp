@@ -18,11 +18,13 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
 - **🔐 認証システム** - NextAuth.js v5 (beta) を使用したセキュアなログイン/ログアウト機能
 - **📊 ダッシュボード** - システム概要と活動フィード
-- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、CSV インポート/エクスポート機能、作成・更新タイムスタンプ表示
+- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、CSV
+  インポート/エクスポート機能、作成・更新タイムスタンプ表示
 - **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、CSV インポート/エクスポート機能
 - **📢 広告コンテンツ管理** - 広告の作成・編集・画像アップロード・プレビュー機能、ステータス管理
 - **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
 - **👥 アカウント管理** - ユーザーアカウント管理システム
+- **🗑️ 画像クリーンアップ機能** - 未使用画像の自動削除、Vercel Cron Jobs対応
 
 ## 🚀 クイックスタート
 
@@ -52,13 +54,16 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    DATABASE_URL=your_neon_database_url
    NEXTAUTH_SECRET=your_nextauth_secret_key_32_characters_long
    NEXTAUTH_URL=http://localhost:3000
+   BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+   CRON_SECRET=your_cron_secret_key
    ```
 
 4. **データベースの初期化**
    ```bash
    node scripts/seed.js
    ```
-   > このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
+   >
+   このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
    ```bash
@@ -232,26 +237,32 @@ pj-ado-mvp/
 
 ### URLテンプレート API
 
-| エンドポイント                     | メソッド   | 説明                | 認証 |
-|------------------------------|--------|-------------------|----|
-| `/api/url-templates`         | GET    | 全URLテンプレート取得      | 必須 |
-| `/api/url-templates`         | POST   | 新規URLテンプレート作成     | 必須 |
-| `/api/url-templates/[id]`    | GET    | 個別URLテンプレート取得     | 必須 |
-| `/api/url-templates/[id]`    | PUT    | URLテンプレート更新       | 必須 |
-| `/api/url-templates/[id]`    | DELETE | URLテンプレート削除       | 必須 |
-| `/api/url-templates/import`  | POST   | CSVからURLテンプレートインポート | 必須 |
-| `/api/url-templates/export`  | GET    | URLテンプレートをCSVエクスポート | 必須 |
+| エンドポイント                     | メソッド   | 説明                  | 認証 |
+|-----------------------------|--------|---------------------|----|
+| `/api/url-templates`        | GET    | 全URLテンプレート取得        | 必須 |
+| `/api/url-templates`        | POST   | 新規URLテンプレート作成       | 必須 |
+| `/api/url-templates/[id]`   | GET    | 個別URLテンプレート取得       | 必須 |
+| `/api/url-templates/[id]`   | PUT    | URLテンプレート更新         | 必須 |
+| `/api/url-templates/[id]`   | DELETE | URLテンプレート削除         | 必須 |
+| `/api/url-templates/import` | POST   | CSVからURLテンプレートインポート | 必須 |
+| `/api/url-templates/export` | GET    | URLテンプレートをCSVエクスポート | 必須 |
 
 ### 広告コンテンツ API
 
-| エンドポイント                 | メソッド   | 説明               | 認証 |
-|-------------------------|--------|------------------|----| 
-| `/api/ad-contents`      | GET    | 全広告コンテンツ取得       | 必須 |
-| `/api/ad-contents`      | POST   | 新規広告コンテンツ作成      | 必須 |
-| `/api/ad-contents/[id]` | GET    | 個別広告コンテンツ取得      | 必須 |
-| `/api/ad-contents/[id]` | PUT    | 広告コンテンツ更新        | 必須 |
-| `/api/ad-contents/[id]` | DELETE | 広告コンテンツ削除        | 必須 |
-| `/api/upload`           | POST   | 画像ファイルアップロード     | 必須 |
+| エンドポイント                 | メソッド   | 説明           | 認証 |
+|-------------------------|--------|--------------|----| 
+| `/api/ad-contents`      | GET    | 全広告コンテンツ取得   | 必須 |
+| `/api/ad-contents`      | POST   | 新規広告コンテンツ作成  | 必須 |
+| `/api/ad-contents/[id]` | GET    | 個別広告コンテンツ取得  | 必須 |
+| `/api/ad-contents/[id]` | PUT    | 広告コンテンツ更新    | 必須 |
+| `/api/ad-contents/[id]` | DELETE | 広告コンテンツ削除    | 必須 |
+| `/api/upload`           | POST   | 画像ファイルアップロード | 必須 |
+
+### 画像クリーンアップ API
+
+| エンドポイント                     | メソッド | 説明                 | 認証     |
+|-----------------------------|------|--------------------|--------|
+| `/api/admin/cleanup-images` | GET  | 自動画像クリーンアップ（Cron用） | Cron認証 |
 
 ### 認証 API
 
@@ -276,10 +287,10 @@ pj-ado-mvp/
 
 システムでは2段階の役割システムを実装：
 
-| 役割               | レベル | 権限                      |
-|------------------|-----|-------------------------|
+| 役割               | レベル | 権限                                |
+|------------------|-----|-----------------------------------|
 | **管理者 (admin)**  | 2   | 全機能アクセス、ユーザー管理、テンプレート管理、広告コンテンツ管理 |
-| **編集者 (editor)** | 1   | テンプレート作成・編集、広告コンテンツ管理        |
+| **編集者 (editor)** | 1   | テンプレート作成・編集、広告コンテンツ管理             |
 
 #### 認可ヘルパー関数
 
@@ -322,49 +333,49 @@ pj-ado-mvp/
 
 ### ad_contents テーブル
 
-| カラム               | 型            | 説明                | 制約                          |
-|--------------------|--------------|-------------------|------------------------------|
-| `id`               | SERIAL       | プライマリキー           | PRIMARY KEY                  |
-| `name`             | VARCHAR(255) | 広告コンテンツ名         | NOT NULL                     |
-| `template_id`      | INTEGER      | 広告テンプレートID（FK）   | REFERENCES ad_templates(id)  |
-| `url_template_id`  | INTEGER      | URLテンプレートID（FK）  | REFERENCES url_templates(id) |
-| `content_data`     | JSON         | コンテンツデータ         |                              |
-| `status`           | VARCHAR(20)  | ステータス            | NOT NULL, DEFAULT 'draft'    |
-| `created_by`       | INTEGER      | 作成者ID（FK）        | REFERENCES users(id)         |
-| `created_at`       | TIMESTAMP    | 作成日時             | DEFAULT NOW()                |
-| `updated_at`       | TIMESTAMP    | 更新日時             | DEFAULT NOW()                |
+| カラム               | 型            | 説明              | 制約                           |
+|-------------------|--------------|-----------------|------------------------------|
+| `id`              | SERIAL       | プライマリキー         | PRIMARY KEY                  |
+| `name`            | VARCHAR(255) | 広告コンテンツ名        | NOT NULL                     |
+| `template_id`     | INTEGER      | 広告テンプレートID（FK）  | REFERENCES ad_templates(id)  |
+| `url_template_id` | INTEGER      | URLテンプレートID（FK） | REFERENCES url_templates(id) |
+| `content_data`    | JSON         | コンテンツデータ        |                              |
+| `status`          | VARCHAR(20)  | ステータス           | NOT NULL, DEFAULT 'draft'    |
+| `created_by`      | INTEGER      | 作成者ID（FK）       | REFERENCES users(id)         |
+| `created_at`      | TIMESTAMP    | 作成日時            | DEFAULT NOW()                |
+| `updated_at`      | TIMESTAMP    | 更新日時            | DEFAULT NOW()                |
 
 ### ad_images テーブル
 
-| カラム                | 型            | 説明              | 制約                        |
-|---------------------|--------------|-----------------|---------------------------|
-| `id`                | SERIAL       | プライマリキー         | PRIMARY KEY               |
-| `ad_content_id`     | INTEGER      | 広告コンテンツID（FK）   | REFERENCES ad_contents(id)|
-| `blob_url`          | TEXT         | Vercel Blob URL  | NOT NULL                  |
-| `original_filename` | VARCHAR(255) | 元ファイル名          |                           |
-| `file_size`         | INTEGER      | ファイルサイズ（バイト）    |                           |
-| `mime_type`         | VARCHAR(100) | MIMEタイプ         |                           |
-| `alt_text`          | TEXT         | 代替テキスト          |                           |
-| `placeholder_name`  | VARCHAR(100) | プレースホルダー名      |                           |
-| `created_at`        | TIMESTAMP    | 作成日時            | DEFAULT NOW()             |
+| カラム                 | 型            | 説明              | 制約                         |
+|---------------------|--------------|-----------------|----------------------------|
+| `id`                | SERIAL       | プライマリキー         | PRIMARY KEY                |
+| `ad_content_id`     | INTEGER      | 広告コンテンツID（FK）   | REFERENCES ad_contents(id) |
+| `blob_url`          | TEXT         | Vercel Blob URL | NOT NULL                   |
+| `original_filename` | VARCHAR(255) | 元ファイル名          |                            |
+| `file_size`         | INTEGER      | ファイルサイズ（バイト）    |                            |
+| `mime_type`         | VARCHAR(100) | MIMEタイプ         |                            |
+| `alt_text`          | TEXT         | 代替テキスト          |                            |
+| `placeholder_name`  | VARCHAR(100) | プレースホルダー名       |                            |
+| `created_at`        | TIMESTAMP    | 作成日時            | DEFAULT NOW()              |
 
 ### url_templates テーブル
 
-| カラム            | 型            | 説明              | 制約                          |
-|----------------|--------------|-----------------|-----------------------------|
-| `id`           | SERIAL       | プライマリキー         | PRIMARY KEY                 |
-| `name`         | VARCHAR(255) | URLテンプレート名      | NOT NULL                    |
-| `base_url`     | TEXT         | ベースURL          | NOT NULL                    |
-| `utm_source`   | VARCHAR(255) | UTMソース          |                             |
-| `utm_medium`   | VARCHAR(255) | UTMメディア         |                             |
-| `utm_campaign` | VARCHAR(255) | UTMキャンペーン       |                             |
-| `utm_term`     | VARCHAR(255) | UTMキーワード        |                             |
-| `utm_content`  | VARCHAR(255) | UTMコンテンツ        |                             |
-| `custom_params`| JSON         | カスタムパラメータ       |                             |
-| `description`  | TEXT         | 説明              |                             |
-| `is_active`    | BOOLEAN      | アクティブ状態        | NOT NULL, DEFAULT true     |
-| `created_at`   | TIMESTAMP    | 作成日時            | DEFAULT NOW()               |
-| `updated_at`   | TIMESTAMP    | 更新日時            | DEFAULT NOW()               |
+| カラム             | 型            | 説明         | 制約                     |
+|-----------------|--------------|------------|------------------------|
+| `id`            | SERIAL       | プライマリキー    | PRIMARY KEY            |
+| `name`          | VARCHAR(255) | URLテンプレート名 | NOT NULL               |
+| `base_url`      | TEXT         | ベースURL     | NOT NULL               |
+| `utm_source`    | VARCHAR(255) | UTMソース     |                        |
+| `utm_medium`    | VARCHAR(255) | UTMメディア    |                        |
+| `utm_campaign`  | VARCHAR(255) | UTMキャンペーン  |                        |
+| `utm_term`      | VARCHAR(255) | UTMキーワード   |                        |
+| `utm_content`   | VARCHAR(255) | UTMコンテンツ   |                        |
+| `custom_params` | JSON         | カスタムパラメータ  |                        |
+| `description`   | TEXT         | 説明         |                        |
+| `is_active`     | BOOLEAN      | アクティブ状態    | NOT NULL, DEFAULT true |
+| `created_at`    | TIMESTAMP    | 作成日時       | DEFAULT NOW()          |
+| `updated_at`    | TIMESTAMP    | 更新日時       | DEFAULT NOW()          |
 
 ## テンプレートシステム
 
@@ -457,6 +468,38 @@ pj-ado-mvp/
 - **型安全性**: TypeScriptによる厳格な型定義
 - **認可制御**: ロールベースでの作成・編集権限管理
 - **エラーハンドリング**: 包括的なバリデーションとエラー処理
+
+## 画像クリーンアップシステム
+
+### 主要機能
+
+- **自動削除機能**: 広告コンテンツ削除時の関連画像連鎖削除
+- **孤立画像検出**: 削除されたコンテンツに紐づく画像の自動検出
+- **古い未使用画像削除**: 長期間下書き状態の画像の定期削除
+- **Vercel Cron Jobs**: 毎週日曜日2時の自動クリーンアップ実行
+
+### 技術的特徴
+
+- **完全自動化**: 運用負荷ゼロの画像管理システム
+- **エラーハンドリング**: 個別画像削除失敗の全体処理への影響なし
+- **詳細ログ**: クリーンアップ実行結果の包括的ログ出力
+
+### 自動クリーンアップ設定
+
+`vercel.json`でCronJobsを設定：
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/admin/cleanup-images",
+      "schedule": "0 2 * * 0"
+    }
+  ]
+}
+```
+
+環境変数`CRON_SECRET`でCron認証を設定。
 
 ## テスト
 
