@@ -1,12 +1,16 @@
 'use client';
 
 import {Button} from './Button';
-import {signIn} from 'next-auth/react';
+import {signIn, useSession} from 'next-auth/react';
 import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 
 export default function LoginForm() {
   const [isPending, setIsPending] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+  const router = useRouter();
+  const { update } = useSession();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,14 +30,24 @@ export default function LoginForm() {
     if (result?.error) {
       setErrorMessage('メールアドレスまたはパスワードが正しくありません。');
       setIsPending(false);
+    } else if (result?.ok) {
+      // 認証成功時はリダイレクト状態に変更（ローディング継続）
+      setIsRedirecting(true);
+      
+      // セッションを強制更新してからリダイレクト
+      await update();
+      router.push('/dashboard');
     } else {
-      window.location.href = '/dashboard';
+      // 予期しないレスポンス
+      setErrorMessage('ログイン処理中にエラーが発生しました。');
+      setIsPending(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" role="form">
-      <div className="flex-1 rounded-xl bg-white px-10 pb-10 pt-12 border border-gray-200 shadow-lg">
+    <div className="relative">
+      <form onSubmit={handleSubmit} className="space-y-6" role="form">
+        <div className="flex-1 rounded-xl bg-white px-10 pb-10 pt-12 border border-gray-200 shadow-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             ログイン
@@ -110,8 +124,8 @@ export default function LoginForm() {
           </div>
         </div>
         <Button type="submit" className="mt-8 w-full py-4 text-base font-medium justify-center"
-                aria-disabled={isPending}>
-          {isPending ? (
+                aria-disabled={isPending || isRedirecting}>
+          {isPending || isRedirecting ? (
             <div className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                    viewBox="0 0 24 24">
@@ -119,7 +133,7 @@ export default function LoginForm() {
                 <path className="opacity-75" fill="currentColor"
                       d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              ログイン中...
+              {isRedirecting ? 'ダッシュボードに移動中...' : 'ログイン中...'}
             </div>
           ) : (
             "ログイン"
@@ -127,5 +141,21 @@ export default function LoginForm() {
         </Button>
       </div>
     </form>
+    
+    {/* ログイン成功後のリダイレクト中はオーバーレイを表示 */}
+    {isRedirecting && (
+      <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-xl z-10">
+        <div className="flex items-center justify-center flex-col">
+          <svg className="animate-spin h-8 w-8 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+               viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor"
+                  d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-blue-600 font-medium">ダッシュボードに移動中...</p>
+        </div>
+      </div>
+    )}
+  </div>
   );
 }

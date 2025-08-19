@@ -1,6 +1,8 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 
 interface ClientLayoutProps {
@@ -9,8 +11,24 @@ interface ClientLayoutProps {
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  if (status === 'loading') {
+  // パス変更時の遷移状態管理
+  useEffect(() => {
+    if (pathname && pathname !== '/login') {
+      setIsTransitioning(false);
+    }
+  }, [pathname]);
+
+  // ログインページから認証済みページへの遷移を検知
+  useEffect(() => {
+    if (status === 'authenticated' && pathname === '/login') {
+      setIsTransitioning(true);
+    }
+  }, [status, pathname]);
+
+  if (status === 'loading' || isTransitioning) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div data-testid="loading-spinner" className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
