@@ -34,8 +34,12 @@ function parseContentData(data: unknown): Record<string, string | number | boole
 
 const CreateAdContentSchema = z.object({
   name: z.string().min(1, '広告名は必須です'),
-  template_id: z.number().optional(),
-  url_template_id: z.number().optional(),
+  template_id: z.number({
+    message: '広告テンプレートは必須です'
+  }),
+  url_template_id: z.number({
+    message: 'URLテンプレートは必須です'
+  }),
   content_data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
   status: z.enum(['draft', 'active', 'paused', 'archived']).default('draft'),
 });
@@ -224,8 +228,8 @@ export async function createAdContent(data: CreateAdContentRequest): Promise<AdC
                                  status,
                                  created_by)
         VALUES (${validatedData.name},
-                ${validatedData.template_id || null},
-                ${validatedData.url_template_id || null},
+                ${validatedData.template_id},
+                ${validatedData.url_template_id},
                 ${JSON.stringify(validatedData.content_data)},
                 ${validatedData.status},
                 ${parseInt(session.user.id)}) RETURNING 
