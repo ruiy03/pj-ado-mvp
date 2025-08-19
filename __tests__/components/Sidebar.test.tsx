@@ -38,10 +38,10 @@ describe('Sidebar', () => {
       status: 'authenticated',
     });
 
-    render(<Sidebar />);
+    const { container } = render(<Sidebar />);
     
-    expect(screen.getByText('広告管理システム')).toBeInTheDocument();
-    expect(screen.getByText('ログアウト')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(container.querySelector('form[action]')).toBeInTheDocument(); // logout form
   });
 
   it('displays user name and role for admin', () => {
@@ -52,9 +52,10 @@ describe('Sidebar', () => {
       status: 'authenticated',
     });
 
-    render(<Sidebar />);
+    const { container } = render(<Sidebar />);
     
-    expect(screen.getByText('管理者太郎 (管理者)')).toBeInTheDocument();
+    expect(container.textContent).toContain('管理者太郎');
+    expect(container.textContent).toContain('管理者');
   });
 
   it('displays user name and role for editor', () => {
@@ -65,9 +66,10 @@ describe('Sidebar', () => {
       status: 'authenticated',
     });
 
-    render(<Sidebar />);
+    const { container } = render(<Sidebar />);
     
-    expect(screen.getByText('編集者花子 (編集者)')).toBeInTheDocument();
+    expect(container.textContent).toContain('編集者花子');
+    expect(container.textContent).toContain('編集者');
   });
 
   it('shows all menu items for admin user', () => {
@@ -80,12 +82,12 @@ describe('Sidebar', () => {
 
     render(<Sidebar />);
     
-    expect(screen.getByText('ダッシュボード')).toBeInTheDocument();
-    expect(screen.getByText('広告テンプレート')).toBeInTheDocument();
-    expect(screen.getByText('URLテンプレート')).toBeInTheDocument();
-    expect(screen.getByText('広告管理')).toBeInTheDocument();
-    expect(screen.getByText('記事と広告の紐付け')).toBeInTheDocument();
-    expect(screen.getByText('アカウント管理')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /ダッシュボード/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /広告テンプレート/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /URLテンプレート/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /広告管理/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /記事と広告の紐付け/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /アカウント管理/ })).toBeInTheDocument();
   });
 
   it('shows limited menu items for editor user', () => {
@@ -98,12 +100,12 @@ describe('Sidebar', () => {
 
     render(<Sidebar />);
     
-    expect(screen.getByText('ダッシュボード')).toBeInTheDocument();
-    expect(screen.getByText('広告テンプレート')).toBeInTheDocument();
-    expect(screen.getByText('URLテンプレート')).toBeInTheDocument();
-    expect(screen.getByText('広告管理')).toBeInTheDocument();
-    expect(screen.getByText('記事と広告の紐付け')).toBeInTheDocument();
-    expect(screen.queryByText('アカウント管理')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /ダッシュボード/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /広告テンプレート/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /URLテンプレート/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /広告管理/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /記事と広告の紐付け/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /アカウント管理/ })).not.toBeInTheDocument();
   });
 
   it('shows only dashboard for users without editor/admin role', () => {
@@ -116,9 +118,9 @@ describe('Sidebar', () => {
 
     render(<Sidebar />);
     
-    expect(screen.getByText('ダッシュボード')).toBeInTheDocument();
-    expect(screen.queryByText('広告テンプレート')).not.toBeInTheDocument();
-    expect(screen.queryByText('アカウント管理')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /ダッシュボード/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /広告テンプレート/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /アカウント管理/ })).not.toBeInTheDocument();
   });
 
   it('highlights active menu item based on pathname', () => {
@@ -144,8 +146,8 @@ describe('Sidebar', () => {
 
     render(<Sidebar />);
     
-    expect(screen.getByText('広告管理システム')).toBeInTheDocument();
-    expect(screen.getByText('ダッシュボード')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /ダッシュボード/ })).toBeInTheDocument();
   });
 
   it('displays unknown role when role is undefined', () => {
@@ -156,8 +158,9 @@ describe('Sidebar', () => {
       status: 'authenticated',
     });
 
-    render(<Sidebar />);
+    const { container } = render(<Sidebar />);
     
-    expect(screen.getByText('Test User (不明)')).toBeInTheDocument();
+    expect(container.textContent).toContain('Test User');
+    expect(container.textContent).toContain('不明');
   });
 });

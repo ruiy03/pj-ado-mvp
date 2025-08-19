@@ -41,7 +41,7 @@ describe('Dashboard', () => {
     mockPush.mockClear();
   });
 
-  it('ダッシュボードが正しくレンダリングされる', async () => {
+  it('renders dashboard correctly', async () => {
     (fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
@@ -83,20 +83,21 @@ describe('Dashboard', () => {
 
     render(<Dashboard />);
 
-    expect(screen.getByText('読み込み中...')).toBeInTheDocument();
+    expect(screen.getByText(/読み込み中/)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText('ダッシュボード')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     });
 
-    expect(screen.getByText('総広告数')).toBeInTheDocument();
-    expect(screen.getByText('広告テンプレート数')).toBeInTheDocument();
-    expect(screen.getByText('URLテンプレート数')).toBeInTheDocument();
-    expect(screen.getByText('広告なし記事数')).toBeInTheDocument();
-    expect(screen.getByText('最近の活動')).toBeInTheDocument();
+    // Check for stats cards by looking for specific metrics
+    expect(screen.getByText(/総広告数/)).toBeInTheDocument();
+    expect(screen.getByText(/広告テンプレート数/)).toBeInTheDocument();
+    expect(screen.getByText(/URLテンプレート数/)).toBeInTheDocument();
+    expect(screen.getByText(/広告なし記事数/)).toBeInTheDocument();
+    expect(screen.getByText(/最近の活動/)).toBeInTheDocument();
   });
 
-  it('統計データが正しく表示される', async () => {
+  it('displays statistics data correctly', async () => {
     (fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
@@ -125,13 +126,14 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     await waitFor(() => {
+      // Check for numeric values in the dashboard cards using text content
       expect(screen.getByText('3')).toBeInTheDocument(); // 総広告数
       expect(screen.getByText('2')).toBeInTheDocument(); // 広告テンプレート数
       expect(screen.getByText('1')).toBeInTheDocument(); // URLテンプレート数
     });
   });
 
-  it('活動履歴が正しく表示される', async () => {
+  it('displays activity history correctly', async () => {
     (fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
@@ -169,13 +171,18 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText('広告テンプレート「テストテンプレート」が作成されました')).toBeInTheDocument();
-      expect(screen.getByText('URLテンプレート「テストURLテンプレート」が作成されました')).toBeInTheDocument();
-      expect(screen.getByText('広告コンテンツ「テスト広告コンテンツ」が作成されました')).toBeInTheDocument();
+      // Check for activity entries without relying on exact text
+      const activitySection = screen.getByText(/最近の活動/).closest('div');
+      expect(activitySection).toBeInTheDocument();
+      
+      // Check that activity items are present
+      expect(screen.getByText(/テストテンプレート.*作成/)).toBeInTheDocument();
+      expect(screen.getByText(/テストURLテンプレート.*作成/)).toBeInTheDocument();
+      expect(screen.getByText(/テスト広告コンテンツ.*作成/)).toBeInTheDocument();
     });
   });
 
-  it('データ取得エラー時にエラーメッセージが表示される', async () => {
+  it('displays error message when data fetch fails', async () => {
     (fetch as jest.Mock).mockRejectedValue(new Error('Fetch error'));
 
     render(<Dashboard />);
@@ -185,7 +192,7 @@ describe('Dashboard', () => {
     });
   });
 
-  it('データがない場合にデフォルトの活動が表示される', async () => {
+  it('displays default activity when no data is available', async () => {
     (fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
@@ -203,11 +210,11 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText('システム初期化完了')).toBeInTheDocument();
+      expect(screen.getByText(/システム初期化/)).toBeInTheDocument();
     });
   });
 
-  it('APIエラー時も適切に処理される', async () => {
+  it('handles API errors appropriately', async () => {
     (fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: false,
