@@ -112,8 +112,8 @@ export interface AdContent {
 
 export interface CreateAdContentRequest {
   name: string;
-  template_id?: number;
-  url_template_id?: number;
+  template_id: number;
+  url_template_id: number;
   content_data: Record<string, string | number | boolean>;
   status?: AdContentStatus;
 }

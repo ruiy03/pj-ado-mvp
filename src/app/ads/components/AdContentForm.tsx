@@ -37,7 +37,7 @@ export default function AdContentForm({
                                         onCancel,
                                         isEdit = false,
                                       }: AdContentFormProps) {
-  const [formData, setFormData] = useState<CreateAdContentRequest>({
+  const [formData, setFormData] = useState<Partial<CreateAdContentRequest> & {name: string}>({
     name: '',
     template_id: undefined,
     url_template_id: undefined,
@@ -185,7 +185,7 @@ export default function AdContentForm({
 
     selectedTemplate.placeholders.forEach(placeholder => {
       if (isLinkPlaceholderInternal(placeholder)) {
-        const baseUrl = formData.content_data[placeholder];
+        const baseUrl = formData.content_data?.[placeholder];
         if (baseUrl && typeof baseUrl === 'string' && baseUrl.trim()) {
           const cleanName = getCleanPlaceholderNameInternal(placeholder).toLowerCase();
           let finalUrl = baseUrl.trim();
@@ -245,11 +245,15 @@ export default function AdContentForm({
       newErrors.template_id = '広告テンプレートを選択してください';
     }
 
+    if (!formData.url_template_id) {
+      newErrors.url_template_id = 'URLテンプレートを選択してください';
+    }
+
     // プレースホルダーの必須チェック
     if (selectedTemplate && selectedTemplate.placeholders) {
       selectedTemplate.placeholders.forEach(placeholder => {
         const cleanName = getCleanPlaceholderName(placeholder);
-        const value = formData.content_data[placeholder];
+        const value = formData.content_data?.[placeholder];
         
         if (!value || (typeof value === 'string' && !value.trim())) {
           // 画像の場合は uploadedImages もチェック
@@ -278,7 +282,7 @@ export default function AdContentForm({
     setSubmitting(true);
     try {
       // 画像URLをコンテンツデータに含める
-      const finalContentData = {...formData.content_data};
+      const finalContentData = {...(formData.content_data || {})};
       Object.entries(uploadedImages).forEach(([placeholder, image]) => {
         finalContentData[placeholder] = image.url;
       });
@@ -286,7 +290,7 @@ export default function AdContentForm({
       await onSubmit({
         ...formData,
         content_data: finalContentData,
-      });
+      } as CreateAdContentRequest);
     } finally {
       setSubmitting(false);
     }
@@ -327,12 +331,15 @@ export default function AdContentForm({
                 {/* テンプレート選択 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    広告テンプレート
+                    広告テンプレート *
                   </label>
                   <select
                     value={formData.template_id || ''}
                     onChange={(e) => handleTemplateChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.template_id ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    required
                   >
                     <option value="">テンプレートを選択...</option>
                     {templates.map(template => (
@@ -349,12 +356,15 @@ export default function AdContentForm({
                 {/* URLテンプレート選択 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    URLテンプレート
+                    URLテンプレート *
                   </label>
                   <select
                     value={formData.url_template_id || ''}
                     onChange={(e) => handleUrlTemplateChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.url_template_id ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    required
                   >
                     <option value="">URLテンプレートを選択...</option>
                     {urlTemplates.map(template => (
@@ -363,6 +373,9 @@ export default function AdContentForm({
                       </option>
                     ))}
                   </select>
+                  {errors.url_template_id && (
+                    <p className="text-sm text-red-600 mt-1">{errors.url_template_id}</p>
+                  )}
                 </div>
 
                 {/* URLプレビュー */}
@@ -420,7 +433,7 @@ export default function AdContentForm({
                                 <ImageUpload
                                   onUpload={(image) => handleImageUpload(placeholder, image)}
                                   onRemove={() => handleImageRemove(placeholder)}
-                                  currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data[placeholder] || '')}
+                                  currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data?.[placeholder] || '')}
                                   placeholder={`${cleanName}の画像をアップロード`}
                                   className={hasError ? 'border-red-300' : ''}
                                   adContentId={adContent?.id}
@@ -435,7 +448,7 @@ export default function AdContentForm({
                               <div>
                                 <input
                                   type="text"
-                                  value={String(formData.content_data[placeholder] || '')}
+                                  value={String(formData.content_data?.[placeholder] || '')}
                                   onChange={(e) => updatePlaceholderValue(placeholder, e.target.value)}
                                   className={`w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 ${
                                     hasError ? 'border-red-300' : 'border-gray-300'
@@ -460,7 +473,7 @@ export default function AdContentForm({
                 <AdPreview
                   template={selectedTemplate}
                   contentData={{
-                    ...formData.content_data,
+                    ...(formData.content_data || {}),
                     ...Object.fromEntries(
                       Object.entries(uploadedImages).map(([key, image]) => [key, image.url])
                     ),

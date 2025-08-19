@@ -229,28 +229,22 @@ describe('ad-content-actions', () => {
       await expect(createAdContent(invalidRequest)).rejects.toThrow('広告名は必須です');
     });
 
-    it('should handle default values', async () => {
-      const minimalRequest = {name: 'Minimal Ad'};
-      const mockResult = [
-        {
-          id: 1,
-          name: 'Minimal Ad',
-          template_id: null,
-          url_template_id: null,
-          content_data: '{}',
-          status: 'draft',
-          created_by: 1,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ];
+    it('should throw validation error when template_id is missing', async () => {
+      const invalidRequest = {
+        name: 'Test Ad',
+        url_template_id: 1
+      };
 
-      mockSql.mockResolvedValueOnce(mockResult as any);
+      await expect(createAdContent(invalidRequest as any)).rejects.toThrow('広告テンプレートは必須です');
+    });
 
-      const result = await createAdContent(minimalRequest);
+    it('should throw validation error when url_template_id is missing', async () => {
+      const invalidRequest = {
+        name: 'Test Ad',
+        template_id: 1
+      };
 
-      expect(result.content_data).toEqual({});
-      expect(result.status).toBe('draft');
+      await expect(createAdContent(invalidRequest as any)).rejects.toThrow('URLテンプレートは必須です');
     });
   });
 
