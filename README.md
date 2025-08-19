@@ -168,7 +168,7 @@ pj-ado-mvp/
 │   │   │   │   ├── TemplateForm.tsx # テンプレート作成・編集フォーム
 │   │   │   │   ├── TemplateList.tsx # テンプレート一覧表示（タイムスタンプ付き）
 │   │   │   │   ├── TemplatePreview.tsx # テンプレートプレビュー
-│   │   │   │   ├── ImportExportButtons.tsx # CSV機能UI
+│   │   │   │   ├── ImportExportButtons.tsx # CSV機能UI（共通コンポーネント使用）
 │   │   │   │   └── ValidationGuide.tsx # バリデーションガイド
 │   │   │   └── hooks/        # テンプレート管理hooks
 │   │   ├── url-templates/    # URLテンプレート管理
@@ -176,7 +176,7 @@ pj-ado-mvp/
 │   │   │   │   ├── UrlTemplateCard.tsx # URLテンプレートカード表示
 │   │   │   │   ├── UrlTemplateForm.tsx # URLテンプレート作成・編集フォーム
 │   │   │   │   ├── UrlTemplateClient.tsx # URLテンプレート管理UI
-│   │   │   │   └── ImportExportButtons.tsx # CSV機能UI
+│   │   │   │   └── ImportExportButtons.tsx # CSV機能UI（共通コンポーネント使用）
 │   │   │   └── hooks/        # URLテンプレート管理hooks
 │   │   │       └── useUrlTemplates.tsx # URLテンプレート状態管理
 │   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
@@ -190,10 +190,13 @@ pj-ado-mvp/
 │   │   ├── ClientProtectedPage.tsx # クライアントサイド認証保護ラッパー
 │   │   ├── HTMLCodeEditor.tsx # Monaco Editor HTMLエディター
 │   │   ├── ImageUpload.tsx  # 画像アップロードコンポーネント
+│   │   ├── ImportExportButtons.tsx # CSV機能共通コンポーネント
 │   │   ├── LoginForm.tsx    # ログインフォーム
 │   │   ├── ProtectedPage.tsx # サーバーサイド認証保護ラッパー
 │   │   ├── SessionProvider.tsx # セッションプロバイダー
 │   │   └── Sidebar.tsx      # サイドバーナビゲーション
+│   ├── hooks/               # 共通カスタムフック
+│   │   └── useImportExport.tsx # CSV機能共通フック
 │   ├── lib/                 # ユーティリティ・設定
 │   │   ├── actions.ts       # 認証サーバーアクション
 │   │   ├── ad-content-actions.ts # 広告コンテンツ管理アクション
