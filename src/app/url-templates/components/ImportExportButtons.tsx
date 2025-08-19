@@ -1,16 +1,13 @@
 'use client';
 
-interface ImportResult {
-  success: number;
-  errors: string[];
-  total: number;
-}
+import type {ImportResult} from '@/lib/definitions';
 
 interface ImportExportButtonsProps {
   onImport: () => void;
   onExport: () => void;
   onCreateClick: () => void;
   onImportCancel: () => void;
+  onImportResultClose: () => void;
   exportLoading: boolean;
   showImportForm: boolean;
   importLoading: boolean;
@@ -23,6 +20,7 @@ export default function ImportExportButtons({
                                               onExport,
                                               onCreateClick,
                                               onImportCancel,
+                                              onImportResultClose,
                                               exportLoading,
                                               showImportForm,
                                               importLoading,
@@ -109,39 +107,77 @@ export default function ImportExportButtons({
               </button>
             </div>
           </form>
+        </div>
+      )}
 
-          {/* インポート結果 */}
-          {importResult && (
-            <div className="mt-6 p-4 rounded-lg border">
-              <h3 className="font-semibold mb-2">インポート結果</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>処理総数:</span>
-                  <span className="font-mono">{importResult.total}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>成功:</span>
-                  <span className="font-mono text-green-600">{importResult.success}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>エラー:</span>
-                  <span className="font-mono text-red-600">{importResult.errors.length}</span>
-                </div>
+      {/* インポート結果（独立表示） */}
+      {importResult && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📊</span>
+              <h3 className="font-semibold text-lg">インポート結果</h3>
+            </div>
+            <button
+              onClick={onImportResultClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              aria-label="結果を閉じる"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg border">
+              <div className="text-2xl font-bold text-gray-700">{importResult.total}</div>
+              <div className="text-sm text-gray-500">処理総数</div>
+            </div>
+            <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="text-2xl font-bold text-green-600">{importResult.success}</div>
+              <div className="text-sm text-gray-500">成功</div>
+            </div>
+            <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="text-2xl font-bold text-red-600">{importResult.errors.length}</div>
+              <div className="text-sm text-gray-500">エラー</div>
+            </div>
+          </div>
+
+          {/* 作成されたURLテンプレート一覧 */}
+          {importResult.createdItems.length > 0 && (
+            <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+              <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                <span>✨</span>
+                新規作成されたURLテンプレート ({importResult.createdItems.length}件)
+              </h4>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {importResult.createdItems.map((item) => (
+                  <div key={item.id} className="text-sm text-green-700 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></span>
+                    <span className="font-medium">#{item.id}</span>
+                    <span>{item.name}</span>
+                  </div>
+                ))}
               </div>
+            </div>
+          )}
 
-              {importResult.errors.length > 0 && (
-                <div className="mt-4 p-3 bg-red-50 rounded-lg">
-                  <h4 className="font-semibold text-red-800 mb-2">エラー詳細:</h4>
-                  <ul className="text-sm text-red-700 space-y-1">
-                    {importResult.errors.map((error, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="w-1 h-1 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                        {error}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          {/* エラー詳細 */}
+          {importResult.errors.length > 0 && (
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+                <span>❌</span>
+                エラー詳細 ({importResult.errors.length}件)
+              </h4>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {importResult.errors.map((error, index) => (
+                  <div key={index} className="text-sm text-red-700 flex items-start gap-2">
+                    <span className="w-1 h-1 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                    <span>{error}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
