@@ -50,6 +50,10 @@ export async function getOrphanedImages(): Promise<AdImage[]> {
 // 古い未使用画像を検出する（draft状態で指定日数以上更新されていない画像）
 export async function getOldUnusedImages(daysOld: number = 7): Promise<AdImage[]> {
   try {
+    // INTERVAL構文を使わずに日付計算で実装
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+    
     const result = await sql`
         SELECT ai.id,
                ai.ad_content_id,
@@ -62,9 +66,9 @@ export async function getOldUnusedImages(daysOld: number = 7): Promise<AdImage[]
                ai.created_at
         FROM ad_images ai
                  JOIN ad_contents ac ON ai.ad_content_id = ac.id
-        WHERE ai.created_at < (NOW() - INTERVAL '${daysOld} days')
+        WHERE ai.created_at < ${cutoffDate.toISOString()}
           AND ac.status = 'draft'
-          AND ac.updated_at < (NOW() - INTERVAL '${daysOld} days')
+          AND ac.updated_at < ${cutoffDate.toISOString()}
         ORDER BY ai.created_at DESC
     `;
 
