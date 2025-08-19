@@ -1,12 +1,12 @@
 'use server';
 
-import { z } from 'zod';
-import { revalidatePath } from 'next/cache';
-import { auth } from '@/auth';
-import { sql } from '@/lib/db';
-import type { 
-  AdContent, 
-  CreateAdContentRequest, 
+import {z} from 'zod';
+import {revalidatePath} from 'next/cache';
+import {auth} from '@/auth';
+import {sql} from '@/lib/db';
+import type {
+  AdContent,
+  CreateAdContentRequest,
   UpdateAdContentRequest,
   AdImage,
   CreateAdImageRequest,
@@ -77,8 +77,8 @@ export async function getAdContents(): Promise<AdContent[]> {
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      content_data: typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : row.content_data || {},
       status: row.status as AdContentStatus,
       created_by: row.created_by,
@@ -161,8 +161,8 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      content_data: typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : row.content_data || {},
       status: row.status as AdContentStatus,
       created_by: row.created_by,
@@ -245,8 +245,8 @@ export async function createAdContent(data: CreateAdContentRequest): Promise<AdC
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      content_data: typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : row.content_data || {},
       status: row.status,
       created_by: row.created_by,
@@ -269,7 +269,7 @@ export async function createAdContent(data: CreateAdContentRequest): Promise<AdC
 export async function updateAdContent(data: UpdateAdContentRequest): Promise<AdContent> {
   try {
     const validatedData = UpdateAdContentSchema.parse(data);
-    const { id, ...updateFields } = validatedData;
+    const {id, ...updateFields} = validatedData;
 
     const result = await sql`
       UPDATE ad_contents
@@ -303,8 +303,8 @@ export async function updateAdContent(data: UpdateAdContentRequest): Promise<AdC
       name: row.name,
       template_id: row.template_id,
       url_template_id: row.url_template_id,
-      content_data: typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      content_data: typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : row.content_data || {},
       status: row.status,
       created_by: row.created_by,
@@ -428,7 +428,7 @@ export async function createAdImage(data: CreateAdImageRequest): Promise<AdImage
 
 export async function updateAdImage(data: UpdateAdImageRequest): Promise<AdImage> {
   try {
-    const { id, ...updateFields } = data;
+    const {id, ...updateFields} = data;
 
     const result = await sql`
       UPDATE ad_images
@@ -482,5 +482,47 @@ export async function deleteAdImage(id: number): Promise<void> {
   } catch (error) {
     console.error('Failed to delete ad image:', error);
     throw new Error('画像の削除に失敗しました');
+  }
+}
+
+// アップロード済み画像をadContentに関連付ける
+export async function associateImagesWithAdContent(
+  adContentId: number,
+  imageUrls: Record<string, string>
+): Promise<void> {
+  try {
+    for (const [placeholderName, imageUrl] of Object.entries(imageUrls)) {
+      // 既に同じプレースホルダー名で関連付けられている画像があるかチェック
+      const existingImage = await sql`
+          SELECT id
+          FROM ad_images
+          WHERE ad_content_id = ${adContentId}
+            AND placeholder_name = ${placeholderName}
+      `;
+
+      if (existingImage.length === 0) {
+        // 新しい画像として登録
+        await sql`
+            INSERT INTO ad_images (ad_content_id,
+                                   blob_url,
+                                   placeholder_name)
+            VALUES (${adContentId},
+                    ${imageUrl},
+                    ${placeholderName})
+        `;
+      } else {
+        // 既存の画像を更新
+        await sql`
+            UPDATE ad_images
+            SET blob_url = ${imageUrl}
+            WHERE id = ${existingImage[0].id}
+        `;
+      }
+    }
+
+    revalidatePath('/ads');
+  } catch (error) {
+    console.error('Failed to associate images with ad content:', error);
+    throw new Error('画像の関連付けに失敗しました');
   }
 }

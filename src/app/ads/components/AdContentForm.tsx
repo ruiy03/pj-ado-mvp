@@ -16,6 +16,7 @@ interface UploadedImage {
   filename: string;
   size: number;
   mimeType: string;
+  imageId?: number;
 }
 
 interface AdContentFormProps {
@@ -437,6 +438,9 @@ export default function AdContentForm({
                                   currentImageUrl={uploadedImages[placeholder]?.url || String(formData.content_data[placeholder] || '')}
                                   placeholder={`${cleanName}の画像をアップロード`}
                                   className={hasError ? 'border-red-300' : ''}
+                                  adContentId={adContent?.id}
+                                  placeholderName={cleanName}
+                                  altText={cleanName}
                                 />
                                 {hasError && (
                                   <p className="text-sm text-red-600 mt-1">{hasError}</p>

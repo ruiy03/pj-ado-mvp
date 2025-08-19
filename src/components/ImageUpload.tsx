@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import {useState, useRef} from 'react';
 import Image from 'next/image';
 
 interface UploadedImage {
@@ -8,6 +8,7 @@ interface UploadedImage {
   filename: string;
   size: number;
   mimeType: string;
+  imageId?: number;
 }
 
 interface ImageUploadProps {
@@ -18,17 +19,23 @@ interface ImageUploadProps {
   maxSizeMB?: number;
   className?: string;
   disabled?: boolean;
+  adContentId?: number;
+  placeholderName?: string;
+  altText?: string;
 }
 
 export default function ImageUpload({
-  onUpload,
-  onRemove,
-  currentImageUrl,
-  placeholder = '画像をドラッグ&ドロップまたはクリックして選択',
-  maxSizeMB = 5,
-  className = '',
-  disabled = false,
-}: ImageUploadProps) {
+                                      onUpload,
+                                      onRemove,
+                                      currentImageUrl,
+                                      placeholder = '画像をドラッグ&ドロップまたはクリックして選択',
+                                      maxSizeMB = 5,
+                                      className = '',
+                                      disabled = false,
+                                      adContentId,
+                                      placeholderName,
+                                      altText,
+                                    }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +60,23 @@ export default function ImageUpload({
         throw new Error('対応していないファイル形式です。JPEG、PNG、GIF、WebPのみアップロード可能です');
       }
 
+      // URLパラメータを構築
+      const params = new URLSearchParams({
+        filename: file.name,
+      });
+
+      if (adContentId) {
+        params.append('ad_content_id', adContentId.toString());
+      }
+      if (placeholderName) {
+        params.append('placeholder_name', placeholderName);
+      }
+      if (altText) {
+        params.append('alt_text', altText);
+      }
+
       const response = await fetch(
-        `/api/upload?filename=${encodeURIComponent(file.name)}`,
+        `/api/upload?${params.toString()}`,
         {
           method: 'POST',
           body: file,
@@ -72,6 +94,7 @@ export default function ImageUpload({
         filename: result.filename,
         size: result.size,
         mimeType: result.mimeType,
+        imageId: result.imageId,
       });
     } catch (error) {
       console.error('Upload failed:', error);
@@ -174,12 +197,12 @@ export default function ImageUpload({
             w-full h-40 border-2 border-dashed rounded-lg 
             flex flex-col items-center justify-center cursor-pointer
             transition-colors duration-200
-            ${disabled 
-              ? 'border-gray-200 bg-gray-50 cursor-not-allowed' 
-              : dragOver 
-                ? 'border-blue-400 bg-blue-50' 
-                : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
-            }
+            ${disabled
+            ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+            : dragOver
+              ? 'border-blue-400 bg-blue-50'
+              : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+          }
             ${uploading ? 'pointer-events-none' : ''}
           `}
         >
