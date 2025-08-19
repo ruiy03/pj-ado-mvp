@@ -5,6 +5,7 @@ import {revalidatePath} from 'next/cache';
 import {auth} from '@/auth';
 import {sql} from '@/lib/db';
 import {del} from '@vercel/blob';
+import {logger} from '@/lib/logger';
 import type {
   AdContent,
   CreateAdContentRequest,
@@ -350,7 +351,7 @@ export async function deleteAdContent(id: number): Promise<void> {
             WHERE id = ${image.id}
         `;
 
-        console.log(`Successfully deleted image: ${image.blob_url}`);
+        logger.info(`Successfully deleted image: ${image.blob_url}`);
       } catch (imageError) {
         console.error(`Failed to delete image ${image.blob_url}:`, imageError);
         // 個別の画像削除失敗は全体の削除を阻止しない

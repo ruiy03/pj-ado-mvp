@@ -2,6 +2,7 @@
 
 import {sql} from '@/lib/db';
 import {del} from '@vercel/blob';
+import {logger} from '@/lib/logger';
 import type {AdImage} from './definitions';
 
 export interface CleanupStats {
@@ -107,7 +108,7 @@ async function deleteImageList(images: AdImage[]): Promise<CleanupStats> {
       stats.deletedImages++;
       stats.deletedSize += image.file_size || 0;
 
-      console.log(`Successfully deleted image: ${image.blob_url}`);
+      logger.info(`Successfully deleted image: ${image.blob_url}`);
     } catch (error) {
       stats.failedDeletions++;
       const errorMessage = `Failed to delete image ${image.blob_url}: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -122,7 +123,7 @@ async function deleteImageList(images: AdImage[]): Promise<CleanupStats> {
 // 全ての未使用画像を一括削除する（自動クリーンアップ用）
 export async function cleanupAllUnusedImages(daysOld: number = 7): Promise<CleanupResult> {
   try {
-    console.log('Starting comprehensive image cleanup...');
+    logger.info('Starting comprehensive image cleanup...');
 
     const [orphanedImages, oldUnusedImages] = await Promise.all([
       getOrphanedImages(),
@@ -149,7 +150,7 @@ export async function cleanupAllUnusedImages(daysOld: number = 7): Promise<Clean
 
     const message = `包括的画像クリーンアップが完了しました。${stats.deletedImages}/${stats.totalImages}個の画像を削除（${Math.round(stats.deletedSize / 1024 / 1024 * 100) / 100}MB）`;
 
-    console.log(message);
+    logger.info(message);
 
     return {
       success: stats.failedDeletions === 0,
