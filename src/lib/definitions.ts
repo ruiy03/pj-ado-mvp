@@ -143,6 +143,20 @@ export interface UpdateAdImageRequest {
   placeholder_name?: string;
 }
 
+// Import result interfaces
+export interface ImportedItem {
+  id: number;
+  name: string;
+}
+
+export interface ImportResult {
+  success: number;
+  errors: string[];
+  total: number;
+  createdItems: ImportedItem[];
+  updatedItems: ImportedItem[];
+}
+
 // NextAuth拡張用の型定義
 declare module "next-auth" {
   interface User {
