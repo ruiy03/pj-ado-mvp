@@ -8,6 +8,29 @@ export function validatePlaceholderNaming(placeholder: string): boolean {
   return VALID_PLACEHOLDERS.includes(lowerPlaceholder);
 }
 
+export function validateTemplatePlaceholders(html: string): { isValid: boolean; errors: string[] } {
+  const extractedPlaceholders = extractPlaceholders(html);
+  const errors: string[] = [];
+  const invalidNaming: string[] = [];
+
+  // HTMLから抽出されたプレースホルダーの命名規則をチェック
+  extractedPlaceholders.forEach(placeholder => {
+    if (!validatePlaceholderNaming(placeholder)) {
+      invalidNaming.push(placeholder);
+    }
+  });
+
+  if (invalidNaming.length > 0) {
+    errors.push(`命名規則に違反するプレースホルダーが検出されました: ${invalidNaming.join(', ')}`);
+    errors.push(`許可されているプレースホルダー: ${VALID_PLACEHOLDERS.join(', ')}`);
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
 export function validatePlaceholders(html: string, placeholders: string[]): string[] {
   const extractedPlaceholders = extractPlaceholders(html);
   const missingInList: string[] = [];

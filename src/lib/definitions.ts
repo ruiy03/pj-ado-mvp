@@ -29,7 +29,6 @@ export interface AdTemplate {
   id: number;
   name: string;
   html: string;
-  placeholders: string[];
   description?: string;
   created_at?: string;
   updated_at?: string;
@@ -38,7 +37,6 @@ export interface AdTemplate {
 export interface CreateAdTemplateRequest {
   name: string;
   html: string;
-  placeholders: string[];
   description?: string;
 }
 
@@ -46,7 +44,6 @@ export interface UpdateAdTemplateRequest {
   id: number;
   name?: string;
   html?: string;
-  placeholders?: string[];
   description?: string;
 }
 
