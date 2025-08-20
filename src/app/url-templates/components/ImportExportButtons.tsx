@@ -19,13 +19,15 @@ interface ImportExportButtonsProps {
 export default function ImportExportButtons(props: ImportExportButtonsProps) {
   return (
     <SharedImportExportButtons
-      title="URLテンプレート管理"
+      title=""
       itemType="URLテンプレート"
       csvFormat={{
         header: "name,url_template,parameters,description",
         example: '"Google Analytics","https://example.com?utm_source={{source}}","{\"utm_source\":\"website\",\"utm_medium\":\"banner\"}","サンプルURL"',
         description: "parameters列には、JSONオブジェクトを文字列として記載してください"
       }}
+      createButtonText="新しいテンプレートを作成"
+      createButtonHref="/url-templates/create"
       {...props}
     />
   );
