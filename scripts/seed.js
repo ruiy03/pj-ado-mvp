@@ -440,7 +440,7 @@ async function seed() {
             -- ランキング系広告（特別対応）
             ('ランキング広告 (ranking)',
              '{{baseUrl}}?utm_source=ranking&utm_medium=port-career&utm_campaign={{utm_campaign}}&utm_content={{utm_content}}',
-             'ランキング広告のトラッキングURL（キャンペーンとランク位置付き）');
+             'ランキング広告のトラッキングURL（キャンペーン付き）');
     `;
 
     console.log('Seeding ad_contents...');
