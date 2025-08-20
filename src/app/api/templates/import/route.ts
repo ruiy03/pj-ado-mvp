@@ -3,6 +3,7 @@ import {auth} from '@/auth';
 import {createOrUpdateAdTemplate} from '@/lib/template-actions';
 import {hasMinimumRole} from '@/lib/authorization';
 import {parseCSV} from '@/lib/csv-utils';
+import {extractPlaceholders} from '@/lib/template-utils';
 import type {CreateAdTemplateRequest, ImportResult} from '@/lib/definitions';
 
 function validateTemplateData(data: Record<string, string>): CreateAdTemplateRequest | null {
@@ -14,14 +15,25 @@ function validateTemplateData(data: Record<string, string>): CreateAdTemplateReq
     return null;
   }
 
-  const placeholders = Array.isArray(data.placeholders)
+  // placeholdersは検証目的でのみ使用（実際にはHTMLから自動抽出）
+  const csvPlaceholders = Array.isArray(data.placeholders)
     ? data.placeholders
     : (data.placeholders || '').split(',').map((p: string) => p.trim()).filter(Boolean);
+  
+  const actualPlaceholders = extractPlaceholders(data.html);
+  
+  // CSVとHTMLのプレースホルダーの一致をチェック（警告のみ）
+  if (csvPlaceholders.length > 0) {
+    const mismatched = csvPlaceholders.filter(p => !actualPlaceholders.includes(p)) ||
+                      actualPlaceholders.filter(p => !csvPlaceholders.includes(p));
+    if (mismatched.length > 0) {
+      console.warn(`Template "${data.name}": CSV placeholders don't match HTML placeholders`);
+    }
+  }
 
   return {
     name: data.name.trim(),
     html: data.html,
-    placeholders,
     description: data.description || '',
   };
 }
