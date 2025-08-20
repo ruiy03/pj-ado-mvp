@@ -1,7 +1,7 @@
 'use server';
 
-import { sql } from '@/lib/db';
-import { extractPlaceholders } from '@/lib/template-utils';
+import {sql} from '@/lib/db';
+import {extractPlaceholders} from '@/lib/template-utils';
 
 export interface PlaceholderDiff {
   added: string[];      // 新しく追加されたプレースホルダー
@@ -48,15 +48,15 @@ export async function detectPlaceholderDiff(
   newHtml: string
 ): Promise<PlaceholderDiff> {
   const newPlaceholders = extractPlaceholders(newHtml);
-  
+
   const oldSet = new Set(oldPlaceholders);
   const newSet = new Set(newPlaceholders);
-  
+
   const added = newPlaceholders.filter(p => !oldSet.has(p));
   const removed = oldPlaceholders.filter(p => !newSet.has(p));
   const unchanged = oldPlaceholders.filter(p => newSet.has(p));
-  
-  return { added, removed, unchanged };
+
+  return {added, removed, unchanged};
 }
 
 /**
@@ -87,21 +87,21 @@ export async function findAffectedAdContents(
     const affectedContents: AffectedAdContent[] = [];
 
     for (const row of result) {
-      const contentData = typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      const contentData = typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : (row.content_data || {});
-      
+
       const contentPlaceholders = Object.keys(contentData);
-      
+
       // 必要なプレースホルダーを計算（HTMLテンプレート + URLテンプレート）
       const requiredPlaceholders = new Set(newPlaceholders);
-      
+
       // URLテンプレートのプレースホルダーも追加
       if (row.url_template) {
         const urlPlaceholders = extractPlaceholders(row.url_template);
         urlPlaceholders.forEach(p => requiredPlaceholders.add(p));
       }
-      
+
       // HTMLテンプレートのプレースホルダーのみに関する不整合をチェック
       const htmlMissingPlaceholders = newPlaceholders.filter(p => !(p in contentData));
       const htmlUnusedPlaceholders = contentPlaceholders.filter(p => {
@@ -114,7 +114,7 @@ export async function findAffectedAdContents(
         }
         return !newPlaceholders.includes(p);
       });
-      
+
       // HTMLテンプレートに関する不整合がある場合のみ追加
       if (htmlMissingPlaceholders.length > 0 || htmlUnusedPlaceholders.length > 0) {
         affectedContents.push({
@@ -156,16 +156,16 @@ export async function analyzeTemplateChanges(
     }
 
     const currentTemplate = templateResult[0];
-    
+
     // HTMLが変更されているかチェック
     const htmlChanged = currentTemplate.html !== newHtml;
-    
+
     // HTMLに変更がない（名前・説明のみの変更）場合は影響分析をスキップ
     if (!htmlChanged) {
       return {
         template_id: templateId,
         template_name: newName || currentTemplate.name,
-        placeholder_diff: { added: [], removed: [] },
+        placeholder_diff: {added: [], removed: [], unchanged: []},
         affected_contents: [],
         total_affected: 0,
         severity: 'low',
@@ -177,10 +177,10 @@ export async function analyzeTemplateChanges(
 
     // プレースホルダーの差分を検出
     const placeholder_diff = await detectPlaceholderDiff(currentPlaceholders, newHtml);
-    
+
     // 影響を受ける広告コンテンツを特定
     let affected_contents = await findAffectedAdContents(templateId, newHtml);
-    
+
     // HTMLが変更されている場合、そのテンプレートを使用する全ての広告コンテンツが影響を受ける
     if (htmlChanged && affected_contents.length === 0) {
       // プレースホルダーに問題がなくてもHTMLが変更されていれば、全ての広告コンテンツを取得
@@ -190,7 +190,7 @@ export async function analyzeTemplateChanges(
         WHERE ac.template_id = ${templateId}
         ORDER BY ac.updated_at DESC
       `;
-      
+
       affected_contents = allContentsResult.map(row => ({
         id: row.id,
         name: row.name,
@@ -200,7 +200,7 @@ export async function analyzeTemplateChanges(
         created_at: row.created_at?.toISOString(),
       }));
     }
-    
+
     // 重要度を判定
     let severity: 'low' | 'medium' | 'high' = 'low';
     if (affected_contents.length > 10) {
@@ -253,10 +253,10 @@ export async function analyzeUrlTemplateChanges(
     }
 
     const currentTemplate = templateResult[0];
-    
+
     // URLテンプレートが変更されているかチェック
     const urlTemplateChanged = currentTemplate.url_template !== newUrlTemplate;
-    
+
     // URLテンプレートに変更がない（名前・説明のみの変更）場合は影響分析をスキップ
     if (!urlTemplateChanged) {
       return {
@@ -290,16 +290,16 @@ export async function analyzeUrlTemplateChanges(
     `;
 
     const affected_contents = affectedContentsResult.map(row => {
-      const contentData = typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      const contentData = typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : (row.content_data || {});
-      
+
       // URLテンプレートのパラメータのみを対象にする
       // content_dataからURLテンプレート関連のパラメータのみを抽出
-      const urlParameters = Object.keys(contentData).filter(key => 
+      const urlParameters = Object.keys(contentData).filter(key =>
         oldParameters.includes(key) || newParameters.includes(key)
       );
-      
+
       // URLテンプレートのパラメータ変更による影響を分析
       // 削除されたパラメータのみを「不要」とし、追加されたパラメータは問題にしない
       // （URLパラメータは通常、動的に設定されるため）
@@ -315,13 +315,13 @@ export async function analyzeUrlTemplateChanges(
         created_at: row.created_at?.toISOString(),
       };
     });
-    
+
     // 重要度を判定
     let severity: 'low' | 'medium' | 'high' = 'low';
-    
+
     // 全URLテンプレートを使用している広告コンテンツ数を取得
     const totalUsingContents = affectedContentsResult.length;
-    
+
     if (totalUsingContents > 5) {
       // 高: 影響を受ける広告コンテンツが5件超
       severity = 'high';
@@ -374,20 +374,20 @@ export async function validateContentIntegrity(contentId: number): Promise<{
     }
 
     const row = result[0];
-    const contentData = typeof row.content_data === 'string' 
-      ? JSON.parse(row.content_data) 
+    const contentData = typeof row.content_data === 'string'
+      ? JSON.parse(row.content_data)
       : (row.content_data || {});
 
     // テンプレートから現在のプレースホルダーを抽出
     const templatePlaceholders = extractPlaceholders(row.template_html);
     const templatePlaceholderSet = new Set(templatePlaceholders);
-    
+
     const contentPlaceholders = Object.keys(contentData);
-    
+
     // 不足・未使用プレースホルダーを検出
     const missing_placeholders = templatePlaceholders.filter(p => !(p in contentData));
     const unused_placeholders = contentPlaceholders.filter(p => !templatePlaceholderSet.has(p));
-    
+
     return {
       is_valid: missing_placeholders.length === 0 && unused_placeholders.length === 0,
       missing_placeholders,
@@ -451,56 +451,56 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
     `;
 
     for (const row of contentResult) {
-      const contentData = typeof row.content_data === 'string' 
-        ? JSON.parse(row.content_data) 
+      const contentData = typeof row.content_data === 'string'
+        ? JSON.parse(row.content_data)
         : (row.content_data || {});
-      
+
       const templatePlaceholders = extractPlaceholders(row.template_html);
       const contentPlaceholders = Object.keys(contentData);
-      
+
       // HTMLテンプレートに関する不整合をチェック
       const missing = templatePlaceholders.filter(p => !(p in contentData));
-      
+
       // URLテンプレートのプレースホルダーを抽出
       const urlPlaceholders = row.url_template ? extractPlaceholders(row.url_template) : [];
-      
+
       // 未使用プレースホルダーを分類
       const unusedAdTemplate: string[] = [];
       const unusedUrlTemplate: string[] = [];
-      
+
       // 標準的なUTMパラメータとその他のURL関連パラメータ
       const standardUrlParams = new Set([
         'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
         'baseUrl', 'source', 'medium', 'campaign', 'term', 'content'
       ]);
-      
+
       // パラメータマッピング: 広告テンプレートのパラメータがURLテンプレートで別名で使用される場合
       const parameterMappings = new Map([
         ['link', 'baseUrl'],  // linkパラメータはbaseUrlとして使用される
         ['url', 'baseUrl'],   // urlパラメータもbaseUrlとして使用される可能性
       ]);
-      
+
       // content_dataに存在するが、どちらのテンプレートでも使用されていないプレースホルダー
       contentPlaceholders.forEach(p => {
         let isUsed = false;
-        
+
         // 広告テンプレートで直接使用されているか
         if (templatePlaceholders.includes(p)) {
           isUsed = true;
         }
-        
+
         // URLテンプレートで直接使用されているか
         if (urlPlaceholders.includes(p)) {
           isUsed = true;
         }
-        
+
         // パラメータマッピングを通して使用されているかチェック
         if (!isUsed) {
           const mappedName = parameterMappings.get(p);
           if (mappedName && urlPlaceholders.includes(mappedName)) {
             isUsed = true; // linkパラメータがbaseUrlとしてURLテンプレートで使用されている
           }
-          
+
           // 逆マッピングもチェック（baseUrlパラメータがlinkとして広告テンプレートで使用されている）
           for (const [adParam, urlParam] of parameterMappings) {
             if (p === urlParam && templatePlaceholders.includes(adParam)) {
@@ -509,23 +509,23 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
             }
           }
         }
-        
+
         // 標準的なURLパラメータの場合は未使用とみなさない
         if (!isUsed && !standardUrlParams.has(p)) {
           // どちらのテンプレートにも存在せず、マッピングもなく、標準URLパラメータでもない
           unusedAdTemplate.push(p);
         }
       });
-      
+
       // URLテンプレートで必要だがcontent_dataに存在しないプレースホルダー
       urlPlaceholders.forEach(p => {
         let hasValue = false;
-        
+
         // 直接存在するか
         if (p in contentData) {
           hasValue = true;
         }
-        
+
         // パラメータマッピングを通して存在するか
         if (!hasValue) {
           // 逆マッピングをチェック（baseUrlが必要だがlinkパラメータで提供されている）
@@ -536,30 +536,30 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
             }
           }
         }
-        
+
         if (!hasValue) {
           unusedUrlTemplate.push(p);
         }
       });
-      
+
       if (missing.length > 0 || unusedAdTemplate.length > 0 || unusedUrlTemplate.length > 0) {
         let description = '';
-        
+
         if (missing.length > 0) {
           description += `不足プレースホルダー: ${missing.join(', ')}`;
         }
-        
+
         if (unusedAdTemplate.length > 0) {
           if (description) description += ' / ';
           description += `広告テンプレート未使用: ${unusedAdTemplate.join(', ')}`;
         }
-        
+
         if (unusedUrlTemplate.length > 0) {
           if (description) description += ' / ';
           description += `URLテンプレート未定義: ${unusedUrlTemplate.join(', ')}`;
         }
-        
-        
+
+
         issues.push({
           type: 'placeholder_mismatch',
           contentId: row.id,
@@ -598,7 +598,7 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
     // 統計計算
     const criticalIssues = issues.filter(i => i.severity === 'critical').length;
     const warningIssues = issues.filter(i => i.severity === 'warning').length;
-    const infoIssues = issues.filter(i => i.severity === 'info').length;
+    const infoIssues = 0; // IntegrityIssueのseverityは'critical'|'warning'のみ
     const totalIssues = issues.length;
 
     let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
