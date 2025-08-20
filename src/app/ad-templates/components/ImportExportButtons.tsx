@@ -19,13 +19,15 @@ interface ImportExportButtonsProps {
 export default function ImportExportButtons(props: ImportExportButtonsProps) {
   return (
     <SharedImportExportButtons
-      title="広告テンプレート管理"
+      title=""
       itemType="テンプレート"
       csvFormat={{
         header: "name,html,placeholders,description",
         example: '"サンプル広告","<a href={{linkUrl}}><div>{{title}}</div></a>","title,linkUrl","サンプルの説明"',
         description: "placeholders列には、プレースホルダーをカンマで区切って記載してください"
       }}
+      createButtonText="新しいテンプレートを作成"
+      createButtonHref="/ad-templates/create"
       {...props}
     />
   );

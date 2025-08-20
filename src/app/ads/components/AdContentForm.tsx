@@ -9,6 +9,7 @@ import type {
   AdContentStatus
 } from '@/lib/definitions';
 import {isImagePlaceholder, getCleanPlaceholderName} from '@/lib/image-utils';
+import {extractPlaceholders} from '@/lib/template-utils';
 import ImageUpload from '@/components/ImageUpload';
 import AdPreview from './AdPreview';
 
@@ -184,7 +185,8 @@ export default function AdContentForm({
 
     const previews: Array<{ placeholder: string, url: string, cleanName: string, hasUrlParams: boolean }> = [];
 
-    selectedTemplate.placeholders.forEach(placeholder => {
+    const templatePlaceholders = extractPlaceholders(selectedTemplate.html);
+    templatePlaceholders.forEach(placeholder => {
       if (isLinkPlaceholderInternal(placeholder)) {
         const baseUrl = formData.content_data?.[placeholder];
         if (baseUrl && typeof baseUrl === 'string' && baseUrl.trim()) {
@@ -252,8 +254,9 @@ export default function AdContentForm({
     }
 
     // プレースホルダーの必須チェック
-    if (selectedTemplate && selectedTemplate.placeholders) {
-      selectedTemplate.placeholders.forEach(placeholder => {
+    if (selectedTemplate) {
+      const templatePlaceholders = extractPlaceholders(selectedTemplate.html);
+      templatePlaceholders.forEach(placeholder => {
         const cleanName = getCleanPlaceholderName(placeholder);
         const value = formData.content_data?.[placeholder];
 
@@ -427,11 +430,11 @@ export default function AdContentForm({
                 </div>
 
                 {/* プレースホルダー入力 */}
-                {selectedTemplate && selectedTemplate.placeholders.length > 0 && (
+                {selectedTemplate && extractPlaceholders(selectedTemplate.html).length > 0 && (
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">コンテンツ入力</h3>
                     <div className="space-y-4">
-                      {selectedTemplate.placeholders
+                      {extractPlaceholders(selectedTemplate.html)
                         .filter(placeholder => {
                           const cleanName = getCleanPlaceholderName(placeholder).toLowerCase();
                           return !cleanName.includes('link') && (!cleanName.includes('url') || cleanName.includes('image')) && !cleanName.includes('href');
@@ -485,7 +488,7 @@ export default function AdContentForm({
                 )}
 
                 {/* リンクURL・計測パラメータ入力 */}
-                {(selectedTemplate && selectedTemplate.placeholders.some(placeholder => {
+                {(selectedTemplate && extractPlaceholders(selectedTemplate.html).some(placeholder => {
                   const cleanName = getCleanPlaceholderName(placeholder).toLowerCase();
                   return cleanName.includes('link') || (cleanName.includes('url') && !cleanName.includes('image')) || cleanName.includes('href');
                 }) || (selectedUrlTemplate && getUrlTemplatePlaceholders().length > 0)) && (
@@ -493,7 +496,7 @@ export default function AdContentForm({
                     <h3 className="text-lg font-medium text-gray-900 mb-4">リンクURL・計測パラメータ</h3>
                     <div className="space-y-4">
                       {/* リンクURL入力 */}
-                      {selectedTemplate && selectedTemplate.placeholders
+                      {selectedTemplate && extractPlaceholders(selectedTemplate.html)
                         .filter(placeholder => {
                           const cleanName = getCleanPlaceholderName(placeholder).toLowerCase();
                           return cleanName.includes('link') || (cleanName.includes('url') && !cleanName.includes('image')) || cleanName.includes('href');
@@ -647,7 +650,7 @@ export default function AdContentForm({
               <button
                 type="submit"
                 disabled={submitting || !formData.name}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors cursor-pointer"
               >
                 {submitting ? '保存中...' : (isEdit ? '更新する' : '作成する')}
               </button>

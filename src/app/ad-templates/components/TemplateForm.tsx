@@ -16,6 +16,7 @@ interface TemplateFormProps {
   editingTemplate: AdTemplate | null;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 export default function TemplateForm({
@@ -28,6 +29,7 @@ export default function TemplateForm({
   editingTemplate,
   onSubmit,
   onCancel,
+  isLoading = false,
 }: TemplateFormProps) {
   const htmlEditorRef = useRef<HTMLCodeEditorRef>(null);
   const [extractedPlaceholders, setExtractedPlaceholders] = useState<string[]>([]);
@@ -126,12 +128,12 @@ export default function TemplateForm({
               ...prev,
               html: value
             }))}
-            height={250}
+            height={400}
             placeholder="HTMLコードを入力してください。プレースホルダーは {{placeholder}} の形式で記述してください。"
           />
           <div className="flex justify-between items-start mt-1">
             <p className="text-xs text-gray-500">
-              例: &lt;div class=&quot;ad-banner&quot;&gt;&lt;h2&gt;&#123;&#123;title&#125;&#125;&lt;/h2&gt;&lt;a href=&quot;&#123;&#123;linkUrl&#125;&#125;&quot;&gt;&lt;img src=&quot;&#123;&#123;imageUrl&#125;&#125;&quot; /&gt;&lt;/a&gt;&lt;/div&gt;
+              例: &lt;div class=&quot;ad-banner&quot;&gt;&lt;h2&gt;&#123;&#123;title&#125;&#125;&lt;/h2&gt;&lt;a href=&quot;&#123;&#123;link&#125;&#125;&quot;&gt;&lt;img src=&quot;&#123;&#123;image&#125;&#125;&quot; /&gt;&lt;/a&gt;&lt;/div&gt;
             </p>
             {autoNofollow && (
               <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
@@ -222,15 +224,20 @@ export default function TemplateForm({
           <button
             type="button"
             onClick={onCancel}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             キャンセル
           </button>
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {editingTemplate ? '更新' : '作成'}
+            {isLoading 
+              ? (editingTemplate ? '影響分析中...' : '作成中...') 
+              : (editingTemplate ? '更新' : '作成')
+            }
           </button>
         </div>
       </form>

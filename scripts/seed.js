@@ -68,7 +68,6 @@ async function seed() {
             255
         ) NOT NULL,
             html TEXT NOT NULL,
-            placeholders JSON,
             description TEXT,
             created_at TIMESTAMP DEFAULT NOW
         (
@@ -239,7 +238,7 @@ async function seed() {
 
     // Insert sample ad templates for job-hunting services
     await sql`
-        INSERT INTO ad_templates (name, html, placeholders, description)
+        INSERT INTO ad_templates (name, html, description)
         VALUES
             -- バナー系テンプレート
             ('就活支援バナー',
@@ -250,7 +249,6 @@ async function seed() {
     <p style="font-size: 14px; opacity: 0.9;">{{button}}</p>
   </div>
 </a>',
-             '["title", "image", "link", "button"]',
              '就活支援サービス向けの基本的なバナーテンプレート'),
 
             ('大型就活バナー',
@@ -268,7 +266,6 @@ async function seed() {
     <img src="{{image}}" style="position: absolute; top: 0; right: 0; width: 300px; height: 100%; object-fit: cover; opacity: 0.3;" alt="{{title}}" />
   </div>
 </a>',
-             '["title", "text", "benefit", "rating", "button", "image", "link"]',
              '就活サービス向けの大型インパクトバナー'),
 
             -- テキスト系テンプレート
@@ -283,7 +280,6 @@ async function seed() {
     </div>
   </div>
 </a>',
-             '["title", "text", "benefit", "service", "link"]',
              '就活向けテキストのみの広告'),
 
             -- カード系テンプレート
@@ -305,7 +301,6 @@ async function seed() {
     </div>
   </div>
 </a>',
-             '["title", "text", "service", "image", "benefit", "link"]',
              '就活サービス向けのカード型広告'),
 
             -- 記事内テンプレート
@@ -321,7 +316,6 @@ async function seed() {
     </div>
   </a>
 </div>',
-             '["title", "text", "benefit", "service", "link"]',
              '記事内に自然に溶け込む就活インライン広告'),
 
             ('記事内就活カード',
@@ -342,7 +336,6 @@ async function seed() {
     </div>
   </a>
 </div>',
-             '["title", "text", "benefit", "rating", "button", "image", "link"]',
              '記事内に挿入する就活カード型広告'),
 
             -- 特殊形状テンプレート
@@ -357,7 +350,6 @@ async function seed() {
   </a>
   <div style="position: absolute; left: 0; top: 0; width: 0; height: 0; border-style: solid; border-width: 0 0 20px 20px; border-color: transparent transparent #c92a2a transparent;"></div>
 </div>',
-             '["title", "text", "service", "link"]',
              '就活向けリボン型の特殊形状広告'),
 
             ('就活アイコン広告',
@@ -372,7 +364,6 @@ async function seed() {
     <div style="background: #007bff; color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px;">{{button}}</div>
   </div>
 </a>',
-             '["title", "text", "benefit", "button", "link"]',
              '就活向け円形アイコンを使った横長広告');
     `;
 

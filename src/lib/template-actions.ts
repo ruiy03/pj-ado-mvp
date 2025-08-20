@@ -4,11 +4,12 @@ import {z} from 'zod';
 import {revalidatePath} from 'next/cache';
 import type {AdTemplate, CreateAdTemplateRequest, UpdateAdTemplateRequest} from './definitions';
 import {sql} from '@/lib/db';
+import {analyzeTemplateChanges, type ConsistencyCheckResult} from './consistency-checker';
+import {validateTemplatePlaceholders} from './template-utils/validation';
 
 const CreateAdTemplateSchema = z.object({
   name: z.string().min(1, 'テンプレート名は必須です'),
   html: z.string().min(1, 'HTMLコードは必須です'),
-  placeholders: z.array(z.string()),
   description: z.string().optional(),
 });
 
@@ -16,7 +17,6 @@ const UpdateAdTemplateSchema = z.object({
   id: z.number(),
   name: z.string().min(1, 'テンプレート名は必須です').optional(),
   html: z.string().min(1, 'HTMLコードは必須です').optional(),
-  placeholders: z.array(z.string()).optional(),
   description: z.string().optional(),
 });
 
@@ -26,7 +26,6 @@ export async function getAdTemplates(): Promise<AdTemplate[]> {
         SELECT id,
                name,
                html,
-               placeholders,
                description,
                created_at,
                updated_at
@@ -36,9 +35,6 @@ export async function getAdTemplates(): Promise<AdTemplate[]> {
 
     return result.map(row => ({
       ...row,
-      placeholders: typeof row.placeholders === 'string'
-        ? JSON.parse(row.placeholders)
-        : row.placeholders || [],
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     })) as AdTemplate[];
@@ -54,7 +50,6 @@ export async function getAdTemplateById(id: number): Promise<AdTemplate | null> 
         SELECT id,
                name,
                html,
-               placeholders,
                description,
                created_at,
                updated_at
@@ -69,9 +64,6 @@ export async function getAdTemplateById(id: number): Promise<AdTemplate | null> 
     const row = result[0];
     return {
       ...row,
-      placeholders: typeof row.placeholders === 'string'
-        ? JSON.parse(row.placeholders)
-        : row.placeholders || [],
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as AdTemplate;
@@ -87,7 +79,6 @@ export async function getAdTemplateByName(name: string): Promise<AdTemplate | nu
         SELECT id,
                name,
                html,
-               placeholders,
                description,
                created_at,
                updated_at
@@ -102,9 +93,6 @@ export async function getAdTemplateByName(name: string): Promise<AdTemplate | nu
     const row = result[0];
     return {
       ...row,
-      placeholders: typeof row.placeholders === 'string'
-        ? JSON.parse(row.placeholders)
-        : row.placeholders || [],
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as AdTemplate;
@@ -115,14 +103,9 @@ export async function getAdTemplateByName(name: string): Promise<AdTemplate | nu
 }
 
 function isTemplateContentEqual(existing: AdTemplate, incoming: CreateAdTemplateRequest): boolean {
-  const existingPlaceholders = [...existing.placeholders].sort();
-  const incomingPlaceholders = [...incoming.placeholders].sort();
-  
   return (
     existing.html === incoming.html &&
-    existing.description === (incoming.description || '') &&
-    existingPlaceholders.length === incomingPlaceholders.length &&
-    existingPlaceholders.every((placeholder, index) => placeholder === incomingPlaceholders[index])
+    existing.description === (incoming.description || '')
   );
 }
 
@@ -132,6 +115,12 @@ export async function createOrUpdateAdTemplate(data: CreateAdTemplateRequest): P
 }> {
   try {
     const validatedData = CreateAdTemplateSchema.parse(data);
+    
+    // プレースホルダーの命名規則を検証
+    const placeholderValidation = validateTemplatePlaceholders(validatedData.html);
+    if (!placeholderValidation.isValid) {
+      throw new Error(placeholderValidation.errors.join('\n'));
+    }
     
     // 既存のテンプレートを名前で検索
     const existingTemplate = await getAdTemplateByName(validatedData.name);
@@ -158,7 +147,6 @@ export async function createOrUpdateAdTemplate(data: CreateAdTemplateRequest): P
     const updatedTemplate = await updateAdTemplate({
       id: existingTemplate.id,
       html: validatedData.html,
-      placeholders: validatedData.placeholders,
       description: validatedData.description
     });
     
@@ -180,16 +168,20 @@ export async function createAdTemplate(data: CreateAdTemplateRequest): Promise<A
   try {
     const validatedData = CreateAdTemplateSchema.parse(data);
 
+    // プレースホルダーの命名規則を検証
+    const placeholderValidation = validateTemplatePlaceholders(validatedData.html);
+    if (!placeholderValidation.isValid) {
+      throw new Error(placeholderValidation.errors.join('\n'));
+    }
+
     const result = await sql`
-        INSERT INTO ad_templates (name, html, placeholders, description)
+        INSERT INTO ad_templates (name, html, description)
         VALUES (${validatedData.name},
                 ${validatedData.html},
-                ${JSON.stringify(validatedData.placeholders)},
                 ${validatedData.description || null}) RETURNING 
         id,
         name,
         html,
-        placeholders,
         description,
         created_at,
         updated_at
@@ -198,9 +190,6 @@ export async function createAdTemplate(data: CreateAdTemplateRequest): Promise<A
     const row = result[0];
     const newTemplate = {
       ...row,
-      placeholders: typeof row.placeholders === 'string'
-        ? JSON.parse(row.placeholders)
-        : row.placeholders || [],
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as AdTemplate;
@@ -216,24 +205,103 @@ export async function createAdTemplate(data: CreateAdTemplateRequest): Promise<A
   }
 }
 
+/**
+ * テンプレート更新前の影響分析を実行
+ */
+export async function analyzeTemplateUpdateImpact(
+  templateId: number,
+  newHtml: string,
+  newName?: string
+): Promise<ConsistencyCheckResult> {
+  return await analyzeTemplateChanges(templateId, newHtml, newName);
+}
+
+/**
+ * 影響分析付きテンプレート更新
+ */
+export async function updateAdTemplateWithAnalysis(
+  data: UpdateAdTemplateRequest
+): Promise<{
+  template: AdTemplate;
+  impact_analysis?: ConsistencyCheckResult;
+}> {
+  try {
+    const validatedData = UpdateAdTemplateSchema.parse(data);
+    const {id, ...updateFields} = validatedData;
+
+    let impact_analysis: ConsistencyCheckResult | undefined;
+
+    // HTMLが変更される場合はプレースホルダー検証と影響分析を実行
+    if (updateFields.html) {
+      // 現在のテンプレート情報を取得してHTML変更チェック
+      const currentTemplate = await getAdTemplateById(id);
+      if (!currentTemplate) {
+        throw new Error('テンプレートが見つかりません');
+      }
+      
+      const htmlChanged = currentTemplate.html !== updateFields.html;
+      
+      // プレースホルダーの命名規則を検証
+      const placeholderValidation = validateTemplatePlaceholders(updateFields.html);
+      if (!placeholderValidation.isValid) {
+        throw new Error(placeholderValidation.errors.join('\n'));
+      }
+
+      // HTMLが実際に変更されている場合のみ影響分析を実行
+      if (htmlChanged) {
+        try {
+          impact_analysis = await analyzeTemplateChanges(
+            id,
+            updateFields.html,
+            updateFields.name
+          );
+        } catch (analysisError) {
+          console.warn('Impact analysis failed:', analysisError);
+          // 影響分析が失敗してもテンプレート更新は続行
+        }
+      }
+    }
+
+    // テンプレートを更新
+    const template = await updateAdTemplate(validatedData);
+
+    return {
+      template,
+      impact_analysis,
+    };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(error.issues[0].message);
+    }
+    console.error('Failed to update template with analysis:', error);
+    throw new Error('テンプレートの更新と影響分析に失敗しました');
+  }
+}
+
 export async function updateAdTemplate(data: UpdateAdTemplateRequest): Promise<AdTemplate> {
   try {
     const validatedData = UpdateAdTemplateSchema.parse(data);
     const {id, ...updateFields} = validatedData;
+
+    // HTMLが更新される場合はプレースホルダーの命名規則を検証
+    if (updateFields.html) {
+      const placeholderValidation = validateTemplatePlaceholders(updateFields.html);
+      if (!placeholderValidation.isValid) {
+        throw new Error(placeholderValidation.errors.join('\n'));
+      }
+    }
 
     // Use a simple update approach instead of dynamic SQL
     const result = await sql`
         UPDATE ad_templates
         SET name         = COALESCE(${updateFields.name || null}, name),
             html         = COALESCE(${updateFields.html || null}, html),
-            placeholders = COALESCE(${updateFields.placeholders ? JSON.stringify(updateFields.placeholders) : null}, placeholders),
             description  = COALESCE(${updateFields.description || null}, description),
             updated_at   = NOW()
         WHERE id = ${id} RETURNING 
         id,
         name,
         html,
-        placeholders,
         description,
         created_at,
         updated_at
@@ -246,9 +314,6 @@ export async function updateAdTemplate(data: UpdateAdTemplateRequest): Promise<A
     const row = result[0];
     const updatedTemplate = {
       ...row,
-      placeholders: typeof row.placeholders === 'string'
-        ? JSON.parse(row.placeholders)
-        : row.placeholders || [],
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as AdTemplate;

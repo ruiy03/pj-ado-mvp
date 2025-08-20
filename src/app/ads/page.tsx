@@ -1,26 +1,24 @@
-import ProtectedPage from '@/components/ProtectedPage';
-import AdContentClient from './components/AdContentClient';
-import { getAdContents } from '@/lib/ad-content-actions';
-import { getAdTemplates } from '@/lib/template-actions';
-import { getUrlTemplates } from '@/lib/url-template-actions';
+'use client';
 
-export default async function Ads() {
-  // サーバーサイドでデータを取得
-  const [contents, templates, urlTemplates] = await Promise.all([
-    getAdContents().catch(() => []),
-    getAdTemplates().catch(() => []),
-    getUrlTemplates().catch(() => []),
-  ]);
+import ClientProtectedPage from '@/components/ClientProtectedPage';
+import Link from 'next/link';
+import AdContentList from './components/AdContentList';
 
+export default function Ads() {
   return (
-    <ProtectedPage>
-      <div>
-        <AdContentClient
-          initialContents={contents}
-          templates={templates}
-          urlTemplates={urlTemplates}
-        />
+    <ClientProtectedPage>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">広告管理</h1>
+          <Link
+            href="/ads/create"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+          >
+            新しい広告を作成
+          </Link>
+        </div>
+        <AdContentList />
       </div>
-    </ProtectedPage>
+    </ClientProtectedPage>
   );
 }

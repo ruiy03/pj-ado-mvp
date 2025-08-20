@@ -55,6 +55,34 @@ export function useTemplates() {
     setTemplates(prev => [newTemplate, ...prev]);
   };
 
+  const analyzeTemplateChanges = async (id: number, formData: CreateAdTemplateRequest) => {
+    const htmlToAnalyze = formData.html;
+    
+    console.log('Starting template analysis:', { id, formData: { ...formData, html: htmlToAnalyze.substring(0, 100) + '...' } });
+    
+    const response = await fetch('/api/integrity-check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        templateId: id,
+        newHtml: htmlToAnalyze,
+        newName: formData.name,
+      }),
+    });
+
+    console.log('Analysis response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Analysis error:', errorData);
+      throw new Error(errorData.error || '影響分析に失敗しました');
+    }
+
+    const result = await response.json();
+    console.log('Analysis result:', result);
+    return result;
+  };
+
   const updateTemplate = async (id: number, formData: CreateAdTemplateRequest, autoNofollow: boolean) => {
     const htmlToSave = autoNofollow ? addNofollowToLinks(formData.html) : formData.html;
     const dataToSave = { ...formData, html: htmlToSave };
@@ -103,5 +131,6 @@ export function useTemplates() {
     createTemplate,
     updateTemplate,
     deleteTemplate,
+    analyzeTemplateChanges,
   };
 }

@@ -79,7 +79,6 @@ export async function getAdContents(): Promise<AdContent[]> {
                -- テンプレート情報
                at.name         as template_name,
                at.html         as template_html,
-               at.placeholders as template_placeholders,
                -- URLテンプレート情報
                ut.name         as url_template_name,
                ut.url_template as url_template_url,
@@ -108,7 +107,6 @@ export async function getAdContents(): Promise<AdContent[]> {
         id: row.template_id,
         name: row.template_name,
         html: row.template_html,
-        placeholders: parseJsonData(row.template_placeholders),
       } : undefined,
       url_template: row.url_template_id ? {
         id: row.url_template_id,
@@ -150,7 +148,6 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
                -- テンプレート情報
                at.name         as template_name,
                at.html         as template_html,
-               at.placeholders as template_placeholders,
                -- URLテンプレート情報
                ut.name         as url_template_name,
                ut.url_template as url_template_url,
@@ -184,7 +181,6 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
         id: row.template_id,
         name: row.template_name,
         html: row.template_html,
-        placeholders: parseJsonData(row.template_placeholders),
       } : undefined,
       url_template: row.url_template_id ? {
         id: row.url_template_id,

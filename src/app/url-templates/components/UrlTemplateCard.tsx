@@ -75,21 +75,36 @@ export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplat
         </div>
 
         {(() => {
-          // URLテンプレートから計測パラメータを抽出
-          const urlParams = new URLSearchParams(template.url_template.split('?')[1] || '');
-          const trackingParams: Record<string, string> = {};
-          
-          for (const [key, value] of urlParams.entries()) {
-            if (key.startsWith('utm_') || ['campaign', 'source', 'medium', 'content', 'term'].includes(key)) {
-              trackingParams[key] = value;
+          // URLテンプレートからパラメータを抽出
+          const extractParams = (urlTemplate: string) => {
+            try {
+              const urlParts = urlTemplate.split('?');
+              if (urlParts.length < 2) return {};
+              
+              const queryString = urlParts[1];
+              const params = queryString.split('&');
+              const extractedParams: Record<string, string> = {};
+              
+              for (const param of params) {
+                const [key, value] = param.split('=');
+                if (key && value) {
+                  extractedParams[key] = value;
+                }
+              }
+              
+              return extractedParams;
+            } catch {
+              return {};
             }
-          }
+          };
 
-          return Object.keys(trackingParams).length > 0 && (
+          const urlParams = extractParams(template.url_template);
+
+          return Object.keys(urlParams).length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">計測パラメータ</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">パラメータ</label>
               <div className="bg-gray-50 p-2 rounded border space-y-1">
-                {Object.entries(trackingParams).map(([key, value]) => (
+                {Object.entries(urlParams).map(([key, value]) => (
                   <div key={key} className="text-sm flex items-center">
                     <span className="text-blue-600 font-medium w-24">{key}</span>
                     <span className="text-gray-400 mx-2">=</span>

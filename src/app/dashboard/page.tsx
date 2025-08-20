@@ -2,7 +2,9 @@
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
 import {useState, useEffect} from 'react';
+import {useSession} from 'next-auth/react';
 import type {AdTemplate, UrlTemplate, AdContent} from '@/lib/definitions';
+import IntegrityMonitor from './components/IntegrityMonitor';
 
 interface DashboardStats {
   totalAds: number;
@@ -20,6 +22,7 @@ interface Activity {
 }
 
 export default function Dashboard() {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats>({
     totalAds: 0,
     adTemplates: 0,
@@ -29,6 +32,8 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const isAdmin = session?.user?.role === 'admin';
 
   useEffect(() => {
     fetchDashboardData();
@@ -159,6 +164,11 @@ export default function Dashboard() {
               <p className="text-3xl font-bold text-orange-600">{stats.articlesWithoutAds}</p>
             </div>
           </div>
+
+          {/* 管理者用の整合性監視 */}
+          {isAdmin && (
+            <IntegrityMonitor />
+          )}
 
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">最近の活動</h2>

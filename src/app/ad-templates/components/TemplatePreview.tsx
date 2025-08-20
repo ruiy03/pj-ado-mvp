@@ -1,6 +1,6 @@
 'use client';
 
-import { getSampleValue, sanitizeLinksForPreview } from '@/lib/template-utils';
+import { getSampleValue, sanitizeLinksForPreview, extractPlaceholders } from '@/lib/template-utils';
 import type { CreateAdTemplateRequest } from '@/lib/definitions';
 
 interface TemplatePreviewProps {
@@ -35,7 +35,8 @@ export default function TemplatePreview({
     let previewHtml = formData.html;
 
     // プレースホルダーを置換
-    formData.placeholders.forEach((placeholder: string) => {
+    const placeholders = extractPlaceholders(formData.html);
+    placeholders.forEach((placeholder: string) => {
       const regex = new RegExp(`{{${placeholder}}}`, 'g');
       const value = previewMode === 'custom' && customValues[placeholder]
         ? customValues[placeholder]
@@ -77,8 +78,8 @@ export default function TemplatePreview({
   };
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="space-y-4 h-full flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">プレビュー</h3>
           <div className="flex gap-2 text-sm">
@@ -133,11 +134,11 @@ export default function TemplatePreview({
           </div>
         </div>
 
-        {previewMode === 'custom' && formData.placeholders.length > 0 && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+        {previewMode === 'custom' && extractPlaceholders(formData.html).length > 0 && (
+          <div className="mb-4 p-4 bg-gray-50 rounded-lg flex-shrink-0">
             <h4 className="font-semibold mb-3">カスタム値を入力</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {formData.placeholders.map((placeholder: string) => (
+              {extractPlaceholders(formData.html).map((placeholder: string) => (
                 <div key={placeholder} className="space-y-1">
                   <label htmlFor={`custom-${placeholder}`} className="text-sm font-medium text-gray-700">
                     {placeholder}
@@ -156,7 +157,9 @@ export default function TemplatePreview({
           </div>
         )}
 
-        {renderFormPreview()}
+        <div className="flex-1 min-h-0">
+          {renderFormPreview()}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import type {ImportResult} from '@/lib/definitions';
+import Link from 'next/link';
 
 interface ImportExportButtonsProps {
   title: string;
@@ -12,7 +13,9 @@ interface ImportExportButtonsProps {
   };
   onImport: () => void;
   onExport: () => void;
-  onCreateClick: () => void;
+  onCreateClick?: () => void;
+  createButtonText?: string;
+  createButtonHref?: string;
   onImportCancel: () => void;
   onImportResultClose: () => void;
   exportLoading: boolean;
@@ -29,6 +32,8 @@ export default function ImportExportButtons({
                                               onImport,
                                               onExport,
                                               onCreateClick,
+                                              createButtonText,
+                                              createButtonHref,
                                               onImportCancel,
                                               onImportResultClose,
                                               exportLoading,
@@ -55,12 +60,23 @@ export default function ImportExportButtons({
           >
             {exportLoading ? 'エクスポート中...' : 'CSVエクスポート'}
           </button>
-          <button
-            onClick={onCreateClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
-          >
-            新しいテンプレートを作成
-          </button>
+          {(createButtonHref || onCreateClick) && (
+            createButtonHref ? (
+              <Link
+                href={createButtonHref}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+              >
+                {createButtonText || '新しいアイテムを作成'}
+              </Link>
+            ) : (
+              <button
+                onClick={onCreateClick}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+              >
+                {createButtonText || '新しいアイテムを作成'}
+              </button>
+            )
+          )}
         </div>
       </div>
 

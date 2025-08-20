@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server';
 import {auth} from '@/auth';
 import {getAdTemplates} from '@/lib/template-actions';
+import {extractPlaceholders} from '@/lib/template-utils';
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
     const csvRows = templates.map(template => [
       `"${template.name.replace(/"/g, '""')}"`, // エスケープ処理
       `"${template.html.replace(/"/g, '""')}"`,
-      `"${template.placeholders.join(',').replace(/"/g, '""')}"`,
+      `"${extractPlaceholders(template.html).join(',').replace(/"/g, '""')}"`,
       `"${(template.description || '').replace(/"/g, '""')}"`
     ]);
 

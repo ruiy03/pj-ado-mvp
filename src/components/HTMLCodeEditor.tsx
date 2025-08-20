@@ -20,7 +20,7 @@ export interface HTMLCodeEditorRef {
 const HTMLCodeEditor = forwardRef<HTMLCodeEditorRef, HTMLCodeEditorProps>(({
                                                                              value,
                                                                              onChange,
-                                                                             placeholder = 'HTMLコードを入力してください...',
+                                                                             placeholder = '例: <div class="ad-banner"><h2>{{title}}</h2><a href="{{link}}"><img src="{{image}}" /></a></div>',
                                                                              height = 200,
                                                                              readOnly = false,
                                                                              className = ''

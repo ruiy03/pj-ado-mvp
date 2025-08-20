@@ -1,16 +1,16 @@
 'use client';
 
 import type { AdTemplate } from '@/lib/definitions';
-import { getSampleValue } from '@/lib/template-utils';
+import { getSampleValue, extractPlaceholders } from '@/lib/template-utils';
+import Link from 'next/link';
 
 interface TemplateListProps {
   templates: AdTemplate[];
-  onEdit: (template: AdTemplate) => void;
   onDelete: (id: number) => void;
-  onCreateClick: () => void;
+  searchTerm?: string;
 }
 
-export default function TemplateList({ templates, onEdit, onDelete, onCreateClick }: TemplateListProps) {
+export default function TemplateList({ templates, onDelete }: TemplateListProps) {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('ja-JP', {
@@ -25,7 +25,8 @@ export default function TemplateList({ templates, onEdit, onDelete, onCreateClic
   const renderTemplate = (template: AdTemplate) => {
     let previewHtml = template.html;
 
-    template.placeholders.forEach((placeholder: string) => {
+    const placeholders = extractPlaceholders(template.html);
+    placeholders.forEach((placeholder: string) => {
       const regex = new RegExp(`{{${placeholder}}}`, 'g');
       const sampleValue = getSampleValue(placeholder);
       previewHtml = previewHtml.replace(regex, sampleValue);
@@ -52,12 +53,12 @@ export default function TemplateList({ templates, onEdit, onDelete, onCreateClic
             <div className="text-4xl mb-4">📝</div>
             <h3 className="text-lg font-medium mb-2">テンプレートがありません</h3>
             <p className="text-gray-400">広告テンプレートを作成して始めましょう</p>
-            <button
-              onClick={onCreateClick}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer"
+            <Link
+              href="/ad-templates/create"
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer inline-block"
             >
               最初のテンプレートを作成
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -76,12 +77,12 @@ export default function TemplateList({ templates, onEdit, onDelete, onCreateClic
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-medium text-gray-900">{template.name}</h4>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => onEdit(template)}
+                      <Link
+                        href={`/ad-templates/${template.id}/edit`}
                         className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
                       >
                         編集
-                      </button>
+                      </Link>
                       <button
                         onClick={() => onDelete(template.id)}
                         className="text-red-600 hover:text-red-800 text-sm cursor-pointer"
@@ -94,7 +95,7 @@ export default function TemplateList({ templates, onEdit, onDelete, onCreateClic
                     <p className="text-sm text-gray-600 mb-2">{template.description}</p>
                   )}
                   <div className="text-xs text-gray-400">
-                    プレースホルダー: {template.placeholders.join(', ')}
+                    プレースホルダー: {extractPlaceholders(template.html).join(', ')}
                   </div>
                 </div>
                 <div className="p-4 bg-gray-50">
