@@ -650,7 +650,7 @@ export default function AdContentForm({
               <button
                 type="submit"
                 disabled={submitting || !formData.name}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors cursor-pointer"
               >
                 {submitting ? '保存中...' : (isEdit ? '更新する' : '作成する')}
               </button>

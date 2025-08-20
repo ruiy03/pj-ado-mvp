@@ -314,7 +314,7 @@ export default function AdContentClient({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               前へ
             </button>
@@ -341,7 +341,7 @@ export default function AdContentClient({
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`px-3 py-2 text-sm font-medium border ${
+                  className={`px-3 py-2 text-sm font-medium border cursor-pointer ${
                     page === currentPage
                       ? 'z-10 bg-blue-600 border-blue-600 text-white'
                       : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-700'
@@ -356,7 +356,7 @@ export default function AdContentClient({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               次へ
             </button>
