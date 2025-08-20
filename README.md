@@ -5,7 +5,6 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
 ![NextAuth.js](https://img.shields.io/badge/NextAuth.js-5.0.0--beta-purple?style=flat-square)
-![Jest](https://img.shields.io/badge/Jest-29.7.0-C21325?style=flat-square&logo=jest)
 
 LMG向けの内部メディア（PORTキャリアなど）の広告管理システムMVPです。
 
@@ -25,6 +24,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 - **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
 - **👥 アカウント管理** - ユーザーアカウント管理システム
 - **🗑️ 画像クリーンアップ機能** - 未使用画像の自動削除、Vercel Cron Jobs対応
+- **🔍 テンプレート整合性チェック機能** - テンプレート変更時の影響分析とデータ整合性監視
 
 ## 🚀 クイックスタート
 
@@ -100,10 +100,8 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 - **bcrypt** - パスワードハッシュ化
 - **Zod 4.0.15** - スキーマバリデーション
 
-### 開発・テスト
+### 開発・ビルド
 
-- **Jest** - テストフレームワーク
-- **React Testing Library** - React コンポーネントテスト
 - **ESLint** - コード品質管理
 - **Turbopack** - 高速ビルドツール
 
@@ -122,11 +120,8 @@ npm start
 # ESLintチェック
 npm run lint
 
-# テスト実行
-npm test
-
-# テストウォッチモード
-npm run test:watch
+# TypeScript型チェック
+npx tsc
 
 # データベース初期化
 node scripts/seed.js
@@ -150,6 +145,8 @@ pj-ado-mvp/
 │   │   │   │   └── export/route.ts # GET (CSVエクスポート)
 │   │   │   ├── upload/       # ファイルアップロード API
 │   │   │   │   └── route.ts  # POST (画像アップロード)
+│   │   │   ├── integrity-check/ # 整合性チェック API
+│   │   │   │   └── route.ts  # GET (システム整合性状況取得)
 │   │   │   └── url-templates/ # URLテンプレート API
 │   │   │       ├── route.ts  # GET, POST (全URLテンプレート)
 │   │   │       ├── [id]/route.ts # GET, PUT, DELETE (個別)
@@ -192,6 +189,7 @@ pj-ado-mvp/
 │   │   ├── ImageUpload.tsx  # 画像アップロードコンポーネント
 │   │   ├── ImportExportButtons.tsx # CSV機能共通コンポーネント
 │   │   ├── LoginForm.tsx    # ログインフォーム
+│   │   ├── TemplateChangeWarning.tsx # テンプレート変更警告コンポーネント
 │   │   ├── ProtectedPage.tsx # サーバーサイド認証保護ラッパー
 │   │   ├── SessionProvider.tsx # セッションプロバイダー
 │   │   └── Sidebar.tsx      # サイドバーナビゲーション
@@ -201,6 +199,7 @@ pj-ado-mvp/
 │   │   ├── actions.ts       # 認証サーバーアクション
 │   │   ├── ad-content-actions.ts # 広告コンテンツ管理アクション
 │   │   ├── authorization.ts # 認可ロジック
+│   │   ├── consistency-checker.ts # テンプレート整合性チェック機能
 │   │   ├── definitions.ts   # TypeScript型定義
 │   │   ├── template-actions.ts # テンプレート管理アクション
 │   │   ├── template-utils.ts   # テンプレートユーティリティ
@@ -213,15 +212,9 @@ pj-ado-mvp/
 │   │   └── user-actions.ts  # ユーザー管理アクション
 │   ├── auth.config.ts       # NextAuth.js設定詳細
 │   └── auth.ts              # NextAuth.js設定
-├── __tests__/              # テストファイル
-│   ├── api/                # API エンドポイントテスト
-│   ├── components/         # コンポーネントテスト
-│   └── lib/               # ライブラリ関数テスト
 ├── scripts/               # ユーティリティスクリプト
 │   └── seed.js           # データベース初期化
-├── middleware.ts         # ルート保護ミドルウェア
-├── jest.config.js        # Jest設定
-└── jest.setup.js         # Jest セットアップ
+└── middleware.ts         # ルート保護ミドルウェア
 ```
 
 ## API ルート
@@ -260,6 +253,13 @@ pj-ado-mvp/
 | `/api/ad-contents/[id]` | PUT    | 広告コンテンツ更新    | 必須 |
 | `/api/ad-contents/[id]` | DELETE | 広告コンテンツ削除    | 必須 |
 | `/api/upload`           | POST   | 画像ファイルアップロード | 必須 |
+
+### テンプレート整合性チェック API
+
+| エンドポイント                       | メソッド | 説明                  | 認証 |
+|------------------------------|------|---------------------|----| 
+| `/api/integrity-check`       | GET  | システム整合性状況取得       | 必須 |
+| `/api/templates/[id]/analyze-changes` | POST | テンプレート変更影響分析 | 必須 |
 
 ### 画像クリーンアップ API
 
@@ -390,6 +390,7 @@ pj-ado-mvp/
 - **SEO対応**: 自動 `rel="nofollow"` 属性追加・削除機能
 - **改良されたCSV インポート/エクスポート**: テンプレートの一括管理機能、詳細な結果表示と作成済みアイテム一覧表示
 - **タイムスタンプ表示**: テンプレート作成・更新日時のリアルタイム表示
+- **テンプレート整合性監視**: テンプレート変更時の影響分析と既存コンテンツとの整合性チェック
 
 ### HTMLコードエディター機能
 
@@ -504,36 +505,24 @@ pj-ado-mvp/
 
 環境変数`CRON_SECRET`でCron認証を設定。
 
-## テスト
+## テンプレート整合性システム
 
-プロジェクトにはJestとReact Testing Libraryを使用した包括的なテストスイート（33スイート、403テスト）が含まれています：
+アプリケーションには高度なテンプレート整合性監視システムが実装されています：
 
-```bash
-# 全テスト実行
-npm test
+### 主要機能
 
-# 特定のテストファイル実行
-npm test Button.test.tsx
+- **変更影響分析**: テンプレート変更時の既存コンテンツへの影響を事前に分析
+- **整合性チェック**: プレースホルダーの不整合や孤立したコンテンツを検出
+- **重要度分類**: critical、warning、infoレベルでの問題分類
+- **ダッシュボード統合**: リアルタイムでのシステム健全性表示
+- **自動警告**: テンプレート更新前のブレーキングチェンジ警告
 
-# テストカバレッジ表示
-npm test -- --coverage
-```
+### 技術的特徴
 
-### テストファイル
-
-- `__tests__/components/` - React コンポーネントのテスト（Button、LoginForm、Sidebar、AdTemplates、AdContentCard、Dashboard等）
-- `__tests__/lib/` - ユーティリティ関数のテスト（authorization、template-utils、ad-content-actions、url-template-actions等）
-- `__tests__/api/` - API エンドポイントのテスト（テンプレート、URLテンプレート、広告コンテンツ API等）
-- `__tests__/hooks/` - React Hooksのテスト（useTemplates、useUrlTemplates等）
-
-### テスト環境
-
-- **jsdom環境**: DOM操作のテスト対応
-- **Web API モック**: Request/Response、FormData、Headers、fetch等の完全モック
-- **NextAuth.js モック**: 認証システムのテスト対応
-- **Monaco Editor モック**: エディターコンポーネントのテスト対応
-- **アクセシビリティテスト**: 適切なlabel属性とtest-id設定
-- **インテグレーションテスト**: API呼び出しとコンポーネント連携のテスト
+- **リアルタイム監視**: プレースホルダーミスマッチの即座な検出
+- **パラメータマッピング**: 広告テンプレートとURLテンプレート間の自動関連付け
+- **標準UTMパラメータサポート**: utm_source、utm_medium等の標準パラメータ対応
+- **JSON設定サポート**: カスタムパラメータの柔軟な管理
 
 ## 開発者向け情報
 

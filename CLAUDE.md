@@ -14,11 +14,8 @@ NextAuth.js for authentication.
 - **Build**: `npm run build` - Creates production build
 - **Start production**: `npm start` - Starts production server
 - **Lint**: `npm run lint` - Runs ESLint with Next.js TypeScript rules
-- **Test**: `npm test` - Runs Jest test suites for components and utilities
-- **Test (watch mode)**: `npm run test:watch` - Runs tests in watch mode for development
-- **Run single test**: `npm test -- --testNamePattern="test name"` or `npm test Button.test.tsx`
-- **Database setup**: `node scripts/seed.js` - Creates users table and seeds test users (admin@example.com/password123,
-  editor@example.com/password123)
+- **Database setup**: `node scripts/seed.js` - Creates database tables and seeds test data (users, templates, URL templates)
+- **TypeScript compilation**: `npx tsc` - Type checking and compilation
 - **Image cleanup**: Image cleanup runs automatically via Vercel Cron Jobs (Sundays at 2 AM UTC)
 
 ## Architecture Overview
@@ -65,6 +62,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/lib/template-utils.ts` - Utility functions for template processing and validation
 - `src/lib/image-cleanup.ts` - Automated image cleanup utilities for orphaned and old unused images
 - `src/lib/image-utils.ts` - Common helper functions for image processing and content_data manipulation
+- `src/lib/consistency-checker.ts` - Template consistency analysis and integrity monitoring system
 - `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
 - `middleware.ts` - Route protection middleware
 
@@ -84,18 +82,6 @@ Uses Neon PostgreSQL with the following structure:
   `alt_text`, `placeholder_name`, `created_at`
 - **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via
   `scripts/seed.js`
-
-### Testing Setup
-
-The application uses Jest with React Testing Library for comprehensive unit and component testing:
-
-- **Jest configuration**: `jest.config.js` with Next.js integration and path mapping
-- **Setup file**: `jest.setup.js` for global test configuration including comprehensive Web API mocks (Request,
-  Response, FormData, Headers, etc.)
-- **Test environment**: jsdom for DOM testing with React components
-- **Test location**: `__tests__/` directory with component and utility tests
-- **Coverage**: 33 test suites with 403 tests covering components, hooks, API routes, utilities, and accessibility
-- **Test types**: Component testing, API endpoint testing, utility function testing, hook testing, and integration tests
 
 ### Page Structure
 
@@ -123,6 +109,8 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/ad-contents/[id]` - Individual ad content operations (GET, PUT, DELETE)
 - `/api/upload` - File upload handling for ad images using Vercel Blob storage
 - `/api/admin/cleanup-images` - Automated image cleanup API for removing orphaned and old unused images (Cron job)
+- `/api/integrity-check` - Template consistency validation API (GET)
+- `/api/templates/[id]/analyze-changes` - Template change impact analysis API (POST)
 
 Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese
 text and icons.
@@ -138,7 +126,6 @@ text and icons.
 - **Zod 4.0.15** - Schema validation for authentication and user management
 - **TypeScript 5** - Strict type safety configuration with path aliases (@/*)
 - **Tailwind CSS v4** - Utility-first styling with PostCSS
-- **Jest 29.7.0 & React Testing Library** - Unit testing framework with jsdom environment
 - **Monaco Editor** - Code editor for HTML template editing
 - **Geist fonts** - Typography (sans and mono variants)
 
@@ -152,8 +139,6 @@ text and icons.
 - ESLint uses flat config format (`eslint.config.mjs`) with Next.js TypeScript rules
 - Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 - Authentication state determines entire application layout and available routes
-- Tests are located in `__tests__/` directory with `.test.tsx` and `.test.ts` extensions
-- Jest configuration includes Next.js integration and path mapping for imports
 
 ## Template System Architecture
 
@@ -224,3 +209,43 @@ The ad content management system provides comprehensive advertisement creation a
 
 Ad contents combine templates, URL templates, and user-uploaded images to create complete advertisement instances with
 comprehensive tracking and preview capabilities. The system includes automated image cleanup to prevent storage bloat.
+
+## Template Consistency System
+
+The application includes a sophisticated template consistency monitoring system to ensure data integrity:
+
+- **Consistency checker**: `src/lib/consistency-checker.ts` provides comprehensive analysis of template changes and their impact on existing content
+- **Change analysis**: `analyzeTemplateChanges()` detects placeholder differences and identifies affected ad contents
+- **URL template analysis**: `analyzeUrlTemplateChanges()` tracks URL parameter changes and content dependencies
+- **Integrity monitoring**: `getSystemIntegrityStatus()` provides system-wide health checks with severity classification
+- **API endpoint**: `/api/integrity-check` - REST API for template consistency validation
+- **Dashboard integration**: `IntegrityMonitor.tsx` component provides real-time consistency status in the dashboard
+- **Template change warnings**: `TemplateChangeWarning.tsx` alerts users of potential breaking changes before template updates
+
+The consistency system categorizes issues by severity (critical, warning, info) and provides detailed impact analysis including:
+- Placeholder mismatches between templates and content
+- Orphaned content with deleted templates  
+- Missing or unused placeholders
+- Parameter mapping conflicts between ad templates and URL templates
+
+## Feature Structure & Routing
+
+The application follows a consistent page structure pattern with dedicated create/edit routes:
+
+### Ad Templates (`/ad-templates`)
+- **Main page**: List view with search/filter capabilities
+- **Create route**: `/ad-templates/create` - Dedicated template creation page with `TemplateCreateForm.tsx`
+- **Edit route**: `/ad-templates/[id]/edit` - Template editing page with `TemplateEditForm.tsx`
+- **Import/Export**: CSV functionality with detailed result reporting
+
+### URL Templates (`/url-templates`)  
+- **Main page**: Grid view with UTM parameter management
+- **Create route**: `/url-templates/create` - URL template creation with `UrlTemplateCreateForm.tsx`
+- **Edit route**: `/url-templates/[id]/edit` - URL template editing with `UrlTemplateEditForm.tsx`
+- **Preview component**: `UrlTemplatePreview.tsx` for real-time URL generation preview
+
+### Ad Contents (`/ads`)
+- **Main page**: Content management with status-based filtering
+- **Create route**: `/ads/create` - Ad content creation with `AdContentCreateForm.tsx`  
+- **Edit route**: `/ads/[id]/edit` - Content editing with `AdContentEditForm.tsx`
+- **List component**: `AdContentList.tsx` for organized content display
