@@ -104,7 +104,7 @@ export default function AdPreview({
                   type="button"
                   onClick={() => setViewport(key as ViewportSize)}
                   className={`
-                    flex items-center space-x-1 px-3 py-1 text-xs font-medium rounded transition-colors
+                    flex items-center space-x-1 px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer
                     ${viewport === key
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
