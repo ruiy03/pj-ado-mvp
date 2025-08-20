@@ -3,7 +3,7 @@
 import {useState, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {AdTemplate} from '@/lib/definitions';
-import {getSampleValue} from '@/lib/template-utils';
+import {getSampleValue, extractPlaceholders} from '@/lib/template-utils';
 
 interface AdPreviewProps {
   template: AdTemplate | null;
@@ -66,16 +66,15 @@ export default function AdPreview({
     try {
       let html = template.html;
 
-      // プレースホルダーを置換（実際の値が優先、未入力項目はサンプル値）
-      if (template.placeholders) {
-        template.placeholders.forEach((placeholder) => {
-          const regex = new RegExp(`\\{\\{\\s*${placeholder}\\s*\\}\\}`, 'g');
-          const actualValue = contentData[placeholder];
-          const hasActualValue = actualValue !== undefined && actualValue !== null && String(actualValue).trim() !== '';
-          const value = hasActualValue ? String(actualValue) : getSampleValue(placeholder);
-          html = html.replace(regex, value);
-        });
-      }
+      // HTMLから動的にプレースホルダーを抽出して置換
+      const placeholders = extractPlaceholders(template.html);
+      placeholders.forEach((placeholder) => {
+        const regex = new RegExp(`\\{\\{\\s*${placeholder}\\s*\\}\\}`, 'g');
+        const actualValue = contentData[placeholder];
+        const hasActualValue = actualValue !== undefined && actualValue !== null && String(actualValue).trim() !== '';
+        const value = hasActualValue ? String(actualValue) : getSampleValue(placeholder);
+        html = html.replace(regex, value);
+      });
 
       setRenderedHtml(html);
       setError(null);
@@ -145,10 +144,13 @@ export default function AdPreview({
                       dangerouslySetInnerHTML={{__html: renderedHtml}}
                     />
                     {/* サンプルデータ使用時の注意書き */}
-                    {template.placeholders && template.placeholders.some(p => {
-                      const value = contentData[p];
-                      return !(value !== undefined && value !== null && String(value).trim() !== '');
-                    }) && (
+                    {(() => {
+                      const placeholders = extractPlaceholders(template.html);
+                      return placeholders.some(p => {
+                        const value = contentData[p];
+                        return !(value !== undefined && value !== null && String(value).trim() !== '');
+                      });
+                    })() && (
                       <div className="mt-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
                         <div className="flex items-center space-x-1">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -202,7 +204,7 @@ export default function AdPreview({
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>テンプレート: {template.name}</span>
             <span>
-              {template.placeholders?.length || 0} 個のプレースホルダー
+              {extractPlaceholders(template.html).length} 個のプレースホルダー
             </span>
           </div>
         </div>

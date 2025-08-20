@@ -1,31 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import type { 
   AdContent, 
-  AdTemplate, 
-  UrlTemplate, 
-  CreateAdContentRequest,
-  UpdateAdContentRequest 
+  AdTemplate
 } from '@/lib/definitions';
 import AdContentCard from './AdContentCard';
-import AdContentForm from './AdContentForm';
 
 interface AdContentClientProps {
   initialContents: AdContent[];
   templates: AdTemplate[];
-  urlTemplates: UrlTemplate[];
 }
 
 export default function AdContentClient({ 
   initialContents, 
-  templates, 
-  urlTemplates 
+  templates
 }: AdContentClientProps) {
+  const searchParams = useSearchParams();
   const [contents, setContents] = useState<AdContent[]>(initialContents);
   const [filteredContents, setFilteredContents] = useState<AdContent[]>(initialContents);
-  const [showForm, setShowForm] = useState(false);
-  const [editingContent, setEditingContent] = useState<AdContent | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [templateFilter, setTemplateFilter] = useState('');
@@ -33,6 +28,14 @@ export default function AdContentClient({
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(9); // 3x3のグリッドレイアウトに合わせて9個
+
+  // URLパラメータから検索クエリを読み取り
+  useEffect(() => {
+    const search = searchParams.get('search');
+    if (search) {
+      setSearchTerm(search);
+    }
+  }, [searchParams]);
 
   // フィルタリング処理
   useEffect(() => {
@@ -115,59 +118,6 @@ export default function AdContentClient({
     }
   };
 
-  // 新規作成
-  const handleCreate = () => {
-    setEditingContent(null);
-    setShowForm(true);
-  };
-
-  // 編集
-  const handleEdit = (content: AdContent) => {
-    setEditingContent(content);
-    setShowForm(true);
-  };
-
-  // フォーム送信
-  const handleFormSubmit = async (data: CreateAdContentRequest) => {
-    try {
-      if (editingContent) {
-        // 更新
-        const updateData: UpdateAdContentRequest = {
-          id: editingContent.id,
-          ...data,
-        };
-        const response = await fetch(`/api/ad-contents/${editingContent.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updateData),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || '更新に失敗しました');
-        }
-      } else {
-        // 新規作成
-        const response = await fetch('/api/ad-contents', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || '作成に失敗しました');
-        }
-      }
-
-      setShowForm(false);
-      setEditingContent(null);
-      await refreshContents();
-    } catch (error) {
-      console.error('Form submission error:', error);
-      alert(error instanceof Error ? error.message : 'エラーが発生しました');
-    }
-  };
 
   // 削除
   const handleDelete = async (id: number) => {
@@ -227,12 +177,12 @@ export default function AdContentClient({
       {/* ヘッダー */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">広告管理</h1>
-        <button
-          onClick={handleCreate}
+        <Link
+          href="/ads/create"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
         >
           新しい広告を作成
-        </button>
+        </Link>
       </div>
 
       {/* フィルタ */}
@@ -323,7 +273,6 @@ export default function AdContentClient({
                 <AdContentCard
                   key={content.id}
                   content={content}
-                  onEdit={handleEdit}
                   onDelete={handleDelete}
                   onStatusChange={handleStatusChange}
                 />
@@ -345,12 +294,12 @@ export default function AdContentClient({
                 }
               </p>
               {!(searchTerm || statusFilter || templateFilter) && (
-                <button
-                  onClick={handleCreate}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer"
+                <Link
+                  href="/ads/create"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors cursor-pointer inline-block"
                 >
                   最初の広告を作成
-                </button>
+                </Link>
               )}
             </div>
           )}
@@ -415,20 +364,6 @@ export default function AdContentClient({
         </div>
       )}
 
-      {/* フォームモーダル */}
-      {showForm && (
-        <AdContentForm
-          adContent={editingContent || undefined}
-          templates={templates}
-          urlTemplates={urlTemplates}
-          onSubmit={handleFormSubmit}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingContent(null);
-          }}
-          isEdit={!!editingContent}
-        />
-      )}
     </div>
   );
 }

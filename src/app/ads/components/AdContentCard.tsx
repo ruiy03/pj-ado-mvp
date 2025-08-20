@@ -2,20 +2,19 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { AdContent } from '@/lib/definitions';
 
 interface AdContentCardProps {
   content: AdContent;
-  onEdit: (content: AdContent) => void;
   onDelete: (id: number) => void;
-  onStatusChange: (id: number, status: string) => void;
+  onStatusChange?: (id: number, status: string) => void;
 }
 
 export default function AdContentCard({ 
   content, 
-  onEdit, 
   onDelete, 
-  onStatusChange 
+  onStatusChange
 }: AdContentCardProps) {
   const [showPreview, setShowPreview] = useState(false);
 
@@ -102,12 +101,12 @@ export default function AdContentCard({
             >
               {showPreview ? '非表示' : 'プレビュー'}
             </button>
-            <button
-              onClick={() => onEdit(content)}
+            <Link
+              href={`/ads/${content.id}/edit`}
               className="text-sm text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
             >
               編集
-            </button>
+            </Link>
             <button
               onClick={() => onDelete(content.id)}
               className="text-sm text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50 cursor-pointer"
@@ -172,7 +171,7 @@ export default function AdContentCard({
               <span className="text-sm text-gray-600">ステータス変更:</span>
               <select
                 value={content.status}
-                onChange={(e) => onStatusChange(content.id, e.target.value)}
+                onChange={(e) => onStatusChange?.(content.id, e.target.value)}
                 className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
               >
                 <option value="draft">下書き</option>
