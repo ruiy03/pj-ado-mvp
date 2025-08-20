@@ -72,7 +72,6 @@ export async function POST(
         : (content.content_data || {});
 
       let hasChanges = false;
-      const changes = { removed: [...removedPlaceholders], added: [...addedPlaceholders] };
 
       // 削除されたプレースホルダーをcontent_dataから除去
       removedPlaceholders.forEach(placeholder => {

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useUrlTemplates } from '../hooks/useUrlTemplates';
 import UrlTemplateCard from './UrlTemplateCard';
 import Link from 'next/link';

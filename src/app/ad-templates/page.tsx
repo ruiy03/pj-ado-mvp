@@ -3,7 +3,6 @@
 import ClientProtectedPage from '@/components/ClientProtectedPage';
 import {useState, useRef} from 'react';
 import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
-import Link from 'next/link';
 
 import {useTemplates} from './hooks/useTemplates';
 import ImportExportButtons from './components/ImportExportButtons';

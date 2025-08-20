@@ -69,12 +69,16 @@ export async function findAffectedAdContents(
   try {
     // 対象テンプレートを使用している広告コンテンツとURLテンプレートを取得
     const result = await sql`
-      SELECT ac.id, ac.name, ac.status, ac.content_data, ac.created_at,
-             ut.url_template
-      FROM ad_contents ac
-      LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
-      WHERE ac.template_id = ${templateId}
-      ORDER BY ac.updated_at DESC
+        SELECT ac.id,
+               ac.name,
+               ac.status,
+               ac.content_data,
+               ac.created_at,
+               ut.url_template
+        FROM ad_contents ac
+                 LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
+        WHERE ac.template_id = ${templateId}
+        ORDER BY ac.updated_at DESC
     `;
 
     if (result.length === 0) {
@@ -146,9 +150,9 @@ export async function analyzeTemplateChanges(
   try {
     // 現在のテンプレート情報を取得
     const templateResult = await sql`
-      SELECT id, name, html
-      FROM ad_templates
-      WHERE id = ${templateId}
+        SELECT id, name, html
+        FROM ad_templates
+        WHERE id = ${templateId}
     `;
 
     if (templateResult.length === 0) {
@@ -185,10 +189,10 @@ export async function analyzeTemplateChanges(
     if (htmlChanged && affected_contents.length === 0) {
       // プレースホルダーに問題がなくてもHTMLが変更されていれば、全ての広告コンテンツを取得
       const allContentsResult = await sql`
-        SELECT ac.id, ac.name, ac.status, ac.content_data, ac.created_at
-        FROM ad_contents ac
-        WHERE ac.template_id = ${templateId}
-        ORDER BY ac.updated_at DESC
+          SELECT ac.id, ac.name, ac.status, ac.content_data, ac.created_at
+          FROM ad_contents ac
+          WHERE ac.template_id = ${templateId}
+          ORDER BY ac.updated_at DESC
       `;
 
       affected_contents = allContentsResult.map(row => ({
@@ -203,9 +207,7 @@ export async function analyzeTemplateChanges(
 
     // 重要度を判定
     let severity: 'low' | 'medium' | 'high' = 'low';
-    if (affected_contents.length > 10) {
-      severity = 'high';
-    } else if (affected_contents.length > 5) {
+    if (affected_contents.length >= 5) {
       severity = 'high';
     } else if (placeholder_diff.removed.length > 0 || placeholder_diff.added.length > 0) {
       severity = 'medium';
@@ -243,9 +245,9 @@ export async function analyzeUrlTemplateChanges(
   try {
     // 現在のURLテンプレート情報を取得
     const templateResult = await sql`
-      SELECT id, name, url_template
-      FROM url_templates
-      WHERE id = ${templateId}
+        SELECT id, name, url_template
+        FROM url_templates
+        WHERE id = ${templateId}
     `;
 
     if (templateResult.length === 0) {
@@ -283,10 +285,10 @@ export async function analyzeUrlTemplateChanges(
 
     // 影響を受ける広告コンテンツを特定
     const affectedContentsResult = await sql`
-      SELECT ac.id, ac.name, ac.status, ac.content_data, ac.created_at
-      FROM ad_contents ac
-      WHERE ac.url_template_id = ${templateId}
-      ORDER BY ac.updated_at DESC
+        SELECT ac.id, ac.name, ac.status, ac.content_data, ac.created_at
+        FROM ad_contents ac
+        WHERE ac.url_template_id = ${templateId}
+        ORDER BY ac.updated_at DESC
     `;
 
     const affected_contents = affectedContentsResult.map(row => {
@@ -360,13 +362,13 @@ export async function validateContentIntegrity(contentId: number): Promise<{
 }> {
   try {
     const result = await sql`
-      SELECT 
-        ac.content_data,
-        at.name as template_name,
-        at.html as template_html
-      FROM ad_contents ac
-      LEFT JOIN ad_templates at ON ac.template_id = at.id
-      WHERE ac.id = ${contentId}
+        SELECT ac.content_data,
+               at.name as template_name,
+               at.html as template_html
+        FROM ad_contents ac
+                 LEFT JOIN ad_templates at
+        ON ac.template_id = at.id
+        WHERE ac.id = ${contentId}
     `;
 
     if (result.length === 0) {
@@ -434,20 +436,20 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
 
     // 問題のあるコンテンツを検出
     const contentResult = await sql`
-      SELECT 
-        ac.id,
-        ac.name as content_name,
-        ac.content_data,
-        ac.template_id,
-        ac.url_template_id,
-        at.name as template_name,
-        at.html as template_html,
-        ut.name as url_template_name,
-        ut.url_template
-      FROM ad_contents ac
-      LEFT JOIN ad_templates at ON ac.template_id = at.id
-      LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
-      WHERE at.html IS NOT NULL
+        SELECT ac.id,
+               ac.name as content_name,
+               ac.content_data,
+               ac.template_id,
+               ac.url_template_id,
+               at.name as template_name,
+               at.html as template_html,
+               ut.name as url_template_name,
+               ut.url_template
+        FROM ad_contents ac
+                 LEFT JOIN ad_templates at
+        ON ac.template_id = at.id
+            LEFT JOIN url_templates ut ON ac.url_template_id = ut.id
+        WHERE at.html IS NOT NULL
     `;
 
     for (const row of contentResult) {
@@ -579,10 +581,11 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
 
     // 孤立したコンテンツ（テンプレートが削除されたもの）を検出
     const orphanedResult = await sql`
-      SELECT ac.id, ac.name as content_name
-      FROM ad_contents ac
-      LEFT JOIN ad_templates at ON ac.template_id = at.id
-      WHERE at.id IS NULL
+        SELECT ac.id, ac.name as content_name
+        FROM ad_contents ac
+                 LEFT JOIN ad_templates at
+        ON ac.template_id = at.id
+        WHERE at.id IS NULL
     `;
 
     for (const row of orphanedResult) {

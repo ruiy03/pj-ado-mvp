@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { UrlTemplate, UpdateUrlTemplateRequest } from '@/lib/definitions';
 import type { UrlTemplateConsistencyCheckResult } from '@/lib/consistency-checker';
-import { updateUrlTemplate } from '@/lib/url-template-actions';
 import UrlTemplateChangeWarning from '@/components/UrlTemplateChangeWarning';
 
 interface UrlTemplateEditFormProps {
@@ -81,7 +80,6 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
       }
     } catch (error) {
       console.error('Analysis error:', error);
-      const errorMessage = error instanceof Error ? error.message : '影響分析に失敗しました';
       
       const proceed = confirm(
         '影響分析に失敗しましたが、更新を続行しますか？\n\n' +
