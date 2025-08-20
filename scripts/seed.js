@@ -439,8 +439,8 @@ async function seed() {
 
             -- ランキング系広告（特別対応）
             ('ランキング広告 (ranking)',
-             '{{baseUrl}}?utm_source=ranking&utm_medium=port-career&utm_campaign={{utm_campaign}}&utm_content={{utm_content}}&rank={{rank}}',
-             'ランキング広告のトラッキングURL（キャンペーンとランク位置付き）');
+             '{{baseUrl}}?utm_source=ranking&utm_medium=port-career&utm_campaign={{utm_campaign}}&utm_content={{utm_content}}',
+             'ランキング広告のトラッキングURL（キャンペーン付き）');
     `;
 
     console.log('Seeding ad_contents...');
@@ -491,56 +491,56 @@ async function seed() {
           VALUES ('記事内広告 - 春の就活支援',
                   ${template1},
                   ${url1},
-                  '{"title": "2024年春の就活支援キャンペーン開始！", "image": "/images/sample-ad.svg", "link": "https://port-career.jp/career-support/", "button": "今すぐ登録して特典をゲット"}',
+                  '{"title": "2024年春の就活支援キャンペーン開始！", "image": "/images/sample-ad.svg", "link": "https://port-career.jp/career-support/", "button": "今すぐ登録して特典をゲット", "utm_content": "1"}',
                   'active',
                   ${user1}),
 
                  ('記事下広告 - 転職支援サービス',
                   ${template1},
                   ${url2},
-                  '{"title": "経験者向け転職支援サービス", "image": "/images/sample-ad.svg", "link": "https://port-career.jp/job-change/", "button": "無料相談を申し込む"}',
+                  '{"title": "経験者向け転職支援サービス", "image": "/images/sample-ad.svg", "link": "https://port-career.jp/job-change/", "button": "無料相談を申し込む", "utm_content": "2"}',
                   'active',
                   ${user1}),
 
                  ('Webプッシュ - 新卒向け就職支援',
                   ${template2},
                   ${url5},
-                  '{"title": "新卒向け就職支援プログラム", "text": "内定率95%の実績を持つ就職支援サービス", "benefit": "完全無料", "rating": "満足度98%", "button": "無料登録はこちら", "image": "/images/sample-ad.svg", "link": "https://port-career.jp/fresh-graduate/"}',
+                  '{"title": "新卒向け就職支援プログラム", "text": "内定率95%の実績を持つ就職支援サービス", "benefit": "完全無料", "rating": "満足度98%", "button": "無料登録はこちら", "image": "/images/sample-ad.svg", "link": "https://port-career.jp/fresh-graduate/", "utm_content": "3"}',
                   'active',
                   ${user1}),
 
                  ('Chameleon広告 - 転職エージェント',
                   ${template3},
                   ${url10},
-                  '{"title": "転職エージェントで理想の職場を見つけよう", "text": "業界最大級の求人数を誇る転職エージェント。あなたにぴったりの企業がきっと見つかります。", "benefit": "登録無料・非公開求人多数", "service": "転職支援", "link": "https://recruit-agent-a.com/register/"}',
+                  '{"title": "転職エージェントで理想の職場を見つけよう", "text": "業界最大級の求人数を誇る転職エージェント。あなたにぴったりの企業がきっと見つかります。", "benefit": "登録無料・非公開求人多数", "service": "転職支援", "link": "https://recruit-agent-a.com/register/", "utm_content": "4"}',
                   'active',
                   ${user2}),
 
                  ('ランキング広告 - スキルアップサービス',
                   ${template3},
                   ${url13},
-                  '{"title": "プログラミングスキルを身につけて転職成功", "text": "未経験からエンジニアを目指すあなたを全力サポート。実践的なカリキュラムで確実にスキルアップ。", "benefit": "就職成功率94%", "service": "スキルアップ", "link": "https://skill-up-c.com/courses/"}',
+                  '{"title": "プログラミングスキルを身につけて転職成功", "text": "未経験からエンジニアを目指すあなたを全力サポート。実践的なカリキュラムで確実にスキルアップ。", "benefit": "就職成功率94%", "service": "スキルアップ", "link": "https://skill-up-c.com/courses/", "utm_content": "5", "utm_campaign": "01"}',
                   'active',
                   ${user1}),
 
                  ('記事内広告 - テスト（下書き）',
                   ${template1},
                   ${url1},
-                  '{"title": "テスト広告", "image": "/images/sample-ad.svg", "link": "https://example.com/", "button": "テスト用ボタン"}',
+                  '{"title": "テスト広告", "image": "/images/sample-ad.svg", "link": "https://example.com/", "button": "テスト用ボタン", "utm_content": "6"}',
                   'draft',
                   ${user2}),
 
                  ('Webプッシュ - 一時停止中',
                   ${template2},
                   ${url6},
-                  '{"title": "一時停止中の広告", "text": "この広告は現在停止中です", "benefit": "停止中", "rating": "テスト用", "button": "停止中", "image": "/images/sample-ad.svg", "link": "https://example.com/paused/"}',
+                  '{"title": "一時停止中の広告", "text": "この広告は現在停止中です", "benefit": "停止中", "rating": "テスト用", "button": "停止中", "image": "/images/sample-ad.svg", "link": "https://example.com/paused/", "utm_content": "7"}',
                   'paused',
                   ${user1}),
 
                  ('例文内広告 - アーカイブ済み',
                   ${template3},
                   ${url3},
-                  '{"title": "過去のキャンペーン", "text": "終了した過去のキャンペーン広告です", "benefit": "終了済み", "service": "アーカイブ", "link": "https://example.com/archived/"}',
+                  '{"title": "過去のキャンペーン", "text": "終了した過去のキャンペーン広告です", "benefit": "終了済み", "service": "アーカイブ", "link": "https://example.com/archived/", "utm_content": "8"}',
                   'archived',
                   ${user2})
       `;
