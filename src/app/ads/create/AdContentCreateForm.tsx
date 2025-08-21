@@ -37,28 +37,12 @@ export default function AdContentCreateForm({ templates, urlTemplates }: AdConte
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <AdContentForm
-            templates={templates}
-            urlTemplates={urlTemplates}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isEdit={false}
-          />
-        </div>
-        <div className="space-y-4">
-          {/* プレビューエリア */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">プレビュー</h3>
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">👁️</div>
-              <p>テンプレートを選択するとプレビューが表示されます</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AdContentForm
+      templates={templates}
+      urlTemplates={urlTemplates}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+      isEdit={false}
+    />
   );
 }

@@ -53,29 +53,13 @@ export default function AdContentEditForm({content, templates, urlTemplates}: Ad
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <AdContentForm
-            adContent={content}
-            templates={templates}
-            urlTemplates={urlTemplates}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isEdit={true}
-          />
-        </div>
-        <div className="space-y-4">
-          {/* プレビューエリア */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">プレビュー</h3>
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">👁️</div>
-              <p>広告コンテンツのプレビューを表示</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AdContentForm
+      adContent={content}
+      templates={templates}
+      urlTemplates={urlTemplates}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+      isEdit={true}
+    />
   );
 }

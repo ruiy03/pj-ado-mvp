@@ -1,17 +1,17 @@
 'use client';
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import type { UrlTemplate, UpdateUrlTemplateRequest } from '@/lib/definitions';
-import type { UrlTemplateConsistencyCheckResult } from '@/lib/consistency-checker';
+import {useState} from 'react';
+import {useRouter, useSearchParams} from 'next/navigation';
+import type {UrlTemplate, UpdateUrlTemplateRequest} from '@/lib/definitions';
+import type {UrlTemplateConsistencyCheckResult} from '@/lib/consistency-checker';
 import UrlTemplateChangeWarning from '@/components/UrlTemplateChangeWarning';
 
 interface UrlTemplateEditFormProps {
   template: UrlTemplate;
 }
 
-export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormProps) {
+export default function UrlTemplateEditForm({template}: UrlTemplateEditFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
@@ -19,7 +19,7 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
   const [error, setError] = useState<string | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<UrlTemplateConsistencyCheckResult | null>(null);
-  
+
   const [formData, setFormData] = useState<UpdateUrlTemplateRequest>({
     id: template.id,
     name: template.name,
@@ -29,9 +29,9 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // データに変更があるかチェック
-    const hasChanges = 
+    const hasChanges =
       formData.name !== template.name ||
       formData.url_template !== template.url_template ||
       formData.description !== (template.description || '');
@@ -49,20 +49,20 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // URLテンプレートが変更されているかチェック
       const urlTemplateChanged = formData.url_template !== template.url_template;
-      
+
       // URLテンプレートに変更がない場合（名前・説明のみの変更）は直接更新
       if (!urlTemplateChanged) {
         await updateTemplate();
         return;
       }
-      
+
       // 影響分析を実行
       const response = await fetch(`/api/url-templates/${template.id}/analyze-changes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           newUrlTemplate: formData.url_template,
           newName: formData.name,
@@ -80,12 +80,12 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
       }
     } catch (error) {
       console.error('Analysis error:', error);
-      
+
       const proceed = confirm(
         '影響分析に失敗しましたが、更新を続行しますか？\n\n' +
         'この変更は既存の広告コンテンツに予期しない影響を与える可能性があります。'
       );
-      
+
       if (proceed) {
         await updateTemplate();
       } else {
@@ -97,15 +97,15 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
   const updateTemplate = async () => {
     try {
       setIsLoading(true);
-      
+
       // URLテンプレートが変更されている場合は、先にad_contentsを同期
       if (formData.url_template !== template.url_template) {
         const syncResponse = await fetch(`/api/url-templates/${template.id}/sync-content`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ newUrlTemplate: formData.url_template }),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({newUrlTemplate: formData.url_template}),
         });
-        
+
         if (syncResponse.ok) {
           const syncResult = await syncResponse.json();
           console.log('URL template content sync completed:', syncResult);
@@ -113,10 +113,10 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
           console.warn('URL template content sync failed, proceeding with template update');
         }
       }
-      
+
       const response = await fetch(`/api/url-templates/${template.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(formData),
       });
 
@@ -169,18 +169,18 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
     try {
       const urlParts = urlTemplate.split('?');
       if (urlParts.length < 2) return {};
-      
+
       const queryString = urlParts[1];
       const params = queryString.split('&');
       const extractedParams: Record<string, string> = {};
-      
+
       for (const param of params) {
         const [key, value] = param.split('=');
         if (key && value) {
           extractedParams[key] = value;
         }
       }
-      
+
       return extractedParams;
     } catch {
       return {};
@@ -215,7 +215,7 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
                 id="name"
                 name="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="テンプレート名を入力してください"
@@ -231,10 +231,10 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
                 id="url_template"
                 name="url_template"
                 value={formData.url_template}
-                onChange={(e) => setFormData({ ...formData, url_template: e.target.value })}
+                onChange={(e) => setFormData({...formData, url_template: e.target.value})}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="{{baseUrl}}?source={{source}}&medium={{medium}}"
+                placeholder="{{baseUrl}}?utm_source=source&utm_medium=medium&utm_content={{utm_content}}"
               />
               <p className="text-sm text-gray-500 mt-1">
                 URLにパラメータを含める場合は、{'{{parameter_name}}'} の形式で指定してください
@@ -249,7 +249,7 @@ export default function UrlTemplateEditForm({ template }: UrlTemplateEditFormPro
                 id="description"
                 name="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="テンプレートの説明を入力してください（任意）"

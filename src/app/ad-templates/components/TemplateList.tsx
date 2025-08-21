@@ -70,7 +70,7 @@ export default function TemplateList({ templates, onDelete }: TemplateListProps)
       <div className="p-6">
         <div className="space-y-6">
           <h3 className="text-lg font-medium text-gray-900">テンプレート一覧</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {templates.map((template) => (
               <div key={template.id} className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="p-4 border-b border-gray-200">

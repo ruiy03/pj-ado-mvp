@@ -1,25 +1,25 @@
 'use server';
 
 import bcrypt from 'bcrypt';
-import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
-import { User } from './definitions';
-import { withAuthorization, getCurrentUser } from './authorization';
-import { sql } from '@/lib/db';
+import {revalidatePath} from 'next/cache';
+import {z} from 'zod';
+import {User} from './definitions';
+import {withAuthorization, getCurrentUser} from './authorization';
+import {sql} from '@/lib/db';
 
 // バリデーションスキーマ
 const CreateUserSchema = z.object({
   name: z.string().min(1, '名前は必須です'),
   email: z.string().email('有効なメールアドレスを入力してください'),
   password: z.string().min(8, 'パスワードは8文字以上で入力してください'),
-  role: z.enum(['admin', 'editor'], { message: '役割は管理者または編集者を選択してください' }),
+  role: z.enum(['admin', 'editor'], {message: '役割は管理者または編集者を選択してください'}),
 });
 
 const UpdateUserSchema = z.object({
   id: z.number(),
   name: z.string().min(1, '名前は必須です').optional(),
   email: z.string().email('有効なメールアドレスを入力してください').optional(),
-  role: z.enum(['admin', 'editor'], { message: '役割は管理者または編集者を選択してください' }).optional(),
+  role: z.enum(['admin', 'editor'], {message: '役割は管理者または編集者を選択してください'}).optional(),
   password: z.string().min(8, 'パスワードは8文字以上で入力してください').optional(),
 });
 
@@ -32,6 +32,18 @@ export async function getUsers(): Promise<User[]> {
       ORDER BY created_at DESC
     `;
     return users as User[];
+  });
+}
+
+// ユーザー詳細取得
+export async function getUserById(userId: number): Promise<User | null> {
+  return withAuthorization('admin', async () => {
+    const users = await sql`
+        SELECT id, name, email, role, created_at, updated_at
+        FROM users
+        WHERE id = ${userId}
+    `;
+    return users.length > 0 ? users[0] as User : null;
   });
 }
 
@@ -58,7 +70,7 @@ export async function createUser(
         };
       }
 
-      const { name, email, password, role } = validatedFields.data;
+      const {name, email, password, role} = validatedFields.data;
 
       // 管理者の作成を制限
       if (role === 'admin') {
@@ -127,7 +139,7 @@ export async function updateUser(
         };
       }
 
-      const { id, name, email, role, password } = validatedFields.data;
+      const {id, name, email, role, password} = validatedFields.data;
 
       // 管理者への役割変更を制限
       if (role === 'admin') {

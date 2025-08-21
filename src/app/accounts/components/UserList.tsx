@@ -26,18 +26,7 @@ export default function UserList({
     role === 'admin' ? '管理者' : '編集者';
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">アカウント管理</h1>
-        <button
-          onClick={onAddUser}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
-        >
-          新しいアカウントを追加
-        </button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow">
+    <div className="bg-white rounded-lg shadow">
         {loading ? (
           <div className="p-6 text-center">
             <div className="text-lg">読み込み中...</div>
@@ -106,7 +95,6 @@ export default function UserList({
             </table>
           </div>
         )}
-      </div>
     </div>
   );
 }
