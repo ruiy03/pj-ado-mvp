@@ -3,6 +3,8 @@ import { getAdTemplates } from '@/lib/template-actions';
 import { getUrlTemplates } from '@/lib/url-template-actions';
 import AdContentCreateForm from './AdContentCreateForm';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CreateAdContentPage() {
   // サーバーサイドでデータを取得
   const [templates, urlTemplates] = await Promise.all([

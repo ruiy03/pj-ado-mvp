@@ -1,16 +1,16 @@
 'use client';
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { CreateUrlTemplateRequest } from '@/lib/definitions';
-import { createUrlTemplate } from '@/lib/url-template-actions';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
+import type {CreateUrlTemplateRequest} from '@/lib/definitions';
+import {createUrlTemplate} from '@/lib/url-template-actions';
 
 export default function UrlTemplateCreateForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState<CreateUrlTemplateRequest>({
     name: '',
     url_template: '',
@@ -41,18 +41,18 @@ export default function UrlTemplateCreateForm() {
     try {
       const urlParts = urlTemplate.split('?');
       if (urlParts.length < 2) return {};
-      
+
       const queryString = urlParts[1];
       const params = queryString.split('&');
       const extractedParams: Record<string, string> = {};
-      
+
       for (const param of params) {
         const [key, value] = param.split('=');
         if (key && value) {
           extractedParams[key] = value;
         }
       }
-      
+
       return extractedParams;
     } catch {
       return {};
@@ -87,7 +87,7 @@ export default function UrlTemplateCreateForm() {
                 id="name"
                 name="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="テンプレート名を入力してください"
@@ -103,10 +103,10 @@ export default function UrlTemplateCreateForm() {
                 id="url_template"
                 name="url_template"
                 value={formData.url_template}
-                onChange={(e) => setFormData({ ...formData, url_template: e.target.value })}
+                onChange={(e) => setFormData({...formData, url_template: e.target.value})}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="{{baseUrl}}?source={{source}}&medium={{medium}}"
+                placeholder="{{baseUrl}}?utm_source=source&utm_medium=medium&utm_content={{utm_content}}"
               />
               <p className="text-sm text-gray-500 mt-1">
                 URLにパラメータを含める場合は、{'{{parameter_name}}'} の形式で指定してください
@@ -121,7 +121,7 @@ export default function UrlTemplateCreateForm() {
                 id="description"
                 name="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="テンプレートの説明を入力してください（任意）"

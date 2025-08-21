@@ -5,6 +5,8 @@ import { getUrlTemplates } from '@/lib/url-template-actions';
 import AdContentEditForm from './AdContentEditForm';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 interface EditAdContentPageProps {
   params: Promise<{
     id: string;
