@@ -137,13 +137,13 @@ export default function AdContentCard({
                     alt={`Preview ${index + 1}`}
                     width={80}
                     height={60}
-                    className="w-16 h-12 sm:w-20 sm:h-15 rounded border object-cover"
+                    className="w-16 h-12 sm:w-20 sm:h-12 rounded border object-cover"
                   />
                 </div>
               ))}
               {getPreviewImages().length > 3 && (
                 <div
-                  className="flex-shrink-0 w-16 h-12 sm:w-20 sm:h-15 bg-gray-100 rounded border flex items-center justify-center text-xs text-gray-500">
+                  className="flex-shrink-0 w-16 h-12 sm:w-20 sm:h-12 bg-gray-100 rounded border flex items-center justify-center text-xs text-gray-500">
                   +{getPreviewImages().length - 3}
                 </div>
               )}
