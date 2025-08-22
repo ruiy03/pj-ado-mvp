@@ -172,6 +172,7 @@ export default function AdContentClient({
     setCurrentPage(1);
   };
 
+
   return (
     <div>
       {/* ヘッダー */}

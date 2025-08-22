@@ -4,6 +4,7 @@ import {useState} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type {AdContent} from '@/lib/definitions';
+import DeliveryCodeModal from '@/components/DeliveryCodeModal';
 
 interface AdContentCardProps {
   content: AdContent;
@@ -17,6 +18,7 @@ export default function AdContentCard({
                                         onStatusChange
                                       }: AdContentCardProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [showDeliveryCode, setShowDeliveryCode] = useState(false);
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -111,6 +113,12 @@ export default function AdContentCard({
             >
               {showPreview ? '非表示' : 'プレビュー'}
             </button>
+            <button
+              onClick={() => setShowDeliveryCode(true)}
+              className="text-sm text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50 cursor-pointer"
+            >
+              配信コード
+            </button>
             <Link
               href={`/ads/${content.id}/edit`}
               className="text-sm text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
@@ -162,6 +170,30 @@ export default function AdContentCard({
           </div>
         )}
 
+        {/* 配信情報 */}
+        {content.status === 'active' && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">配信設定</h4>
+            <div className="space-y-2 text-sm text-blue-800">
+              <div className="flex items-center justify-between">
+                <span>配信ID:</span>
+                <code className="bg-blue-100 px-2 py-1 rounded text-xs">{content.id}</code>
+              </div>
+              <div className="text-xs text-blue-600">
+                <div>WordPress: <code className="bg-blue-100 px-1 rounded">[lmg_ad id=&quot;{content.id}&quot;]</code></div>
+                <div className="mt-1">API: <code className="bg-blue-100 px-1 rounded">/api/delivery/{content.id}</code></div>
+              </div>
+              {(content.impressions || content.clicks) ? (
+                <div className="flex items-center justify-between text-xs">
+                  <span>表示: {(content.impressions || 0).toLocaleString()}</span>
+                  <span>クリック: {(content.clicks || 0).toLocaleString()}</span>
+                  <span>CTR: {content.impressions ? ((content.clicks || 0) / content.impressions * 100).toFixed(2) : '0'}%</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
+
         {/* メタ情報 */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-xs text-gray-500 gap-2">
           <div className="truncate">
@@ -193,6 +225,14 @@ export default function AdContentCard({
             </div>
           </div>
         )}
+
+        {/* 配信コードモーダル */}
+        <DeliveryCodeModal
+          isOpen={showDeliveryCode}
+          onClose={() => setShowDeliveryCode(false)}
+          adId={content.id}
+          adName={content.name}
+        />
       </div>
     </div>
   );
