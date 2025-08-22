@@ -76,6 +76,9 @@ export async function getAdContents(): Promise<AdContent[]> {
                ac.created_by,
                ac.created_at,
                ac.updated_at,
+               ac.impressions,
+               ac.clicks,
+               ac.last_accessed_at,
                -- テンプレート情報
                at.name         as template_name,
                at.html         as template_html,
@@ -103,6 +106,9 @@ export async function getAdContents(): Promise<AdContent[]> {
       created_by: row.created_by,
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
+      impressions: row.impressions || 0,
+      clicks: row.clicks || 0,
+      last_accessed_at: row.last_accessed_at?.toISOString(),
       template: row.template_id ? {
         id: row.template_id,
         name: row.template_name,
@@ -145,6 +151,9 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
                ac.created_by,
                ac.created_at,
                ac.updated_at,
+               ac.impressions,
+               ac.clicks,
+               ac.last_accessed_at,
                -- テンプレート情報
                at.name         as template_name,
                at.html         as template_html,
@@ -177,6 +186,9 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
       created_by: row.created_by,
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
+      impressions: row.impressions || 0,
+      clicks: row.clicks || 0,
+      last_accessed_at: row.last_accessed_at?.toISOString(),
       template: row.template_id ? {
         id: row.template_id,
         name: row.template_name,
@@ -535,5 +547,42 @@ export async function associateImagesWithAdContent(
   } catch (error) {
     console.error('Failed to associate images with ad content:', error);
     throw new Error('画像の関連付けに失敗しました');
+  }
+}
+
+// インプレッション数を増加
+export async function trackImpression(id: number): Promise<void> {
+  try {
+    const result = await sql`
+        UPDATE ad_contents
+        SET impressions = COALESCE(impressions, 0) + 1,
+            last_accessed_at = NOW(),
+            updated_at = NOW()
+        WHERE id = ${id} AND status = 'active'
+        RETURNING impressions, status
+    `;
+    
+    if (result.length === 0) {
+      console.warn(`Impression not tracked for content ${id}: content not found or not active`);
+    }
+  } catch (error) {
+    console.error(`Failed to track impression for content ${id}:`, error);
+    // エラーでも配信は継続する
+  }
+}
+
+// クリック数を増加
+export async function trackClick(id: number): Promise<void> {
+  try {
+    await sql`
+        UPDATE ad_contents
+        SET clicks = COALESCE(clicks, 0) + 1,
+            last_accessed_at = NOW(),
+            updated_at = NOW()
+        WHERE id = ${id} AND status = 'active'
+    `;
+  } catch (error) {
+    console.error('Failed to track click:', error);
+    // エラーでもリダイレクトは継続する
   }
 }
