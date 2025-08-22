@@ -93,6 +93,9 @@ export interface AdContent {
   created_by?: number;
   created_at?: string;
   updated_at?: string;
+  impressions?: number;
+  clicks?: number;
+  last_accessed_at?: string;
   // 関連データ
   template?: AdTemplate;
   url_template?: UrlTemplate;
@@ -136,6 +139,7 @@ export interface UpdateAdImageRequest {
   alt_text?: string;
   placeholder_name?: string;
 }
+
 
 // Import result interfaces
 export interface ImportedItem {
