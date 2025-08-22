@@ -114,7 +114,7 @@ export default function IntegrityMonitor() {
           <button
             onClick={fetchIntegrityStatus}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 cursor-pointer"
           >
             <span className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`}>↻</span>
             再チェック
@@ -125,7 +125,7 @@ export default function IntegrityMonitor() {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={fetchIntegrityStatus}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer"
           >
             再試行
           </button>
@@ -145,7 +145,7 @@ export default function IntegrityMonitor() {
         <button
           onClick={fetchIntegrityStatus}
           disabled={loading}
-          className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50"
+          className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 cursor-pointer"
         >
           <span className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`}>↻</span>
           再チェック
@@ -259,14 +259,14 @@ export default function IntegrityMonitor() {
                 <div className="mt-3 flex space-x-2">
                   <a
                     href={`/ads/${issue.contentId}/edit?returnTo=dashboard`}
-                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                    className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer"
                   >
                     コンテンツを編集
                   </a>
                   {issue.templateId && (
                     <a
                       href={`/ad-templates/${issue.templateId}/edit?returnTo=dashboard`}
-                      className="text-sm text-blue-600 hover:text-blue-800 underline"
+                      className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer"
                     >
                       広告テンプレートを編集
                     </a>
@@ -274,7 +274,7 @@ export default function IntegrityMonitor() {
                   {issue.urlTemplateId && (
                     <a
                       href={`/url-templates/${issue.urlTemplateId}/edit?returnTo=dashboard`}
-                      className="text-sm text-blue-600 hover:text-blue-800 underline"
+                      className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer"
                     >
                       URLテンプレートを編集
                     </a>

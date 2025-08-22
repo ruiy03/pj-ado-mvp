@@ -197,6 +197,16 @@ async function seed() {
             );
     `;
 
+    console.log('Adding delivery tracking columns to ad_contents...');
+
+    // Add delivery tracking columns to ad_contents table
+    await sql`
+        ALTER TABLE ad_contents 
+        ADD COLUMN IF NOT EXISTS impressions INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS clicks INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS last_accessed_at TIMESTAMP
+    `;
+
     // Create indexes for performance
     await sql`
         CREATE INDEX IF NOT EXISTS idx_ad_contents_template_id ON ad_contents(template_id);

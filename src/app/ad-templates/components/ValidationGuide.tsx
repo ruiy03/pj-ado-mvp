@@ -10,7 +10,7 @@ export default function ValidationGuide({showNamingGuide, setShowNamingGuide}: V
     <>
       {/* 命名規則ガイド - トグル式ヘッダー */}
       <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex justify-between items-center cursor-pointer hover:cursor-pointer"
+        <div className="flex justify-between items-center cursor-pointer"
              onClick={() => setShowNamingGuide(!showNamingGuide)}>
           <h4 className="text-sm font-semibold text-blue-900">プレースホルダー命名規則</h4>
           <button
