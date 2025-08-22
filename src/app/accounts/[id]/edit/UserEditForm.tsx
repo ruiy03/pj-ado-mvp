@@ -120,7 +120,7 @@ export default function UserEditForm({user}: UserEditFormProps) {
           </button>
           <button
             type="submit"
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition-colors"
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition-colors cursor-pointer"
           >
             更新
           </button>
