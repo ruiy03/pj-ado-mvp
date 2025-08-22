@@ -63,6 +63,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/lib/image-cleanup.ts` - Automated image cleanup utilities for orphaned and old unused images
 - `src/lib/image-utils.ts` - Common helper functions for image processing and content_data manipulation
 - `src/lib/consistency-checker.ts` - Template consistency analysis and integrity monitoring system
+- `src/lib/logger.ts` - Structured logging system with environment-aware configuration
 - `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
 - `middleware.ts` - Route protection middleware
 
@@ -77,7 +78,7 @@ Uses Neon PostgreSQL with the following structure:
 - **url_templates table**: `id` (serial), `name`, `url_template`, `parameters` (JSON), `description`, `created_at`,
   `updated_at`
 - **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON),
-  `status` (enum), `created_by` (FK), `created_at`, `updated_at`
+  `status` (enum), `created_by` (FK), `impressions` (INTEGER DEFAULT 0), `clicks` (INTEGER DEFAULT 0), `last_accessed_at` (TIMESTAMP), `created_at`, `updated_at`
 - **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`,
   `alt_text`, `placeholder_name`, `created_at`
 - **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via
@@ -111,6 +112,10 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/admin/cleanup-images` - Automated image cleanup API for removing orphaned and old unused images (Cron job)
 - `/api/integrity-check` - Template consistency validation API (GET)
 - `/api/templates/[id]/analyze-changes` - Template change impact analysis API (POST)
+- `/api/delivery/[id]` - Ad delivery API with impression tracking and CORS support (GET)
+- `/api/delivery/[id]/click` - Click tracking and redirect API (GET)
+- `/api/templates/[id]/sync-content` - Template change synchronization API (POST)
+- `/api/url-templates/[id]/sync-content` - URL template change synchronization API (POST)
 
 Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese
 text and icons.
@@ -210,6 +215,39 @@ The ad content management system provides comprehensive advertisement creation a
 Ad contents combine templates, URL templates, and user-uploaded images to create complete advertisement instances with
 comprehensive tracking and preview capabilities. The system includes automated image cleanup to prevent storage bloat.
 
+## Ad Delivery and Serving System
+
+The application includes a sophisticated ad delivery system for external integration, primarily designed for WordPress sites using custom shortcodes.
+
+### Delivery API
+- **Delivery endpoint**: `/api/delivery/[id]` - Serves processed ad HTML with impression tracking
+- **Click tracking**: `/api/delivery/[id]/click` - Handles click tracking and redirects to original URLs
+- **CORS enabled**: Full cross-origin support for WordPress integration with appropriate headers
+- **Caching**: 5-minute cache headers for performance optimization
+- **Automatic link conversion**: External links automatically converted to tracking URLs for analytics
+
+### WordPress Integration
+- **Shortcode system**: `[lmg_ad id="123"]` format for easy embedding in WordPress content
+- **Flexible attributes**: Support for cache time, CSS classes, dimensions, and styling options
+- **DeliveryCodeModal component**: Provides copy-paste shortcode generation interface with WordPress integration guide
+- **Debug mode**: Built-in debugging capabilities for troubleshooting delivery issues
+
+### Analytics Tracking
+- **Impression tracking**: Automatic view counting on ad delivery with database persistence
+- **Click tracking**: Transparent redirect tracking for all external links with referrer preservation
+- **Performance metrics**: Track impressions, clicks, and last access times for comprehensive analytics
+- **Database fields**: `impressions`, `clicks`, `last_accessed_at` columns in ad_contents table for tracking
+
+### Template Synchronization System
+
+Advanced system for maintaining data consistency when templates are modified:
+
+- **Change detection**: Automatic placeholder difference analysis between old and new template versions
+- **Content migration**: Automatic removal of orphaned placeholder data from ad_contents when templates change
+- **Integrity warnings**: Pre-modification impact analysis and user warnings via dedicated UI components
+- **Sync APIs**: Template and URL template synchronization endpoints for batch content updates
+- **Warning components**: `TemplateChangeWarning.tsx` and `UrlTemplateChangeWarning.tsx` for user notifications
+
 ## Template Consistency System
 
 The application includes a sophisticated template consistency monitoring system to ensure data integrity:
@@ -220,7 +258,9 @@ The application includes a sophisticated template consistency monitoring system 
 - **Integrity monitoring**: `getSystemIntegrityStatus()` provides system-wide health checks with severity classification
 - **API endpoint**: `/api/integrity-check` - REST API for template consistency validation
 - **Dashboard integration**: `IntegrityMonitor.tsx` component provides real-time consistency status in the dashboard
-- **Template change warnings**: `TemplateChangeWarning.tsx` alerts users of potential breaking changes before template updates
+- **Template change warnings**: `TemplateChangeWarning.tsx` and `UrlTemplateChangeWarning.tsx` alert users of potential breaking changes before template updates
+- **Shared components**: `ImportExportButtons.tsx` provides consistent import/export UI across features
+- **Delivery integration**: `DeliveryCodeModal.tsx` generates WordPress shortcodes for ad delivery
 
 The consistency system categorizes issues by severity (critical, warning, info) and provides detailed impact analysis including:
 - Placeholder mismatches between templates and content
