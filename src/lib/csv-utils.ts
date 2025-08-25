@@ -59,3 +59,44 @@ export function parseCSV(csvText: string): string[][] {
 
   return result;
 }
+
+/**
+ * オブジェクト配列からCSV文字列を生成
+ */
+export function generateCsvContent(data: Record<string, string>[]): string {
+  if (data.length === 0) {
+    return '';
+  }
+
+  // ヘッダー行を生成（最初のオブジェクトのキーを使用）
+  const headers = Object.keys(data[0]);
+  const headerRow = headers.map(header => escapeCsvField(header)).join(',');
+
+  // データ行を生成
+  const dataRows = data.map(row => {
+    return headers.map(header => {
+      const value = row[header] || '';
+      return escapeCsvField(value);
+    }).join(',');
+  });
+
+  // BOM付きCSV文字列を生成（日本語の文字化け対策）
+  const csvContent = [headerRow, ...dataRows].join('\n');
+  return '\ufeff' + csvContent; // BOM (Byte Order Mark) を先頭に追加
+}
+
+/**
+ * CSVフィールドのエスケープ処理
+ */
+function escapeCsvField(field: string): string {
+  // 文字列に変換
+  const stringField = String(field);
+  
+  // カンマ、改行、引用符が含まれている場合は引用符で囲む
+  if (stringField.includes(',') || stringField.includes('\n') || stringField.includes('\r') || stringField.includes('"')) {
+    // 引用符をエスケープして引用符で囲む
+    return '"' + stringField.replace(/"/g, '""') + '"';
+  }
+  
+  return stringField;
+}
