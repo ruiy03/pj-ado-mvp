@@ -294,6 +294,42 @@ export async function getAdUsageStats(): Promise<Array<{
 }
 
 /**
+ * 広告ID別の使用統計（簡潔版）を取得
+ */
+export async function getAdUsageStatsSimple(): Promise<Array<{
+  ad_id: string;
+  usage_count: number;
+  unique_posts: number;
+}>> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      throw new Error('認証が必要です');
+    }
+
+    const stats = await sql`
+      SELECT 
+        ad_id, 
+        COUNT(*) as usage_count,
+        COUNT(DISTINCT post_id) as unique_posts
+      FROM article_ad_mappings
+      GROUP BY ad_id
+      ORDER BY usage_count DESC
+    `;
+
+    return stats.map(stat => ({
+      ad_id: stat.ad_id,
+      usage_count: Number(stat.usage_count),
+      unique_posts: Number(stat.unique_posts)
+    }));
+
+  } catch (error) {
+    logger.error('広告使用統計（簡潔版）取得エラー:', error);
+    throw error;
+  }
+}
+
+/**
  * 最終同期日時を取得
  */
 export async function getLastSyncTime(): Promise<string | null> {
