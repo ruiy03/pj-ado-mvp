@@ -26,15 +26,66 @@ interface SystemIntegrityStatus {
   issues: IntegrityIssue[];
 }
 
+// キャッシュ管理のための定数とヘルパー関数
+const CACHE_KEY = 'integrity_check_cache';
+const CACHE_DURATION = 60 * 60 * 1000; // 1時間
+
+const getCachedData = (): SystemIntegrityStatus | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        return data;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to get cached integrity data:', error);
+  }
+  return null;
+};
+
+const setCachedData = (data: SystemIntegrityStatus) => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      data,
+      timestamp: Date.now()
+    }));
+  } catch (error) {
+    console.error('Failed to cache integrity data:', error);
+  }
+};
+
+const clearCache = () => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch (error) {
+    console.error('Failed to clear integrity cache:', error);
+  }
+};
+
 export default function IntegrityMonitor() {
   const [integrityStatus, setIntegrityStatus] = useState<SystemIntegrityStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFromCache, setIsFromCache] = useState(false);
 
-  const fetchIntegrityStatus = async () => {
+  const fetchIntegrityStatus = async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
+      setIsFromCache(false);
+      
+      // キャッシュをクリア（強制更新の場合）
+      if (forceRefresh) {
+        clearCache();
+      }
       
       const response = await fetch('/api/integrity-check');
       
@@ -45,6 +96,9 @@ export default function IntegrityMonitor() {
       
       const data = await response.json();
       setIntegrityStatus(data);
+      
+      // レスポンスをキャッシュに保存
+      setCachedData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '不明なエラーが発生しました');
     } finally {
@@ -52,8 +106,24 @@ export default function IntegrityMonitor() {
     }
   };
 
+  const loadCachedData = () => {
+    const cachedData = getCachedData();
+    if (cachedData) {
+      setIntegrityStatus(cachedData);
+      setIsFromCache(true);
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
-    fetchIntegrityStatus();
+    // 初回読み込み時はキャッシュから読み込む
+    const hasCachedData = loadCachedData();
+    
+    // キャッシュがない場合のみAPI呼び出し
+    if (!hasCachedData) {
+      fetchIntegrityStatus();
+    }
   }, []);
 
   const getStatusIcon = (status: string) => {
@@ -112,9 +182,9 @@ export default function IntegrityMonitor() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900">システム整合性監視</h3>
           <button
-            onClick={fetchIntegrityStatus}
+            onClick={() => fetchIntegrityStatus(true)}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 cursor-pointer"
+            className="btn-secondary"
           >
             <span className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`}>↻</span>
             再チェック
@@ -124,8 +194,8 @@ export default function IntegrityMonitor() {
           <div className="w-12 h-12 text-red-500 mx-auto mb-4 text-4xl flex items-center justify-center">✗</div>
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchIntegrityStatus}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer"
+            onClick={() => fetchIntegrityStatus(true)}
+            className="btn-danger"
           >
             再試行
           </button>
@@ -141,11 +211,13 @@ export default function IntegrityMonitor() {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium text-gray-900">システム整合性監視</h3>
+        <div className="flex items-center space-x-3">
+          <h3 className="text-lg font-medium text-gray-900">システム整合性監視</h3>
+        </div>
         <button
-          onClick={fetchIntegrityStatus}
+          onClick={() => fetchIntegrityStatus(true)}
           disabled={loading}
-          className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 cursor-pointer"
+          className="btn-secondary"
         >
           <span className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`}>↻</span>
           再チェック
@@ -163,7 +235,9 @@ export default function IntegrityMonitor() {
                 integrityStatus.overallStatus === 'warning' ? '警告あり' : '重大な問題あり'
               }
             </h4>
-            <p className="text-sm">最終チェック: {new Date(integrityStatus.lastChecked).toLocaleString('ja-JP')}</p>
+            <p className="text-sm">
+              最終チェック: {new Date(integrityStatus.lastChecked).toLocaleString('ja-JP')}
+            </p>
           </div>
         </div>
       </div>
