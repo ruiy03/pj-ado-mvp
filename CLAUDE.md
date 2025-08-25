@@ -14,7 +14,8 @@ NextAuth.js for authentication.
 - **Build**: `npm run build` - Creates production build
 - **Start production**: `npm start` - Starts production server
 - **Lint**: `npm run lint` - Runs ESLint with Next.js TypeScript rules
-- **Database setup**: `node scripts/seed.js` - Creates database tables and seeds test data (users, templates, URL templates)
+- **Database setup**: `node scripts/seed.js` - Creates database tables and seeds test data (users, templates, URL
+  templates)
 - **TypeScript compilation**: `npx tsc` - Type checking and compilation
 - **Image cleanup**: Image cleanup runs automatically via Vercel Cron Jobs (Sundays at 2 AM UTC)
 
@@ -27,6 +28,8 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - **Authentication config**: `auth.config.ts` and `auth.ts` handle NextAuth setup
 - **Middleware**: `middleware.ts` protects routes except public files and login
 - **Database**: Uses Neon PostgreSQL with bcrypt for password hashing
+- **WordPress sync actions**: `src/lib/wordpress-sync-actions.ts` handles WordPress API integration and mapping data
+  synchronization
 - **Session management**: Client-side session checking with `SessionProvider.tsx` and `ClientLayout.tsx` for conditional
   UI
 - **Protected components**: `ProtectedPage.tsx` and `ClientProtectedPage.tsx` redirect unauthenticated users to `/login`
@@ -78,9 +81,12 @@ Uses Neon PostgreSQL with the following structure:
 - **url_templates table**: `id` (serial), `name`, `url_template`, `parameters` (JSON), `description`, `created_at`,
   `updated_at`
 - **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON),
-  `status` (enum), `created_by` (FK), `impressions` (INTEGER DEFAULT 0), `clicks` (INTEGER DEFAULT 0), `last_accessed_at` (TIMESTAMP), `created_at`, `updated_at`
+  `status` (enum), `created_by` (FK), `impressions` (INTEGER DEFAULT 0), `clicks` (INTEGER DEFAULT 0),
+  `last_accessed_at` (TIMESTAMP), `created_at`, `updated_at`
 - **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`,
   `alt_text`, `placeholder_name`, `created_at`
+- **article_ad_mappings table**: `id` (serial), `post_id`, `post_title`, `post_url`, `ad_id`, `synced_at`, `created_at`,
+  `updated_at` - WordPress mapping data
 - **Test credentials**: admin@example.com / password123 (admin), editor@example.com / password123 (editor) - seeded via
   `scripts/seed.js`
 
@@ -142,8 +148,10 @@ text and icons.
 - Server components by default with selective client components (`'use client'` in Sidebar, LoginForm, ClientLayout,
   SessionProvider, etc.)
 - ESLint uses flat config format (`eslint.config.mjs`) with Next.js TypeScript rules
-- Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
+- Environment variables required: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `WORDPRESS_API_URL` (for article-ad
+  mapping sync), `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`
 - Authentication state determines entire application layout and available routes
+- **No test framework**: Currently no test scripts configured in package.json - testing strategy not implemented
 
 ## Template System Architecture
 
@@ -165,10 +173,12 @@ external links for SEO compliance.
 
 The application features comprehensive CSV import/export functionality for batch operations:
 
-- **CSV utilities**: `src/lib/csv-utils.ts` provides robust CSV parsing with support for quoted fields and multiline values
+- **CSV utilities**: `src/lib/csv-utils.ts` provides robust CSV parsing with support for quoted fields and multiline
+  values
 - **Import/export hooks**: `src/hooks/useImportExport.tsx` manages import/export state and operations
 - **Shared components**: `src/components/ImportExportButtons.tsx` provides consistent UI for import/export operations
-- **Result handling**: `ImportResult` interface provides detailed feedback including success count, errors, and item-level results
+- **Result handling**: `ImportResult` interface provides detailed feedback including success count, errors, and
+  item-level results
 - **Batch operations**: Support for creating, updating, and skipping items during import with detailed error reporting
 - **File format validation**: CSV format validation with helpful error messages and format guidance
 
@@ -217,9 +227,11 @@ comprehensive tracking and preview capabilities. The system includes automated i
 
 ## Ad Delivery and Serving System
 
-The application includes a sophisticated ad delivery system for external integration, primarily designed for WordPress sites using custom shortcodes.
+The application includes a sophisticated ad delivery system for external integration, primarily designed for WordPress
+sites using custom shortcodes.
 
 ### Delivery API
+
 - **Delivery endpoint**: `/api/delivery/[id]` - Serves processed ad HTML with impression tracking
 - **Click tracking**: `/api/delivery/[id]/click` - Handles click tracking and redirects to original URLs
 - **CORS enabled**: Full cross-origin support for WordPress integration with appropriate headers
@@ -227,12 +239,14 @@ The application includes a sophisticated ad delivery system for external integra
 - **Automatic link conversion**: External links automatically converted to tracking URLs for analytics
 
 ### WordPress Integration
+
 - **Shortcode system**: `[lmg_ad id="123"]` format for easy embedding in WordPress content
 - **Flexible attributes**: Support for cache time, CSS classes, dimensions, and styling options
 - **DeliveryCodeModal component**: Provides copy-paste shortcode generation interface with WordPress integration guide
 - **Debug mode**: Built-in debugging capabilities for troubleshooting delivery issues
 
 ### Analytics Tracking
+
 - **Impression tracking**: Automatic view counting on ad delivery with database persistence
 - **Click tracking**: Transparent redirect tracking for all external links with referrer preservation
 - **Performance metrics**: Track impressions, clicks, and last access times for comprehensive analytics
@@ -252,40 +266,71 @@ Advanced system for maintaining data consistency when templates are modified:
 
 The application includes a sophisticated template consistency monitoring system to ensure data integrity:
 
-- **Consistency checker**: `src/lib/consistency-checker.ts` provides comprehensive analysis of template changes and their impact on existing content
+- **Consistency checker**: `src/lib/consistency-checker.ts` provides comprehensive analysis of template changes and
+  their impact on existing content
 - **Change analysis**: `analyzeTemplateChanges()` detects placeholder differences and identifies affected ad contents
 - **URL template analysis**: `analyzeUrlTemplateChanges()` tracks URL parameter changes and content dependencies
 - **Integrity monitoring**: `getSystemIntegrityStatus()` provides system-wide health checks with severity classification
 - **API endpoint**: `/api/integrity-check` - REST API for template consistency validation
 - **Dashboard integration**: `IntegrityMonitor.tsx` component provides real-time consistency status in the dashboard
-- **Template change warnings**: `TemplateChangeWarning.tsx` and `UrlTemplateChangeWarning.tsx` alert users of potential breaking changes before template updates
+- **Template change warnings**: `TemplateChangeWarning.tsx` and `UrlTemplateChangeWarning.tsx` alert users of potential
+  breaking changes before template updates
 - **Shared components**: `ImportExportButtons.tsx` provides consistent import/export UI across features
 - **Delivery integration**: `DeliveryCodeModal.tsx` generates WordPress shortcodes for ad delivery
 
-The consistency system categorizes issues by severity (critical, warning, info) and provides detailed impact analysis including:
+The consistency system categorizes issues by severity (critical, warning, info) and provides detailed impact analysis
+including:
+
 - Placeholder mismatches between templates and content
-- Orphaned content with deleted templates  
+- Orphaned content with deleted templates
 - Missing or unused placeholders
 - Parameter mapping conflicts between ad templates and URL templates
+
+## Article-Ad Mapping System
+
+The application includes a WordPress integration system for managing article-advertisement relationships:
+
+- **WordPress sync**: `src/lib/wordpress-sync-actions.ts` provides server actions for fetching mapping data from
+  WordPress sites via custom API endpoints
+- **Mapping management**: `ArticleAdMappingClient.tsx` main interface with real-time data synchronization and usage
+  statistics
+- **Data visualization**: `MappingsTable.tsx` displays post-advertisement relationships, `UsageStatsCard.tsx` shows
+  usage analytics
+- **Sync functionality**: `SyncButton.tsx` triggers manual WordPress data synchronization with progress feedback
+- **Data export**: `ExportButtons.tsx` enables CSV export of mapping data for analysis
+- **WordPress API integration**: Custom endpoint `/wp-json/lmg-ad-manager/v1/shortcode-usage` for retrieving shortcode
+  usage data
+- **Database schema**: `article_ad_mappings` table stores WordPress post relationships with ad IDs and sync timestamps
+- **Authorization**: Admin and editor roles can perform sync operations and view mapping data
 
 ## Feature Structure & Routing
 
 The application follows a consistent page structure pattern with dedicated create/edit routes:
 
 ### Ad Templates (`/ad-templates`)
+
 - **Main page**: List view with search/filter capabilities
 - **Create route**: `/ad-templates/create` - Dedicated template creation page with `TemplateCreateForm.tsx`
 - **Edit route**: `/ad-templates/[id]/edit` - Template editing page with `TemplateEditForm.tsx`
 - **Import/Export**: CSV functionality with detailed result reporting
 
-### URL Templates (`/url-templates`)  
+### URL Templates (`/url-templates`)
+
 - **Main page**: Grid view with UTM parameter management
 - **Create route**: `/url-templates/create` - URL template creation with `UrlTemplateCreateForm.tsx`
 - **Edit route**: `/url-templates/[id]/edit` - URL template editing with `UrlTemplateEditForm.tsx`
 - **Preview component**: `UrlTemplatePreview.tsx` for real-time URL generation preview
 
 ### Ad Contents (`/ads`)
+
 - **Main page**: Content management with status-based filtering
-- **Create route**: `/ads/create` - Ad content creation with `AdContentCreateForm.tsx`  
+- **Create route**: `/ads/create` - Ad content creation with `AdContentCreateForm.tsx`
 - **Edit route**: `/ads/[id]/edit` - Content editing with `AdContentEditForm.tsx`
 - **List component**: `AdContentList.tsx` for organized content display
+
+### Article-Ad Mapping (`/article-ad-mapping`)
+
+- **Main page**: WordPress integration management with mapping table and usage statistics
+- **Components**: `ArticleAdMappingClient.tsx` (main interface), `MappingsTable.tsx` (mapping display),
+  `UsageStatsCard.tsx` (analytics), `SyncButton.tsx` (WordPress sync), `ExportButtons.tsx` (data export)
+- **WordPress sync**: Real-time synchronization with WordPress sites using custom API endpoints
