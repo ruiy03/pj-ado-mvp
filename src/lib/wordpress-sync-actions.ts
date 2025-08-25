@@ -19,6 +19,24 @@ export interface WordPressMappingData {
   }>;
 }
 
+// WordPress 全記事取得APIからのデータの型定義
+export interface WordPressAllArticlesData {
+  articles: WordPressArticle[];
+  total: number;
+  page: number;
+  per_page: number;
+}
+
+export interface WordPressArticle {
+  id: string;
+  title: string;
+  url: string;
+  published_at: string;
+  category: string;
+  has_ad: boolean;
+  ad_ids: string[];
+}
+
 export interface ArticleAdMapping {
   id: number;
   post_id: number;
@@ -348,5 +366,211 @@ export async function getLastSyncTime(): Promise<string | null> {
   } catch (error) {
     logger.error('最終同期日時取得エラー:', error);
     return null;
+  }
+}
+
+/**
+ * WordPress から全記事を取得（ページング対応）
+ */
+export async function fetchAllWordPressArticles(
+  page: number = 1,
+  perPage: number = 100
+): Promise<WordPressAllArticlesData | null> {
+  try {
+    if (!WORDPRESS_API_URL) {
+      throw new Error('WordPress API URL が設定されていません');
+    }
+
+    const apiUrl = `${WORDPRESS_API_URL}/wp-json/lmg-ad-manager/v1/all-articles?page=${page}&per_page=${perPage}`;
+    
+    logger.info('Fetching all WordPress articles from:', { url: apiUrl, page, perPage });
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // タイムアウト設定 (30秒)
+      signal: AbortSignal.timeout(30000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`WordPress API エラー: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data as WordPressAllArticlesData;
+    
+  } catch (error) {
+    logger.error('WordPress全記事取得エラー:', error);
+    return null;
+  }
+}
+
+/**
+ * WordPress から全記事を取得（全ページ一括取得）
+ */
+export async function fetchAllWordPressArticlesComplete(): Promise<WordPressArticle[]> {
+  try {
+    const allArticles: WordPressArticle[] = [];
+    let page = 1;
+    const perPage = 100;
+    let hasMore = true;
+
+    while (hasMore) {
+      const data = await fetchAllWordPressArticles(page, perPage);
+      
+      if (!data || data.articles.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      allArticles.push(...data.articles);
+      
+      // 次のページがあるかチェック
+      hasMore = data.articles.length === perPage && allArticles.length < data.total;
+      page++;
+    }
+
+    logger.info(`WordPress全記事取得完了: ${allArticles.length}件`);
+    return allArticles;
+    
+  } catch (error) {
+    logger.error('WordPress全記事一括取得エラー:', error);
+    return [];
+  }
+}
+
+// カバレッジ統計の型定義
+export interface CoverageStats {
+  totalArticles: number;
+  articlesWithAds: number;
+  articlesWithoutAds: number;
+  coveragePercentage: number;
+  categoryBreakdown: Record<string, {
+    total: number;
+    withAds: number;
+    withoutAds: number;
+    percentage: number;
+  }>;
+}
+
+/**
+ * 広告なし記事を取得
+ */
+export async function getArticlesWithoutAds(): Promise<{
+  articles: WordPressArticle[];
+  stats: CoverageStats;
+}> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      throw new Error('認証が必要です');
+    }
+
+    // WordPress から全記事を取得
+    const allArticles = await fetchAllWordPressArticlesComplete();
+    
+    if (allArticles.length === 0) {
+      return {
+        articles: [],
+        stats: {
+          totalArticles: 0,
+          articlesWithAds: 0,
+          articlesWithoutAds: 0,
+          coveragePercentage: 0,
+          categoryBreakdown: {}
+        }
+      };
+    }
+
+    // 広告なし記事を抽出（WordPress側のhas_adフラグを利用）
+    const articlesWithoutAds = allArticles.filter(article => !article.has_ad);
+
+    // カバレッジ統計を計算
+    const stats = calculateCoverageStats(allArticles);
+
+    logger.info('広告なし記事取得完了', {
+      total: allArticles.length,
+      withAds: allArticles.length - articlesWithoutAds.length,
+      withoutAds: articlesWithoutAds.length
+    });
+
+    return {
+      articles: articlesWithoutAds,
+      stats
+    };
+
+  } catch (error) {
+    logger.error('広告なし記事取得エラー:', error);
+    throw error;
+  }
+}
+
+/**
+ * カバレッジ統計を計算
+ */
+function calculateCoverageStats(articles: WordPressArticle[]): CoverageStats {
+  const totalArticles = articles.length;
+  const articlesWithAds = articles.filter(article => article.has_ad).length;
+  const articlesWithoutAds = totalArticles - articlesWithAds;
+  const coveragePercentage = totalArticles > 0 ? Math.round((articlesWithAds / totalArticles) * 100) : 0;
+
+  // カテゴリ別の統計を計算
+  const categoryBreakdown: Record<string, {
+    total: number;
+    withAds: number;
+    withoutAds: number;
+    percentage: number;
+  }> = {};
+
+  const categoryGroups = articles.reduce((groups, article) => {
+    const category = article.category || '未分類';
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(article);
+    return groups;
+  }, {} as Record<string, WordPressArticle[]>);
+
+  Object.entries(categoryGroups).forEach(([category, categoryArticles]) => {
+    const total = categoryArticles.length;
+    const withAds = categoryArticles.filter(article => article.has_ad).length;
+    const withoutAds = total - withAds;
+    const percentage = total > 0 ? Math.round((withAds / total) * 100) : 0;
+
+    categoryBreakdown[category] = {
+      total,
+      withAds,
+      withoutAds,
+      percentage
+    };
+  });
+
+  return {
+    totalArticles,
+    articlesWithAds,
+    articlesWithoutAds,
+    coveragePercentage,
+    categoryBreakdown
+  };
+}
+
+/**
+ * 広告カバレッジ統計のみを取得
+ */
+export async function getCoverageStats(): Promise<CoverageStats> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      throw new Error('認証が必要です');
+    }
+
+    const allArticles = await fetchAllWordPressArticlesComplete();
+    return calculateCoverageStats(allArticles);
+
+  } catch (error) {
+    logger.error('カバレッジ統計取得エラー:', error);
+    throw error;
   }
 }
