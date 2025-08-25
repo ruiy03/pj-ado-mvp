@@ -88,20 +88,24 @@ export default function AdContentCard({
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
           <div className="overflow-hidden">
             <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">{content.name}</h3>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(content.status)}`}>
-                {getStatusText(content.status)}
-              </span>
-              {content.template && (
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs whitespace-nowrap">
-                  {content.template.name}
+            <div className="flex flex-col gap-2 text-sm text-gray-600">
+              <div className="flex items-center">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(content.status)}`}>
+                  {getStatusText(content.status)}
                 </span>
-              )}
-              {content.url_template && (
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs whitespace-nowrap">
-                  {content.url_template.name}
-                </span>
-              )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {content.template && (
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs whitespace-nowrap">
+                    {content.template.name}
+                  </span>
+                )}
+                {content.url_template && (
+                  <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs whitespace-nowrap">
+                    {content.url_template.name}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

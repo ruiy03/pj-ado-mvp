@@ -94,7 +94,7 @@ export default function AdContentList() {
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {contents.map((content) => (
             <AdContentCard
               key={content.id}
