@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getArticleAdMappings, getAdUsageStats, getLastSyncTime } from '@/lib/wordpress-sync-actions';
+import React, {useState, useEffect} from 'react';
+import {useSearchParams} from 'next/navigation';
+import {getArticleAdMappings, getAdUsageStats, getLastSyncTime} from '@/lib/wordpress-sync-actions';
 import MappingsTable from './MappingsTable';
 import UsageStatsCard from './UsageStatsCard';
 import SyncButton from './SyncButton';
@@ -9,7 +10,7 @@ import ExportButtons from './ExportButtons';
 import ArticlesWithoutAdsTable from './ArticlesWithoutAdsTable';
 import CoverageStatsCard from './CoverageStatsCard';
 import ArticlesWithoutAdsExportButtons from './ArticlesWithoutAdsExportButtons';
-import type { ArticleAdMapping, WordPressArticle, CoverageStats } from '@/lib/wordpress-sync-actions';
+import type {ArticleAdMapping, WordPressArticle, CoverageStats} from '@/lib/wordpress-sync-actions';
 
 interface UsageStats {
   ad_id: string;
@@ -25,14 +26,16 @@ interface UsageStats {
 type TabType = 'mappings' | 'coverage';
 
 export default function ArticleAdMappingClient() {
+  const searchParams = useSearchParams();
   const [mappings, setMappings] = useState<ArticleAdMapping[]>([]);
   const [usageStats, setUsageStats] = useState<UsageStats[]>([]);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // 新機能の状態
-  const [activeTab, setActiveTab] = useState<TabType>('mappings');
+
+  // 新機能の状態 - URLパラメータから初期タブを決定
+  const initialTab = (searchParams.get('tab') as TabType) || 'mappings';
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [articlesWithoutAds, setArticlesWithoutAds] = useState<WordPressArticle[]>([]);
   const [coverageStats, setCoverageStats] = useState<CoverageStats | null>(null);
   const [articlesLoading, setArticlesLoading] = useState(false);
@@ -61,7 +64,12 @@ export default function ArticleAdMappingClient() {
 
   useEffect(() => {
     loadData();
-  }, []);
+
+    // URLパラメータでcoverageタブが指定されている場合、広告なし記事データも読み込む
+    if (initialTab === 'coverage') {
+      loadArticlesWithoutAds();
+    }
+  }, [initialTab]);
 
   const handleSyncComplete = () => {
     loadData();
@@ -76,11 +84,11 @@ export default function ArticleAdMappingClient() {
     try {
       setArticlesLoading(true);
       const response = await fetch('/api/articles/without-ads');
-      
+
       if (!response.ok) {
         throw new Error('広告なし記事の取得に失敗しました');
       }
-      
+
       const data = await response.json();
       setArticlesWithoutAds(data.articles);
       setCoverageStats(data.stats);
@@ -95,7 +103,7 @@ export default function ArticleAdMappingClient() {
   // タブが変更された時の処理
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-    
+
     // 初回の広告なし記事データ読み込み
     if (tab === 'coverage' && articlesWithoutAds.length === 0 && !coverageStats) {
       loadArticlesWithoutAds();
@@ -109,9 +117,9 @@ export default function ArticleAdMappingClient() {
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
           <div className="h-4 bg-gray-200 rounded w-2/3"></div>
         </div>
-        
+
         <div className="animate-pulse bg-gray-200 rounded-lg h-32"></div>
-        
+
         <div className="animate-pulse">
           <div className="bg-gray-200 rounded-lg h-96"></div>
         </div>
@@ -149,7 +157,7 @@ export default function ArticleAdMappingClient() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <SyncButton onSyncComplete={handleSyncComplete} />
+          <SyncButton onSyncComplete={handleSyncComplete}/>
         </div>
       </div>
 
@@ -233,16 +241,16 @@ export default function ArticleAdMappingClient() {
       {/* エクスポートボタン - タブに応じて表示 */}
       {activeTab === 'mappings' && (
         <div className="flex justify-end">
-          <ExportButtons />
+          <ExportButtons/>
         </div>
       )}
-      
+
       {activeTab === 'coverage' && (
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
             📤 広告なし記事のデータをエクスポートできます
           </div>
-          <ArticlesWithoutAdsExportButtons 
+          <ArticlesWithoutAdsExportButtons
             articles={articlesWithoutAds}
             isLoading={articlesLoading}
           />
@@ -259,8 +267,8 @@ export default function ArticleAdMappingClient() {
                 <h2 className="text-xl font-semibold text-gray-900">紐付け一覧</h2>
               </div>
               <div className="p-6">
-                <MappingsTable 
-                  mappings={mappings} 
+                <MappingsTable
+                  mappings={mappings}
                   lastSyncTime={lastSyncTime}
                 />
               </div>
@@ -269,7 +277,7 @@ export default function ArticleAdMappingClient() {
 
           {/* 使用統計 */}
           <div className="xl:col-span-1">
-            <UsageStatsCard usageStats={usageStats} />
+            <UsageStatsCard usageStats={usageStats}/>
           </div>
         </div>
       )}
@@ -277,13 +285,13 @@ export default function ArticleAdMappingClient() {
       {activeTab === 'coverage' && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2">
-            <ArticlesWithoutAdsTable 
+            <ArticlesWithoutAdsTable
               articles={articlesWithoutAds}
               isLoading={articlesLoading}
             />
           </div>
           <div className="xl:col-span-1">
-            <CoverageStatsCard 
+            <CoverageStatsCard
               stats={coverageStats || {
                 totalArticles: 0,
                 articlesWithAds: 0,
@@ -309,7 +317,8 @@ export default function ArticleAdMappingClient() {
                 • 記事と広告の紐付けは <strong>WordPress側で管理</strong> されています
               </p>
               <p>
-                • ショートコード <code className="bg-blue-100 px-2 py-1 rounded">[lmg_ad id=&quot;xxx&quot;]</code> を記事に埋め込むことで紐付けを作成
+                • ショートコード <code className="bg-blue-100 px-2 py-1 rounded">[lmg_ad
+                id=&quot;xxx&quot;]</code> を記事に埋め込むことで紐付けを作成
               </p>
               <p>
                 • この画面では紐付け状況の <strong>閲覧・レポート出力のみ</strong> 可能です
@@ -350,10 +359,12 @@ export default function ArticleAdMappingClient() {
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li>
-                <strong>WordPress側</strong>: REST APIエンドポイント <code className="bg-yellow-100 px-2 py-1 rounded">/wp-json/lmg-ad-manager/v1/shortcode-usage</code> の実装
+                <strong>WordPress側</strong>: REST APIエンドポイント <code
+                className="bg-yellow-100 px-2 py-1 rounded">/wp-json/lmg-ad-manager/v1/shortcode-usage</code> の実装
               </li>
               <li>
-                <strong>管理システム側</strong>: 環境変数 <code className="bg-yellow-100 px-2 py-1 rounded">WORDPRESS_API_URL</code> の設定
+                <strong>管理システム側</strong>: 環境変数 <code
+                className="bg-yellow-100 px-2 py-1 rounded">WORDPRESS_API_URL</code> の設定
               </li>
             </ul>
             <p className="mt-3">

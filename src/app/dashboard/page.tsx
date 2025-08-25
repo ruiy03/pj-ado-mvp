@@ -23,7 +23,7 @@ interface Activity {
 }
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const {data: session} = useSession();
   const [stats, setStats] = useState<DashboardStats>({
     totalAds: 0,
     adTemplates: 0,
@@ -33,7 +33,7 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const isAdmin = session?.user?.role === 'admin';
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function Dashboard() {
       // 並列でAPIを呼び出し
       const [
         templatesRes,
-        urlTemplatesRes, 
+        urlTemplatesRes,
         adContentsRes,
         articlesRes
       ] = await Promise.allSettled([
@@ -58,19 +58,19 @@ export default function Dashboard() {
       ]);
 
       // 各レスポンスを処理
-      const templates = templatesRes.status === 'fulfilled' && templatesRes.value.ok 
+      const templates = templatesRes.status === 'fulfilled' && templatesRes.value.ok
         ? await templatesRes.value.json() : [];
-      
+
       const urlTemplatesData = urlTemplatesRes.status === 'fulfilled' && urlTemplatesRes.value.ok
         ? await urlTemplatesRes.value.json() : {templates: []};
       const urlTemplates = urlTemplatesData.templates || [];
-      
+
       const adContents = adContentsRes.status === 'fulfilled' && adContentsRes.value.ok
         ? await adContentsRes.value.json() : [];
-      
+
       const articlesData = articlesRes.status === 'fulfilled' && articlesRes.value.ok
-        ? await articlesRes.value.json() : { stats: {} };
-      
+        ? await articlesRes.value.json() : {stats: {}};
+
       setStats({
         totalAds: adContents.length,
         adTemplates: templates.length,
@@ -143,7 +143,7 @@ export default function Dashboard() {
       <ClientProtectedPage>
         <div className="space-y-6">
           <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
-          
+
           {/* スケルトンローディング用のカード */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
@@ -194,7 +194,9 @@ export default function Dashboard() {
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    <path fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clipRule="evenodd"/>
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -212,21 +214,24 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            <Link href="/ad-templates" className="block hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+            <Link href="/ad-templates"
+                  className="block hover:shadow-lg transition-all duration-200 transform hover:scale-105">
               <div className="bg-white p-6 rounded-lg shadow cursor-pointer">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">広告テンプレート数</h3>
                 <p className="text-3xl font-bold text-green-600">{stats.adTemplates}</p>
               </div>
             </Link>
 
-            <Link href="/url-templates" className="block hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+            <Link href="/url-templates"
+                  className="block hover:shadow-lg transition-all duration-200 transform hover:scale-105">
               <div className="bg-white p-6 rounded-lg shadow cursor-pointer">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">URLテンプレート数</h3>
                 <p className="text-3xl font-bold text-purple-600">{stats.urlTemplates}</p>
               </div>
             </Link>
 
-            <Link href="/article-ad-mapping" className="block hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+            <Link href="/article-ad-mapping?tab=coverage"
+                  className="block hover:shadow-lg transition-all duration-200 transform hover:scale-105">
               <div className="bg-white p-6 rounded-lg shadow cursor-pointer">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">広告なし記事数</h3>
                 <p className="text-3xl font-bold text-orange-600">{stats.articlesWithoutAds}</p>
@@ -236,7 +241,7 @@ export default function Dashboard() {
 
           {/* 管理者用の整合性監視 */}
           {isAdmin && (
-            <IntegrityMonitor />
+            <IntegrityMonitor/>
           )}
 
           <div className="bg-white p-6 rounded-lg shadow">
