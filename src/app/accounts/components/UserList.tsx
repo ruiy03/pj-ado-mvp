@@ -8,7 +8,7 @@ interface UserListProps {
   currentUserId: number;
   onEdit: (user: User) => void;
   onDelete: (userId: number) => void;
-  onAddUser: () => void;
+  onAddUser?: () => void;
 }
 
 export default function UserList({
@@ -17,7 +17,6 @@ export default function UserList({
   currentUserId,
   onEdit,
   onDelete,
-  onAddUser,
 }: UserListProps) {
   const getRoleBadgeColor = (role: UserRole) => 
     role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';

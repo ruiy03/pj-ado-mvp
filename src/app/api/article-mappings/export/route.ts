@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {getArticleAdMappings, getAdUsageStatsSimple} from '@/lib/wordpress-sync-actions';
 import {auth} from '@/auth';
 import {generateCsvContent} from '@/lib/csv-utils';
-import type {User} from '@/lib/definitions';
+import type {SessionUser} from '@/lib/definitions';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = session.user as User;
+    const user = session.user as SessionUser;
     if (user.role !== 'admin' && user.role !== 'editor') {
       return NextResponse.json(
         {error: '権限がありません'},

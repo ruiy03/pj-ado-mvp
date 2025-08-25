@@ -10,6 +10,13 @@ export interface User {
   updated_at?: string;
 }
 
+export interface SessionUser {
+  id: string;
+  email: string;
+  name?: string;
+  role: UserRole;
+}
+
 export interface CreateUserRequest {
   name: string;
   email: string;

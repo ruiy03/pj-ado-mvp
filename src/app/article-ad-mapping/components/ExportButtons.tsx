@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, FileText, BarChart } from 'lucide-react';
+import { FileText, BarChart } from 'lucide-react';
 
 export default function ExportButtons() {
   const [isExporting, setIsExporting] = useState<string | null>(null);

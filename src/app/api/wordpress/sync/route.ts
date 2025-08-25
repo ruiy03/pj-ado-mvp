@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { performWordPressSync } from '@/lib/wordpress-sync-actions';
 import { auth } from '@/auth';
-import type { User } from '@/lib/definitions';
+import type { SessionUser } from '@/lib/definitions';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // 認証チェック
     const session = await auth();
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = session.user as User;
+    const user = session.user as SessionUser;
     if (user.role !== 'admin' && user.role !== 'editor') {
       return NextResponse.json(
         { error: '権限がありません' },

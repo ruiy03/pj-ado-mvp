@@ -1,11 +1,10 @@
 'use server';
 
-import {z} from 'zod';
 import {revalidatePath} from 'next/cache';
 import {auth} from '@/auth';
 import {sql} from '@/lib/db';
 import {logger} from '@/lib/logger';
-import type {User} from './definitions';
+import type {SessionUser} from './definitions';
 
 // WordPress API から取得するデータの型定義
 export interface WordPressMappingData {
@@ -85,7 +84,7 @@ export async function syncWordPressMappings(data: WordPressMappingData): Promise
       throw new Error('認証が必要です');
     }
 
-    const user = session.user as User;
+    const user = session.user as SessionUser;
     if (user.role !== 'admin' && user.role !== 'editor') {
       throw new Error('権限がありません');
     }

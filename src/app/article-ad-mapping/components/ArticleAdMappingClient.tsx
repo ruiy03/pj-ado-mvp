@@ -166,7 +166,7 @@ export default function ArticleAdMappingClient() {
             • 記事と広告の紐付けは <strong>WordPress側で管理</strong> されています
           </p>
           <p>
-            • ショートコード <code className="bg-blue-100 px-2 py-1 rounded">[lmg_ad id="xxx"]</code> を記事に埋め込むことで紐付けを作成
+            • ショートコード <code className="bg-blue-100 px-2 py-1 rounded">[lmg_ad id=&quot;xxx&quot;]</code> を記事に埋め込むことで紐付けを作成
           </p>
           <p>
             • この画面では紐付け状況の <strong>閲覧・レポート出力のみ</strong> 可能です
