@@ -13,11 +13,12 @@ export async function GET() {
 
     const templates = await getAdTemplates();
 
-    // CSV ヘッダー
-    const csvHeaders = ['name', 'html', 'placeholders', 'description'];
+    // CSV ヘッダー（IDを最初の列に追加）
+    const csvHeaders = ['id', 'name', 'html', 'placeholders', 'description'];
 
     // CSV データ生成
     const csvRows = templates.map(template => [
+      template.id.toString(), // IDは数値なのでそのまま
       `"${template.name.replace(/"/g, '""')}"`, // エスケープ処理
       `"${template.html.replace(/"/g, '""')}"`,
       `"${extractPlaceholders(template.html).join(',').replace(/"/g, '""')}"`,
