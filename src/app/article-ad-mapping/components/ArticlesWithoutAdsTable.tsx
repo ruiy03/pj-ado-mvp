@@ -208,12 +208,15 @@ export default function ArticlesWithoutAdsTable({
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedArticles.map((article) => (
                   <tr key={article.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
                         <div className="text-sm font-medium text-gray-900">
                           {article.title}
                         </div>
-                        <div className="text-sm text-gray-500 truncate max-w-md">
+                        <div className="text-xs text-gray-500">
+                          ID: {article.id}
+                        </div>
+                        <div className="text-xs text-gray-400 truncate max-w-xs">
                           {article.url}
                         </div>
                       </div>

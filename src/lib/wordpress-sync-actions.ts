@@ -271,6 +271,7 @@ export async function getArticleAdMappings(): Promise<ArticleAdMapping[]> {
  */
 export async function getAdUsageStats(): Promise<Array<{
   ad_id: string;
+  ad_name?: string;
   usage_count: number;
   posts: Array<{
     post_id: number;
@@ -286,20 +287,23 @@ export async function getAdUsageStats(): Promise<Array<{
 
     const stats = await sql`
       SELECT 
-        ad_id, 
+        aam.ad_id, 
+        ac.name as ad_name,
         COUNT(*) as usage_count,
         array_agg(json_build_object(
-          'post_id', post_id, 
-          'post_title', post_title, 
-          'post_url', post_url
+          'post_id', aam.post_id, 
+          'post_title', aam.post_title, 
+          'post_url', aam.post_url
         )) as posts
-      FROM article_ad_mappings
-      GROUP BY ad_id
+      FROM article_ad_mappings aam
+      LEFT JOIN ad_contents ac ON aam.ad_id = ac.id::text
+      GROUP BY aam.ad_id, ac.name
       ORDER BY usage_count DESC
     `;
 
     return stats.map(stat => ({
       ad_id: stat.ad_id,
+      ad_name: stat.ad_name || undefined,
       usage_count: Number(stat.usage_count),
       posts: stat.posts || []
     }));

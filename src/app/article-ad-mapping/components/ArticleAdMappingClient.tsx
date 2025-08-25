@@ -13,6 +13,7 @@ import type { ArticleAdMapping, WordPressArticle, CoverageStats } from '@/lib/wo
 
 interface UsageStats {
   ad_id: string;
+  ad_name?: string; // 広告名を追加
   usage_count: number;
   posts: Array<{
     post_id: number;
