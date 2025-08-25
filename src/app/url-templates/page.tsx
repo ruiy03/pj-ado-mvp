@@ -13,6 +13,7 @@ export default function UrlTemplates() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleImportClick = () => {
     setShowImportForm(true);
@@ -110,21 +111,42 @@ export default function UrlTemplates() {
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">URLテンプレート管理</h1>
-          <ImportExportButtons
-            onImport={handleImportClick}
-            onExport={handleExport}
-            onCreateClick={handleCreateClick}
-            onImportCancel={handleImportCancel}
-            onImportResultClose={handleImportResultClose}
-            exportLoading={exportLoading}
-            showImportForm={showImportForm}
-            importLoading={importLoading}
-            importResult={importResult}
-            handleImport={handleImport}
-            showFormsInline={true}
-          />
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-3xl font-bold text-gray-900">URLテンプレート管理</h1>
+            <ImportExportButtons
+              onImport={handleImportClick}
+              onExport={handleExport}
+              onCreateClick={handleCreateClick}
+              onImportCancel={handleImportCancel}
+              onImportResultClose={handleImportResultClose}
+              exportLoading={exportLoading}
+              showImportForm={showImportForm}
+              importLoading={importLoading}
+              importResult={importResult}
+              handleImport={handleImport}
+              showFormsInline={true}
+            />
+          </div>
+
+          {/* 検索フィールド */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="relative max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="テンプレート名、URL、説明で検索..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
         </div>
 
         {/* インポートフォームをタイトル下に表示 */}
@@ -142,7 +164,7 @@ export default function UrlTemplates() {
           onImportCancel={handleImportCancel}
           onImportResultClose={handleImportResultClose}
         />
-        <UrlTemplateList/>
+        <UrlTemplateList searchTerm={searchTerm}/>
       </div>
     </ClientProtectedPage>
   );
