@@ -6,6 +6,7 @@ import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
 
 import {useTemplates} from './hooks/useTemplates';
 import ImportExportButtons from './components/ImportExportButtons';
+import {ImportFormSection} from '@/components/ImportExportButtons';
 import TemplateForm from './components/TemplateForm';
 import TemplatePreview from './components/TemplatePreview';
 import TemplateList from './components/TemplateList';
@@ -289,8 +290,25 @@ export default function AdTemplates() {
               importLoading={importLoading}
               importResult={importResult}
               handleImport={handleImport}
+              showFormsInline={true}
             />
           </div>
+
+          {/* インポートフォームをタイトル下に表示 */}
+          <ImportFormSection
+            itemType="テンプレート"
+            csvFormat={{
+              header: "name,html,placeholders,description",
+              example: '"サンプル広告","<a href={{linkUrl}}><div>{{title}}</div></a>","title,linkUrl","サンプルの説明"',
+              description: "placeholders列には、プレースホルダーをカンマで区切って記載してください"
+            }}
+            showImportForm={showImportForm}
+            importLoading={importLoading}
+            importResult={importResult}
+            handleImport={handleImport}
+            onImportCancel={handleImportCancel}
+            onImportResultClose={handleImportResultClose}
+          />
 
           {showCreateForm && (
             <div ref={formRef} className="bg-white rounded-lg shadow p-6">

@@ -3,6 +3,7 @@
 import ClientProtectedPage from '@/components/ClientProtectedPage';
 import UrlTemplateList from './components/UrlTemplateList';
 import ImportExportButtons from './components/ImportExportButtons';
+import {ImportFormSection} from '@/components/ImportExportButtons';
 import {useState} from 'react';
 import type {ImportResult} from '@/lib/definitions';
 
@@ -122,8 +123,25 @@ export default function UrlTemplates() {
             importLoading={importLoading}
             importResult={importResult}
             handleImport={handleImport}
+            showFormsInline={true}
           />
         </div>
+
+        {/* インポートフォームをタイトル下に表示 */}
+        <ImportFormSection
+          itemType="URLテンプレート"
+          csvFormat={{
+            header: "name,url_template,parameters,description",
+            example: '"Google Analytics","https://example.com?utm_source={{source}}","{\"utm_source\":\"website\",\"utm_medium\":\"banner\"}","サンプルURL"',
+            description: "parameters列には、JSONオブジェクトを文字列として記載してください"
+          }}
+          showImportForm={showImportForm}
+          importLoading={importLoading}
+          importResult={importResult}
+          handleImport={handleImport}
+          onImportCancel={handleImportCancel}
+          onImportResultClose={handleImportResultClose}
+        />
         <UrlTemplateList/>
       </div>
     </ClientProtectedPage>
