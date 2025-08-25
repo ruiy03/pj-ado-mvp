@@ -1,21 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ExternalLink, Search } from 'lucide-react';
-import type { ArticleAdMapping } from '@/lib/wordpress-sync-actions';
+import React, {useState} from 'react';
+import {ExternalLink, Search, Eye} from 'lucide-react';
+import Link from 'next/link';
+import type {ArticleAdMapping} from '@/lib/wordpress-sync-actions';
 
 interface MappingsTableProps {
   mappings: ArticleAdMapping[];
   lastSyncTime: string | null;
 }
 
-export default function MappingsTable({ mappings, lastSyncTime }: MappingsTableProps) {
+export default function MappingsTable({mappings, lastSyncTime}: MappingsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAdId, setFilterAdId] = useState('');
 
   // フィルタリング処理
   const filteredMappings = mappings.filter(mapping => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       mapping.post_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mapping.post_url?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mapping.post_id.toString().includes(searchTerm);
@@ -38,7 +39,7 @@ export default function MappingsTable({ mappings, lastSyncTime }: MappingsTableP
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex justify-between items-center text-sm text-blue-800">
           <span>
-            <strong>総件数:</strong> {mappings.length}件 
+            <strong>総件数:</strong> {mappings.length}件
             {filteredMappings.length !== mappings.length && (
               <span className="ml-2">
                 (フィルター後: {filteredMappings.length}件)
@@ -61,7 +62,7 @@ export default function MappingsTable({ mappings, lastSyncTime }: MappingsTableP
               記事検索
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
               <input
                 type="text"
                 placeholder="記事タイトル、URL、IDで検索..."
@@ -101,7 +102,7 @@ export default function MappingsTable({ mappings, lastSyncTime }: MappingsTableP
               {mappings.length === 0 ? '紐付け情報がありません' : '検索結果がありません'}
             </h3>
             <p className="text-gray-400">
-              {mappings.length === 0 
+              {mappings.length === 0
                 ? 'WordPress同期を実行して紐付け情報を取得してください'
                 : '検索条件を変更してお試しください'
               }
@@ -111,58 +112,67 @@ export default function MappingsTable({ mappings, lastSyncTime }: MappingsTableP
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    記事情報
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    広告ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    最終同期日時
-                  </th>
-                </tr>
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  記事情報
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  広告ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  最終同期日時
+                </th>
+              </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredMappings.map((mapping) => (
-                  <tr key={`${mapping.post_id}-${mapping.ad_id}`} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
+              {filteredMappings.map((mapping) => (
+                <tr key={`${mapping.post_id}-${mapping.ad_id}`} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
                           <span className="text-sm font-medium text-gray-900">
                             {mapping.post_title || `記事ID: ${mapping.post_id}`}
                           </span>
-                          {mapping.post_url && (
-                            <a
-                              href={mapping.post_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-500 hover:text-blue-700"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ID: {mapping.post_id}
-                        </div>
                         {mapping.post_url && (
-                          <div className="text-xs text-gray-400 truncate max-w-xs">
-                            {mapping.post_url}
-                          </div>
+                          <a
+                            href={mapping.post_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <ExternalLink className="w-4 h-4"/>
+                          </a>
                         )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        {mapping.ad_id}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(mapping.synced_at)}
-                    </td>
-                  </tr>
-                ))}
+                      <div className="text-xs text-gray-500">
+                        ID: {mapping.post_id}
+                      </div>
+                      {mapping.post_url && (
+                        <div className="text-xs text-gray-400 truncate max-w-xs">
+                          {mapping.post_url}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          {mapping.ad_id}
+                        </span>
+                      <Link
+                        href={`/ads/${mapping.ad_id}/edit`}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <Eye className="w-4 h-4"/>
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(mapping.synced_at)}
+                  </td>
+                </tr>
+              ))}
               </tbody>
             </table>
           </div>

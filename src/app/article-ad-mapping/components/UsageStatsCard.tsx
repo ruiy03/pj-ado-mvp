@@ -5,6 +5,7 @@ import { BarChart3, ExternalLink } from 'lucide-react';
 
 interface UsageStats {
   ad_id: string;
+  ad_name?: string; // 広告名を追加
   usage_count: number;
   posts: Array<{
     post_id: number;
@@ -43,8 +44,15 @@ export default function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
         {usageStats.slice(0, 10).map((stat) => (
           <div key={stat.ad_id} className="p-6">
             <div className="flex justify-between items-start mb-4">
-              <div>
-                <h4 className="text-lg font-medium text-gray-900">{stat.ad_id}</h4>
+              <div className="space-y-1">
+                <h4 className="text-lg font-medium text-gray-900">
+                  {stat.ad_name || stat.ad_id}
+                </h4>
+                {stat.ad_name && (
+                  <p className="text-sm text-purple-600 font-medium">
+                    広告ID: {stat.ad_id}
+                  </p>
+                )}
                 <p className="text-sm text-gray-500">
                   {stat.usage_count}件の記事で使用
                 </p>
