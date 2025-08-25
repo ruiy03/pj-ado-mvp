@@ -27,7 +27,7 @@ export default function Sidebar() {
         {href: '/ad-templates', label: '広告テンプレート', icon: '📝'},
         {href: '/url-templates', label: 'URLテンプレート', icon: '🔗'},
         {href: '/ads', label: '広告管理', icon: '🎨'},
-        {href: '/article-ad-mapping', label: '記事と広告の紐付け', icon: '🔗'}
+        {href: '/article-ad-mapping', label: '記事広告マッピング', icon: '🔗'}
       );
     }
 

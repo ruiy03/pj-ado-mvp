@@ -224,6 +224,31 @@ async function seed() {
         CREATE INDEX IF NOT EXISTS idx_ad_images_ad_content_id ON ad_images(ad_content_id);
     `;
 
+    console.log('Creating article_ad_mappings table...');
+
+    // Create article_ad_mappings table
+    await sql`
+        CREATE TABLE IF NOT EXISTS article_ad_mappings (
+            id SERIAL PRIMARY KEY,
+            post_id INTEGER NOT NULL,
+            post_title VARCHAR(255),
+            post_url TEXT,
+            ad_id VARCHAR(50) NOT NULL,
+            synced_at TIMESTAMP DEFAULT NOW(),
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(post_id, ad_id)
+        )
+    `;
+
+    // Create indexes for article_ad_mappings
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_article_ad_mappings_post_id ON article_ad_mappings(post_id);
+    `;
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_article_ad_mappings_ad_id ON article_ad_mappings(ad_id);
+    `;
+
     console.log('Seeding users...');
 
     // Hash passwords

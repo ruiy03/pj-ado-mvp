@@ -22,7 +22,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 - **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、改良されたCSV インポート/エクスポート機能（詳細な結果表示付き）
 - **📢 広告コンテンツ管理** - 広告の作成・編集・画像アップロード・プレビュー機能、ステータス管理
 - **🚀 広告配信システム** - WordPress連携用ショートコード生成、外部サイト向け広告配信API、インプレッション・クリック追跡
-- **🔗 記事と広告の紐付け管理** - コンテンツと広告の関連付け
+- **🔗 記事広告マッピング管理** - WordPress連携による記事と広告の紐付け管理、使用統計分析、同期機能
 - **👥 アカウント管理** - 専用ページによるユーザーアカウント管理システム（作成・編集・削除）
 - **🗑️ 画像クリーンアップ機能** - 未使用画像の自動削除、Vercel Cron Jobs対応
 - **🔍 テンプレート整合性チェック機能** - テンプレート変更時の影響分析とデータ整合性監視
@@ -57,6 +57,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    NEXTAUTH_URL=http://localhost:3000
    BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
    CRON_SECRET=your_cron_secret_key
+   WORDPRESS_API_URL=your_wordpress_site_url
    ```
 
 4. **データベースの初期化**
@@ -64,7 +65,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    node scripts/seed.js
    ```
    >
-   このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
+   このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブル、article_ad_mappingsテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
    ```bash
@@ -178,6 +179,13 @@ pj-ado-mvp/
 │   │   │   └── hooks/        # URLテンプレート管理hooks
 │   │   │       └── useUrlTemplates.tsx # URLテンプレート状態管理
 │   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
+│   │   │   ├── components/   # 記事広告マッピング専用コンポーネント
+│   │   │   │   ├── ArticleAdMappingClient.tsx # メイン管理インターフェース
+│   │   │   │   ├── MappingsTable.tsx # マッピング一覧表示
+│   │   │   │   ├── UsageStatsCard.tsx # 使用統計カード
+│   │   │   │   ├── SyncButton.tsx # WordPress同期ボタン
+│   │   │   │   └── ExportButtons.tsx # データエクスポート機能
+│   │   │   └── page.tsx      # 記事広告マッピングメインページ
 │   │   ├── accounts/         # アカウント管理
 │   │   │   ├── components/   # アカウント管理専用コンポーネント
 │   │   │   │   ├── AccountsClient.tsx # アカウント管理クライアント
@@ -215,6 +223,7 @@ pj-ado-mvp/
 │   │   ├── template-actions.ts # テンプレート管理アクション
 │   │   ├── template-utils.ts   # テンプレートユーティリティ
 │   │   ├── url-template-actions.ts # URLテンプレート管理アクション
+│   │   ├── wordpress-sync-actions.ts # WordPress API連携・マッピング同期
 │   │   ├── template-utils/  # テンプレート処理専用モジュール
 │   │   │   ├── validation.ts # HTMLとプレースホルダーのバリデーション
 │   │   │   ├── placeholder-extraction.ts # プレースホルダー抽出
@@ -284,6 +293,13 @@ pj-ado-mvp/
 | エンドポイント                     | メソッド | 説明                 | 認証     |
 |-----------------------------|------|--------------------|--------|
 | `/api/admin/cleanup-images` | GET  | 自動画像クリーンアップ（Cron用） | Cron認証 |
+
+### 記事広告マッピング API
+
+| エンドポイント                   | メソッド | 説明                 | 認証 |
+|---------------------------|------|---------------------|----| 
+| WordPress API統合         | -    | -                   | -  |
+| `/wp-json/lmg-ad-manager/v1/shortcode-usage` | GET | WordPress側ショートコード使用状況取得 | WordPress認証 |
 
 ### 認証 API
 
@@ -571,6 +587,59 @@ WordPressサイトでの広告表示は以下のショートコードを使用�
 - **パラメータマッピング**: 広告テンプレートとURLテンプレート間の自動関連付け
 - **標準UTMパラメータサポート**: utm_source、utm_medium等の標準パラメータ対応
 - **JSON設定サポート**: カスタムパラメータの柔軟な管理
+
+## 記事広告マッピングシステム
+
+WordPress連携による記事と広告の自動紐付け管理システムです：
+
+### 主要機能
+
+- **WordPress API連携**: カスタムエンドポイント経由でのショートコード使用状況取得
+- **マッピングデータ同期**: WordPress投稿と広告IDの関連付けデータの自動同期
+- **使用統計分析**: 広告別・記事別の使用状況とパフォーマンス分析
+- **データエクスポート**: CSV形式での詳細データエクスポート機能
+- **リアルタイム同期**: 手動・自動での同期機能によるデータ整合性維持
+
+### WordPress統合要件
+
+WordPress側に以下のカスタムAPIエンドポイントが必要：
+
+```php
+// WordPress プラグインまたは functions.php
+add_action('rest_api_init', function () {
+  register_rest_route('lmg-ad-manager/v1', '/shortcode-usage', [
+    'methods' => 'GET',
+    'callback' => 'get_shortcode_usage_data',
+  ]);
+});
+```
+
+### データ構造
+
+```json
+{
+  "shortcodes": [
+    {
+      "ad_id": "123",
+      "count": 5,
+      "posts": [
+        {
+          "id": 456,
+          "title": "記事タイトル",
+          "url": "https://example.com/post/456"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 技術的特徴
+
+- **AbortSignal対応**: 30秒タイムアウト設定によるAPIリクエスト制御
+- **エラーハンドリング**: 包括的なエラー処理とログ出力
+- **権限管理**: 管理者・編集者権限でのデータ同期・閲覧制御
+- **データベース統合**: `article_ad_mappings`テーブルでの永続化
 
 ## 開発者向け情報
 
