@@ -122,6 +122,7 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/delivery/[id]/click` - Click tracking and redirect API (GET)
 - `/api/templates/[id]/sync-content` - Template change synchronization API (POST)
 - `/api/url-templates/[id]/sync-content` - URL template change synchronization API (POST)
+- `/api/article-mappings/export` - Article-ad mapping data export API (GET)
 
 Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese
 text and icons.
@@ -298,8 +299,10 @@ The application includes a WordPress integration system for managing article-adv
   usage analytics
 - **Sync functionality**: `SyncButton.tsx` triggers manual WordPress data synchronization with progress feedback
 - **Data export**: `ExportButtons.tsx` enables CSV export of mapping data for analysis
+- **Articles without ads tracking**: `ArticlesWithoutAdsTable.tsx` displays WordPress articles that don't have associated advertisements with filtering and sorting capabilities
+- **Enhanced usage statistics**: Usage stats now include ad names and enhanced UI for better data visualization
 - **WordPress API integration**: Custom endpoint `/wp-json/lmg-ad-manager/v1/shortcode-usage` for retrieving shortcode
-  usage data
+  usage data, plus `/wp-json/wp/v2/posts` for comprehensive article retrieval
 - **Database schema**: `article_ad_mappings` table stores WordPress post relationships with ad IDs and sync timestamps
 - **Authorization**: Admin and editor roles can perform sync operations and view mapping data
 
