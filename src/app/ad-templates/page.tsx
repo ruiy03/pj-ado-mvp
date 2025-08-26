@@ -39,7 +39,9 @@ export default function AdTemplates() {
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [previewSize, setPreviewSize] = useState<'desktop' | 'mobile'>('desktop');
   const [autoNofollow, setAutoNofollow] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
+  const [descriptionFilter, setDescriptionFilter] = useState('');
+  const [placeholderFilter, setPlaceholderFilter] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
 
   // 影響分析とテンプレート変更警告の状態
@@ -296,23 +298,103 @@ export default function AdTemplates() {
               />
             </div>
 
-            {/* 検索フィールド */}
+            {/* 分離された検索フィールド */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="relative max-w-md">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                  </svg>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="テンプレート名で検索"
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="テンプレート名、説明、プレースホルダーで検索..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="説明で検索"
+                    value={descriptionFilter}
+                    onChange={(e) => setDescriptionFilter(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="プレースホルダーで検索"
+                    value={placeholderFilter}
+                    onChange={(e) => setPlaceholderFilter(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
+              {(nameFilter || descriptionFilter || placeholderFilter) && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="text-sm text-gray-500">フィルター条件:</span>
+                  {nameFilter && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      名前: {nameFilter}
+                      <button
+                        onClick={() => setNameFilter('')}
+                        className="ml-1 text-blue-600 hover:text-blue-800 cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  )}
+                  {descriptionFilter && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      説明: {descriptionFilter}
+                      <button
+                        onClick={() => setDescriptionFilter('')}
+                        className="ml-1 text-green-600 hover:text-green-800 cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  )}
+                  {placeholderFilter && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      プレースホルダー: {placeholderFilter}
+                      <button
+                        onClick={() => setPlaceholderFilter('')}
+                        className="ml-1 text-purple-600 hover:text-purple-800 cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setNameFilter('');
+                      setDescriptionFilter('');
+                      setPlaceholderFilter('');
+                    }}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer"
+                  >
+                    すべてクリア
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -368,7 +450,9 @@ export default function AdTemplates() {
           <TemplateList
             templates={templates}
             onDelete={handleDelete}
-            searchTerm={searchTerm}
+            nameFilter={nameFilter}
+            descriptionFilter={descriptionFilter}
+            placeholderFilter={placeholderFilter}
           />
         </div>
 

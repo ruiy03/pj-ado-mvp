@@ -2,38 +2,43 @@
 
 import type {AdTemplate} from '@/lib/definitions';
 import {getSampleValue, extractPlaceholders} from '@/lib/template-utils';
+import {formatDateJST} from '@/lib/date-utils';
 import Link from 'next/link';
 
 interface TemplateListProps {
   templates: AdTemplate[];
   onDelete: (id: number) => void;
-  searchTerm?: string;
+  nameFilter?: string;
+  descriptionFilter?: string;
+  placeholderFilter?: string;
 }
 
-export default function TemplateList({templates, onDelete, searchTerm}: TemplateListProps) {
-  // 検索フィルタリング
+export default function TemplateList({templates, onDelete, nameFilter, descriptionFilter, placeholderFilter}: TemplateListProps) {
+  // 分離されたフィルターで検索
   const filteredTemplates = templates.filter(template => {
-    if (!searchTerm) return true;
+    // 名前フィルター
+    if (nameFilter && !template.name.toLowerCase().includes(nameFilter.toLowerCase())) {
+      return false;
+    }
 
-    const searchLower = searchTerm.toLowerCase();
-    const placeholders = extractPlaceholders(template.html);
+    // 説明フィルター
+    if (descriptionFilter && (!template.description || !template.description.toLowerCase().includes(descriptionFilter.toLowerCase()))) {
+      return false;
+    }
 
-    return (
-      template.name.toLowerCase().includes(searchLower) ||
-      (template.description && template.description.toLowerCase().includes(searchLower)) ||
-      placeholders.some(placeholder => placeholder.toLowerCase().includes(searchLower))
-    );
+    // プレースホルダーフィルター
+    if (placeholderFilter) {
+      const placeholders = extractPlaceholders(template.html);
+      const hasMatchingPlaceholder = placeholders.some(placeholder => 
+        placeholder.toLowerCase().includes(placeholderFilter.toLowerCase())
+      );
+      if (!hasMatchingPlaceholder) {
+        return false;
+      }
+    }
+
+    return true;
   });
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const renderTemplate = (template: AdTemplate) => {
     let previewHtml = template.html;
@@ -79,14 +84,21 @@ export default function TemplateList({templates, onDelete, searchTerm}: Template
   }
 
   // 検索結果が0件の場合
-  if (filteredTemplates.length === 0 && searchTerm) {
+  const hasActiveFilters = nameFilter || descriptionFilter || placeholderFilter;
+  if (filteredTemplates.length === 0 && hasActiveFilters) {
+    const activeFilterTexts = [];
+    if (nameFilter) activeFilterTexts.push(`名前: "${nameFilter}"`);
+    if (descriptionFilter) activeFilterTexts.push(`説明: "${descriptionFilter}"`);
+    if (placeholderFilter) activeFilterTexts.push(`プレースホルダー: "${placeholderFilter}"`);
+    
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="p-6">
           <div className="text-center py-12 text-gray-500">
             <div className="text-4xl mb-4">🔍</div>
             <h3 className="text-lg font-medium mb-2">検索結果がありません</h3>
-            <p className="text-gray-400">「{searchTerm}」に該当するテンプレートが見つかりませんでした</p>
+            <p className="text-gray-400 mb-2">以下のフィルター条件に該当するテンプレートが見つかりませんでした：</p>
+            <p className="text-sm text-gray-500">{activeFilterTexts.join(', ')}</p>
           </div>
         </div>
       </div>
@@ -149,9 +161,9 @@ export default function TemplateList({templates, onDelete, searchTerm}: Template
                   </div>
                   <div
                     className="px-4 py-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-                    <span>作成: {formatDate(template.created_at)}</span>
+                    <span>作成: {formatDateJST(template.created_at)}</span>
                     {template.updated_at !== template.created_at && (
-                      <span>更新: {formatDate(template.updated_at)}</span>
+                      <span>更新: {formatDateJST(template.updated_at)}</span>
                     )}
                   </div>
                 </div>
