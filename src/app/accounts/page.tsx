@@ -15,8 +15,8 @@ export default async function AccountsPage() {
         </div>
       </ProtectedPage>
     );
-  } catch (error) {
-    console.error('Failed to load users:', error);
+  } catch (_error) {
+    // Failed to load users - handled by error display
     return (
       <ProtectedPage>
         <div className="max-w-7xl mx-auto">

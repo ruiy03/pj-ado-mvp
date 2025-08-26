@@ -42,7 +42,7 @@ export default function AdContentEditForm({content, templates, urlTemplates}: Ad
       const redirectPath = returnTo === 'dashboard' ? '/dashboard' : '/ads';
       router.push(redirectPath);
     } catch (error) {
-      console.error('Ad content update error:', error);
+      // Ad content update error - handled in alert message
       alert(error instanceof Error ? error.message : 'エラーが発生しました');
     }
   };

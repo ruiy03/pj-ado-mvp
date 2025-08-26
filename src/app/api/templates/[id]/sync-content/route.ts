@@ -121,8 +121,8 @@ export async function POST(
       }
     });
 
-  } catch (error) {
-    console.error('Content sync failed:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       { error: 'ad_contentsの同期に失敗しました' },
       { status: 500 }

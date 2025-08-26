@@ -73,10 +73,10 @@ export default function ArticlesWithoutAdsExportButtons({
       URL.revokeObjectURL(url);
 
       // 成功通知（オプション）
-      console.log(`CSVエクスポート完了: ${articles.length}件の記事をエクスポートしました`);
+      // CSVエクスポート完了 - export completed successfully
 
-    } catch (error) {
-      console.error('CSVエクスポートエラー:', error);
+    } catch (_error) {
+      // CSVエクスポートエラー - handled in alert message
       alert('エクスポート中にエラーが発生しました');
     } finally {
       setIsExporting(false);
@@ -135,10 +135,10 @@ export default function ArticlesWithoutAdsExportButtons({
       // URLを解放
       URL.revokeObjectURL(url);
 
-      console.log(`JSONエクスポート完了: ${articles.length}件の記事をエクスポートしました`);
+      // JSONエクスポート完了 - export completed successfully
 
-    } catch (error) {
-      console.error('JSONエクスポートエラー:', error);
+    } catch (_error) {
+      // JSONエクスポートエラー - handled in alert message
       alert('エクスポート中にエラーが発生しました');
     } finally {
       setIsExporting(false);

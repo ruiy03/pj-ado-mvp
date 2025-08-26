@@ -38,7 +38,7 @@ export default function TemplateCreateForm() {
 
       router.push('/ad-templates');
     } catch (error) {
-      console.error('Template creation error:', error);
+      // Template creation error - handled in error message display
       const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました';
       
       // プレースホルダー検証エラーの場合は詳細なメッセージを表示

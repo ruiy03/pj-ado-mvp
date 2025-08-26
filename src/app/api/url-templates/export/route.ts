@@ -39,8 +39,8 @@ export async function GET() {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
-  } catch (error) {
-    console.error('Failed to export URL templates:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: 'URLテンプレートのエクスポートに失敗しました'},
       {status: 500}

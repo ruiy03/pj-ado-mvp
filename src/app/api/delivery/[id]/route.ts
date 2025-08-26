@@ -41,8 +41,8 @@ export async function GET(
     // インプレッション数を増加
     try {
       await trackImpression(contentId);
-    } catch (error) {
-      console.error(`Impression tracking failed for content ${contentId}:`, error);
+    } catch (_error) {
+      // Impression tracking failed - continuing with delivery
     }
 
     // 広告HTMLを生成
@@ -121,8 +121,8 @@ export async function GET(
     response.headers.set('Cache-Control', 'public, max-age=300');
 
     return response;
-  } catch (error) {
-    console.error('Delivery API error:', error);
+  } catch (_error) {
+    // Delivery API error - handled by error response
     return NextResponse.json(
       {error: '配信エラーが発生しました'},
       {status: 500}

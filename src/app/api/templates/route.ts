@@ -14,8 +14,8 @@ export async function GET() {
 
     const templates = await getAdTemplates();
     return NextResponse.json(templates);
-  } catch (error) {
-    console.error('Failed to fetch templates:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: '広告テンプレートの取得に失敗しました'},
       {status: 500}
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newTemplate, {status: 201});
   } catch (error) {
-    console.error('Failed to create template:', error);
+    // Error handled - logging removed
     return NextResponse.json(
       {error: error instanceof Error ? error.message : '広告テンプレートの作成に失敗しました'},
       {status: 500}

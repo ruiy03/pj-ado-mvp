@@ -27,7 +27,7 @@ function validateTemplateData(data: Record<string, string>): CreateAdTemplateReq
     const mismatched = csvPlaceholders.filter(p => !actualPlaceholders.includes(p)) ||
       actualPlaceholders.filter(p => !csvPlaceholders.includes(p));
     if (mismatched.length > 0) {
-      console.warn(`Template "${data.name}": CSV placeholders don't match HTML placeholders`);
+      // Template placeholders mismatch warning - continuing import
     }
   }
 
@@ -175,8 +175,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
 
-  } catch (error) {
-    console.error('Failed to import templates:', error);
+  } catch (_error) {
+    // Failed to import templates - handled by error response
     return NextResponse.json(
       {error: 'テンプレートのインポートに失敗しました'},
       {status: 500}

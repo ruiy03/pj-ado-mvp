@@ -27,7 +27,7 @@ export default function AdContentCreateForm({ templates, urlTemplates }: AdConte
 
       router.push('/ads');
     } catch (error) {
-      console.error('Ad content creation error:', error);
+      // Ad content creation error - handled in alert message
       alert(error instanceof Error ? error.message : 'エラーが発生しました');
     }
   };

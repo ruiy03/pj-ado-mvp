@@ -77,7 +77,7 @@ export default function AdTemplates() {
           }
         } catch (analysisError) {
           // 影響分析に失敗した場合は詳細なエラー情報を表示
-          console.error('影響分析に失敗しました:', analysisError);
+          // 影響分析に失敗しました - error handled by user confirmation dialog
           const errorMessage = analysisError instanceof Error ? analysisError.message : '不明なエラー';
           const continueUpdate = confirm(`影響分析に失敗しました:\n${errorMessage}\n\n更新を続行しますか？`);
 

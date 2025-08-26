@@ -45,8 +45,8 @@ export async function POST() {
       }
     });
 
-  } catch (error) {
-    console.error('WordPress同期APIエラー:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       { error: 'サーバーエラーが発生しました' },
       { status: 500 }

@@ -33,8 +33,8 @@ export async function GET(
     }
 
     return NextResponse.json(content);
-  } catch (error) {
-    console.error('Failed to fetch ad content:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: '広告コンテンツの取得に失敗しました'},
       {status: 500}
@@ -76,8 +76,8 @@ export async function PUT(
       if (Object.keys(imageUrls).length > 0) {
         try {
           await associateImagesWithAdContent(updatedContent.id, imageUrls);
-        } catch (error) {
-          console.error('Failed to associate images:', error);
+        } catch (_error) {
+          // Error handled - logging removed
           // 画像の関連付けに失敗してもadContentの更新は成功扱いとする
         }
       }
@@ -85,7 +85,7 @@ export async function PUT(
 
     return NextResponse.json(updatedContent);
   } catch (error) {
-    console.error('Failed to update ad content:', error);
+    // Error handled - logging removed
     return NextResponse.json(
       {error: error instanceof Error ? error.message : '広告コンテンツの更新に失敗しました'},
       {status: 500}
@@ -118,7 +118,7 @@ export async function DELETE(
     await deleteAdContent(id);
     return NextResponse.json({success: true});
   } catch (error) {
-    console.error('Failed to delete ad content:', error);
+    // Error handled - logging removed
     return NextResponse.json(
       {error: error instanceof Error ? error.message : '広告コンテンツの削除に失敗しました'},
       {status: 500}

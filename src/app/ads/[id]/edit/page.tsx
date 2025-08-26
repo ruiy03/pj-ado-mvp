@@ -49,8 +49,8 @@ export default async function EditAdContentPage({ params }: EditAdContentPagePro
         </div>
       </ProtectedPage>
     );
-  } catch (error) {
-    console.error('Failed to load ad content:', error);
+  } catch (_error) {
+    // Failed to load ad content - handled by notFound()
     notFound();
   }
 }

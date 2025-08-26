@@ -78,8 +78,8 @@ export default function AdPreview({
 
       setRenderedHtml(html);
       setError(null);
-    } catch (err) {
-      console.error('HTML rendering error:', err);
+    } catch (_err) {
+      // HTML rendering error - handled in error state display
       setError('プレビューの生成に失敗しました');
       setRenderedHtml('');
     }

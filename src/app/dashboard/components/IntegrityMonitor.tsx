@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import {formatDateTimeJST} from '@/lib/date-utils';
 
 interface IntegrityIssue {
@@ -33,41 +33,41 @@ const CACHE_DURATION = 60 * 60 * 1000; // 1時間
 
 const getCachedData = (): SystemIntegrityStatus | null => {
   if (typeof window === 'undefined') return null;
-  
+
   try {
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
-      const { data, timestamp } = JSON.parse(cached);
+      const {data, timestamp} = JSON.parse(cached);
       if (Date.now() - timestamp < CACHE_DURATION) {
         return data;
       }
     }
-  } catch (error) {
-    console.error('Failed to get cached integrity data:', error);
+  } catch (_error) {
+    // Failed to get cached integrity data - ignore silently
   }
   return null;
 };
 
 const setCachedData = (data: SystemIntegrityStatus) => {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       data,
       timestamp: Date.now()
     }));
-  } catch (error) {
-    console.error('Failed to cache integrity data:', error);
+  } catch (_error) {
+    // Failed to cache integrity data - ignore silently
   }
 };
 
 const clearCache = () => {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.removeItem(CACHE_KEY);
-  } catch (error) {
-    console.error('Failed to clear integrity cache:', error);
+  } catch (_error) {
+    // Failed to clear integrity cache - ignore silently
   }
 };
 
@@ -80,22 +80,22 @@ export default function IntegrityMonitor() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // キャッシュをクリア（強制更新の場合）
       if (forceRefresh) {
         clearCache();
       }
-      
+
       const response = await fetch('/api/integrity-check');
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || '整合性チェックに失敗しました');
       }
-      
+
       const data = await response.json();
       setIntegrityStatus(data);
-      
+
       // レスポンスをキャッシュに保存
       setCachedData(data);
     } catch (err) {
@@ -117,7 +117,7 @@ export default function IntegrityMonitor() {
   useEffect(() => {
     // 初回読み込み時はキャッシュから読み込む
     const hasCachedData = loadCachedData();
-    
+
     // キャッシュがない場合のみAPI呼び出し
     if (!hasCachedData) {
       fetchIntegrityStatus();
@@ -182,7 +182,7 @@ export default function IntegrityMonitor() {
           <button
             onClick={() => fetchIntegrityStatus(true)}
             disabled={loading}
-            className="btn-secondary"
+            className="btn-secondary cursor-pointe"
           >
             <span className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`}>↻</span>
             再チェック
@@ -215,7 +215,7 @@ export default function IntegrityMonitor() {
         <button
           onClick={() => fetchIntegrityStatus(true)}
           disabled={loading}
-          className="btn-secondary"
+          className="btn-secondary cursor-pointer"
         >
           <span className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`}>↻</span>
           再チェック
@@ -229,9 +229,9 @@ export default function IntegrityMonitor() {
           <div>
             <h4 className="font-medium">
               システム全体: {
-                integrityStatus.overallStatus === 'healthy' ? '正常' :
+              integrityStatus.overallStatus === 'healthy' ? '正常' :
                 integrityStatus.overallStatus === 'warning' ? '警告あり' : '重大な問題あり'
-              }
+            }
             </h4>
             <p className="text-sm">
               最終チェック: {formatDateTimeJST(integrityStatus.lastChecked)}
@@ -272,21 +272,21 @@ export default function IntegrityMonitor() {
                   </div>
                   <span className="text-sm text-gray-500">ID: {issue.contentId}</span>
                 </div>
-                
+
                 {issue.templateName && (
                   <div className="text-sm text-gray-600 mb-2">
                     広告テンプレート: {issue.templateName} (ID: {issue.templateId})
                   </div>
                 )}
-                
+
                 {issue.urlTemplateName && (
                   <div className="text-sm text-gray-600 mb-2">
                     URLテンプレート: {issue.urlTemplateName} (ID: {issue.urlTemplateId})
                   </div>
                 )}
-                
+
                 <p className="text-sm text-gray-700">{issue.description}</p>
-                
+
                 {/* 詳細なプレースホルダー情報 */}
                 {(issue.missingPlaceholders && issue.missingPlaceholders.length > 0) && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
@@ -300,7 +300,7 @@ export default function IntegrityMonitor() {
                     </div>
                   </div>
                 )}
-                
+
                 {(issue.unusedAdTemplatePlaceholders && issue.unusedAdTemplatePlaceholders.length > 0) && (
                   <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
                     <strong className="text-orange-700">広告テンプレート未使用:</strong>
@@ -313,7 +313,7 @@ export default function IntegrityMonitor() {
                     </div>
                   </div>
                 )}
-                
+
                 {(issue.unusedUrlTemplatePlaceholders && issue.unusedUrlTemplatePlaceholders.length > 0) && (
                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
                     <strong className="text-blue-700">URLテンプレート未定義:</strong>
@@ -327,7 +327,7 @@ export default function IntegrityMonitor() {
                     <p className="text-xs text-blue-600 mt-1">これらのパラメータがcontent_dataで定義されていません</p>
                   </div>
                 )}
-                
+
                 <div className="mt-3 flex space-x-2">
                   <a
                     href={`/ads/${issue.contentId}/edit?returnTo=dashboard`}

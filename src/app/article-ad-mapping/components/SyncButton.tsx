@@ -50,7 +50,7 @@ export default function SyncButton({ onSyncComplete }: SyncButtonProps) {
 
       // エラーがある場合は警告として表示
       if (data.result.errors && data.result.errors.length > 0) {
-        console.warn('同期中にエラーが発生:', data.result.errors);
+        // 同期中にエラーが発生 - displaying to user
         
         // 部分的な成功の場合はメッセージに追加
         setMessage(prev => 
@@ -67,7 +67,7 @@ export default function SyncButton({ onSyncComplete }: SyncButtonProps) {
       }, 3000);
 
     } catch (error) {
-      console.error('WordPress同期エラー:', error);
+      // WordPress同期エラー - handled in error message display
       const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
       setError(errorMessage);
 

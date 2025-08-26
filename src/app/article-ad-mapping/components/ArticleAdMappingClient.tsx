@@ -54,8 +54,8 @@ export default function ArticleAdMappingClient() {
       setMappings(mappingsData);
       setUsageStats(usageStatsData);
       setLastSyncTime(lastSyncData);
-    } catch (err) {
-      console.error('データ読み込みエラー:', err);
+    } catch (_err) {
+      // データ読み込みエラー - handled in error state display
       setError('データの読み込みに失敗しました');
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ export default function ArticleAdMappingClient() {
       setArticlesWithoutAds(data.articles);
       setCoverageStats(data.stats);
     } catch (err) {
-      console.error('広告なし記事読み込みエラー:', err);
+      // 広告なし記事読み込みエラー - handled in error state display
       setError(err instanceof Error ? err.message : '広告なし記事の取得に失敗しました');
     } finally {
       setArticlesLoading(false);

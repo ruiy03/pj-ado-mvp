@@ -129,11 +129,9 @@ export default function Dashboard() {
       }
 
       setActivities(recentActivities);
-    } catch (error) {
+    } catch (_error) {
       setError('データの取得に失敗しました');
-      if (process.env.NODE_ENV !== 'test') {
-        console.error('Dashboard data fetch error:', error);
-      }
+      // Dashboard data fetch error - error already handled in catch block
     } finally {
       setLoading(false);
     }
