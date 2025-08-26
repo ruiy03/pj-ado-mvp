@@ -5,23 +5,38 @@ import UrlTemplateCard from './UrlTemplateCard';
 import Link from 'next/link';
 
 interface UrlTemplateListProps {
-  searchTerm?: string;
+  nameFilter?: string;
+  descriptionFilter?: string;
+  urlParameterFilter?: string;
 }
 
-export default function UrlTemplateList({searchTerm}: UrlTemplateListProps) {
+export default function UrlTemplateList({nameFilter, descriptionFilter, urlParameterFilter}: UrlTemplateListProps) {
   const {templates, loading, error, setError, deleteTemplate} = useUrlTemplates();
 
-  // 検索フィルタリング
+  // 分離されたフィルターで検索
   const filteredTemplates = templates.filter(template => {
-    if (!searchTerm) return true;
+    // 名前フィルター
+    if (nameFilter && !template.name.toLowerCase().includes(nameFilter.toLowerCase())) {
+      return false;
+    }
 
-    const searchLower = searchTerm.toLowerCase();
+    // 説明フィルター
+    if (descriptionFilter && (!template.description || !template.description.toLowerCase().includes(descriptionFilter.toLowerCase()))) {
+      return false;
+    }
 
-    return (
-      template.name.toLowerCase().includes(searchLower) ||
-      template.url_template.toLowerCase().includes(searchLower) ||
-      (template.description && template.description.toLowerCase().includes(searchLower))
-    );
+    // URLパラメータフィルター（URLテンプレートとパラメーターJSONの両方を検索）
+    if (urlParameterFilter) {
+      const urlParameterLower = urlParameterFilter.toLowerCase();
+      const urlTemplateMatch = template.url_template.toLowerCase().includes(urlParameterLower);
+      const parametersMatch = template.parameters && 
+        JSON.stringify(template.parameters).toLowerCase().includes(urlParameterLower);
+      if (!urlTemplateMatch && !parametersMatch) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   const handleDeleteTemplate = async (id: number) => {
@@ -57,19 +72,31 @@ export default function UrlTemplateList({searchTerm}: UrlTemplateListProps) {
       )}
 
       {/* 検索結果が0件の場合 */}
-      {filteredTemplates.length === 0 && searchTerm && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6">
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-4xl mb-4">🔍</div>
-              <h3 className="text-lg font-medium mb-2">検索結果がありません</h3>
-              <p className="text-gray-400">「{searchTerm}」に該当するURLテンプレートが見つかりませんでした</p>
+      {(() => {
+        const hasActiveFilters = nameFilter || descriptionFilter || urlParameterFilter;
+        if (filteredTemplates.length === 0 && hasActiveFilters) {
+          const activeFilterTexts = [];
+          if (nameFilter) activeFilterTexts.push(`名前: "${nameFilter}"`);
+          if (descriptionFilter) activeFilterTexts.push(`説明: "${descriptionFilter}"`);
+          if (urlParameterFilter) activeFilterTexts.push(`URLパラメータ: "${urlParameterFilter}"`);
+          
+          return (
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6">
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-4">🔍</div>
+                  <h3 className="text-lg font-medium mb-2">検索結果がありません</h3>
+                  <p className="text-gray-400 mb-2">以下のフィルター条件に該当するURLテンプレートが見つかりませんでした：</p>
+                  <p className="text-sm text-gray-500">{activeFilterTexts.join(', ')}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        }
+        return null;
+      })()}
 
-      {filteredTemplates.length === 0 && !searchTerm ? (
+      {filteredTemplates.length === 0 && !nameFilter && !descriptionFilter && !urlParameterFilter ? (
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
             <div className="text-center py-12 text-gray-500">
