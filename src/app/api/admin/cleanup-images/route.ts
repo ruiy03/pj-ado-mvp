@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // 失敗がある場合は警告ログ
     if (result.stats.failedDeletions > 0) {
-      console.warn(`Automated cleanup had ${result.stats.failedDeletions} failures:`, result.stats.errors);
+      // Warning handled - logging removed
     }
 
     return NextResponse.json({
@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
       stats: result.stats,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error('Automated cleanup failed:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {
         success: false,

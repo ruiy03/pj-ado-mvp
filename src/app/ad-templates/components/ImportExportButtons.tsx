@@ -14,6 +14,7 @@ interface ImportExportButtonsProps {
   importLoading: boolean;
   importResult: ImportResult | null;
   handleImport: (e: React.FormEvent) => void;
+  showFormsInline?: boolean;
 }
 
 export default function ImportExportButtons(props: ImportExportButtonsProps) {

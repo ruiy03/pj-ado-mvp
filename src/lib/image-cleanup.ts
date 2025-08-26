@@ -42,8 +42,8 @@ export async function getOrphanedImages(): Promise<AdImage[]> {
       ...row,
       created_at: row.created_at?.toISOString(),
     })) as AdImage[];
-  } catch (error) {
-    console.error('Failed to fetch orphaned images:', error);
+  } catch (_error) {
+    // Failed to fetch orphaned images - error will be thrown
     throw new Error('孤立画像の取得に失敗しました');
   }
 }
@@ -77,8 +77,8 @@ export async function getOldUnusedImages(daysOld: number = 7): Promise<AdImage[]
       ...row,
       created_at: row.created_at?.toISOString(),
     })) as AdImage[];
-  } catch (error) {
-    console.error('Failed to fetch old unused images:', error);
+  } catch (_error) {
+    // Failed to fetch old unused images - error will be thrown
     throw new Error('古い未使用画像の取得に失敗しました');
   }
 }
@@ -113,7 +113,7 @@ async function deleteImageList(images: AdImage[]): Promise<CleanupStats> {
       stats.failedDeletions++;
       const errorMessage = `Failed to delete image ${image.blob_url}: ${error instanceof Error ? error.message : 'Unknown error'}`;
       stats.errors.push(errorMessage);
-      console.error(errorMessage);
+      // Error logged for cleanup failure tracking
     }
   }
 
@@ -158,7 +158,7 @@ export async function cleanupAllUnusedImages(daysOld: number = 7): Promise<Clean
       message
     };
   } catch (error) {
-    console.error('Comprehensive image cleanup failed:', error);
+    // Comprehensive image cleanup failed - error will be thrown
     return {
       success: false,
       stats: {

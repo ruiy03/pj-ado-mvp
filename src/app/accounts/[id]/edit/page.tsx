@@ -39,8 +39,8 @@ export default async function EditUserPage({params}: EditUserPageProps) {
         </div>
       </ProtectedPage>
     );
-  } catch (error) {
-    console.error('Failed to load user:', error);
+  } catch (_error) {
+    // Failed to load user - handled by notFound()
     notFound();
   }
 }

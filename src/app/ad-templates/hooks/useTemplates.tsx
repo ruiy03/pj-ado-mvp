@@ -37,7 +37,7 @@ export function useTemplates() {
 
   const createTemplate = async (formData: CreateAdTemplateRequest, autoNofollow: boolean) => {
     const htmlToSave = autoNofollow ? addNofollowToLinks(formData.html) : formData.html;
-    const dataToSave = { ...formData, html: htmlToSave };
+    const dataToSave = {...formData, html: htmlToSave};
 
     const response = await fetch('/api/templates', {
       method: 'POST',
@@ -57,9 +57,9 @@ export function useTemplates() {
 
   const analyzeTemplateChanges = async (id: number, formData: CreateAdTemplateRequest) => {
     const htmlToAnalyze = formData.html;
-    
-    console.log('Starting template analysis:', { id, formData: { ...formData, html: htmlToAnalyze.substring(0, 100) + '...' } });
-    
+
+    // Starting template analysis
+
     const response = await fetch('/api/integrity-check', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -70,22 +70,22 @@ export function useTemplates() {
       }),
     });
 
-    console.log('Analysis response status:', response.status);
+    // Analysis response received
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Analysis error:', errorData);
+      // Analysis error - will be thrown to caller
       throw new Error(errorData.error || '影響分析に失敗しました');
     }
 
     const result = await response.json();
-    console.log('Analysis result:', result);
+    // Analysis completed successfully
     return result;
   };
 
   const updateTemplate = async (id: number, formData: CreateAdTemplateRequest, autoNofollow: boolean) => {
     const htmlToSave = autoNofollow ? addNofollowToLinks(formData.html) : formData.html;
-    const dataToSave = { ...formData, html: htmlToSave };
+    const dataToSave = {...formData, html: htmlToSave};
 
     const response = await fetch(`/api/templates/${id}`, {
       method: 'PUT',

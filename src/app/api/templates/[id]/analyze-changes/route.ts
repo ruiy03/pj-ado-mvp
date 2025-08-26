@@ -42,8 +42,8 @@ export async function POST(
     const analysisResult = await analyzeTemplateChanges(id, newHtml, newName);
 
     return NextResponse.json(analysisResult);
-  } catch (error) {
-    console.error('Failed to analyze template changes:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       { error: '影響分析に失敗しました' },
       { status: 500 }

@@ -2,6 +2,7 @@
 
 import {useState} from 'react';
 import type {UrlTemplate} from '@/lib/definitions';
+import {formatDateJST} from '@/lib/date-utils';
 
 interface UrlTemplateCardProps {
   template: UrlTemplate;
@@ -22,16 +23,6 @@ export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplat
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -122,9 +113,9 @@ export default function UrlTemplateCard({template, onEdit, onDelete}: UrlTemplat
 
       <div
         className="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center text-xs text-gray-500 gap-1">
-        <span className="truncate">作成: {formatDate(template.created_at)}</span>
+        <span className="truncate">作成: {formatDateJST(template.created_at)}</span>
         {template.updated_at !== template.created_at && (
-          <span className="truncate">更新: {formatDate(template.updated_at)}</span>
+          <span className="truncate">更新: {formatDateJST(template.updated_at)}</span>
         )}
       </div>
     </div>

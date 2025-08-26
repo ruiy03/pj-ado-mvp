@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {auth} from '@/auth';
-import {createOrUpdateAdTemplate} from '@/lib/template-actions';
+import {createOrUpdateAdTemplate, createOrUpdateAdTemplateById} from '@/lib/template-actions';
 import {hasMinimumRole} from '@/lib/authorization';
 import {parseCSV} from '@/lib/csv-utils';
 import {extractPlaceholders} from '@/lib/template-utils';
@@ -19,15 +19,15 @@ function validateTemplateData(data: Record<string, string>): CreateAdTemplateReq
   const csvPlaceholders = Array.isArray(data.placeholders)
     ? data.placeholders
     : (data.placeholders || '').split(',').map((p: string) => p.trim()).filter(Boolean);
-  
+
   const actualPlaceholders = extractPlaceholders(data.html);
-  
+
   // CSVとHTMLのプレースホルダーの一致をチェック（警告のみ）
   if (csvPlaceholders.length > 0) {
     const mismatched = csvPlaceholders.filter(p => !actualPlaceholders.includes(p)) ||
-                      actualPlaceholders.filter(p => !csvPlaceholders.includes(p));
+      actualPlaceholders.filter(p => !csvPlaceholders.includes(p));
     if (mismatched.length > 0) {
-      console.warn(`Template "${data.name}": CSV placeholders don't match HTML placeholders`);
+      // Template placeholders mismatch warning - continuing import
     }
   }
 
@@ -71,9 +71,14 @@ export async function POST(request: NextRequest) {
 
     const headers = rows[0].map(h => h.toLowerCase().trim());
     const expectedHeaders = ['name', 'html', 'placeholders', 'description'];
+    const expectedHeadersWithId = ['id', 'name', 'html', 'placeholders', 'description'];
+
+    // IDがあるかチェック（新形式）
+    const hasIdColumn = headers.includes('id');
+    const requiredHeaders = hasIdColumn ? expectedHeadersWithId : expectedHeaders;
 
     // ヘッダー検証
-    const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
     if (missingHeaders.length > 0) {
       return NextResponse.json({
         error: `必要なヘッダーが不足しています: ${missingHeaders.join(', ')}`
@@ -121,14 +126,26 @@ export async function POST(request: NextRequest) {
         }
 
         // テンプレート作成、更新、またはスキップ
-        const {template, action} = await createOrUpdateAdTemplate(validatedData);
+        let result_action;
+        if (hasIdColumn && rowData.id) {
+          // IDベースでの処理
+          const templateId = parseInt(rowData.id);
+          if (isNaN(templateId)) {
+            throw new Error('IDが無効です');
+          }
+          result_action = await createOrUpdateAdTemplateById(templateId, validatedData);
+        } else {
+          // 名前ベースでの処理（従来通り）
+          result_action = await createOrUpdateAdTemplate(validatedData);
+        }
+        const {template, action} = result_action;
         result.success++;
-        
+
         const templateItem = {
           id: template.id,
           name: template.name
         };
-        
+
         switch (action) {
           case 'created':
             result.createdItems.push(templateItem);
@@ -158,8 +175,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
 
-  } catch (error) {
-    console.error('Failed to import templates:', error);
+  } catch (_error) {
+    // Failed to import templates - handled by error response
     return NextResponse.json(
       {error: 'テンプレートのインポートに失敗しました'},
       {status: 500}

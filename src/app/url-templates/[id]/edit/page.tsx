@@ -40,8 +40,8 @@ export default async function EditUrlTemplatePage({ params }: EditUrlTemplatePag
         </div>
       </ProtectedPage>
     );
-  } catch (error) {
-    console.error('Failed to load URL template:', error);
+  } catch (_error) {
+    // Failed to load URL template - handled by notFound()
     notFound();
   }
 }

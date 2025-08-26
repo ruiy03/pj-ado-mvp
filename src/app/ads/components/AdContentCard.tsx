@@ -4,6 +4,7 @@ import {useState} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type {AdContent} from '@/lib/definitions';
+import {formatDateJST} from '@/lib/date-utils';
 import DeliveryCodeModal from '@/components/DeliveryCodeModal';
 
 interface AdContentCardProps {
@@ -50,17 +51,6 @@ export default function AdContentCard({
     }
   };
 
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const generatePreview = (): string => {
     if (!content.template?.html) return '';
@@ -86,27 +76,31 @@ export default function AdContentCard({
       <div className="p-6">
         {/* ヘッダー */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
-          <div className="flex-1">
+          <div className="overflow-hidden">
             <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">{content.name}</h3>
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(content.status)}`}>
-                {getStatusText(content.status)}
-              </span>
-              {content.template && (
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                  {content.template.name}
+            <div className="flex flex-col gap-2 text-sm text-gray-600">
+              <div className="flex items-center">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(content.status)}`}>
+                  {getStatusText(content.status)}
                 </span>
-              )}
-              {content.url_template && (
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
-                  {content.url_template.name}
-                </span>
-              )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {content.template && (
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs whitespace-nowrap">
+                    {content.template.name}
+                  </span>
+                )}
+                {content.url_template && (
+                  <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs whitespace-nowrap">
+                    {content.url_template.name}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
           {/* アクションボタン */}
-          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setShowPreview(!showPreview)}
               className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 cursor-pointer"
@@ -200,9 +194,9 @@ export default function AdContentCard({
             作成者: {content.created_by_user?.name || '不明'}
           </div>
           <div className="text-left sm:text-right">
-            <div>作成: {formatDate(content.created_at)}</div>
+            <div>作成: {formatDateJST(content.created_at) || '-'}</div>
             {content.updated_at && content.updated_at !== content.created_at && (
-              <div>更新: {formatDate(content.updated_at)}</div>
+              <div>更新: {formatDateJST(content.updated_at) || '-'}</div>
             )}
           </div>
         </div>

@@ -38,8 +38,7 @@ export async function getAdTemplates(): Promise<AdTemplate[]> {
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     })) as AdTemplate[];
-  } catch (error) {
-    console.error('Failed to fetch ad templates:', error);
+  } catch (_error) {
     throw new Error('広告テンプレートの取得に失敗しました');
   }
 }
@@ -67,8 +66,7 @@ export async function getAdTemplateById(id: number): Promise<AdTemplate | null> 
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as AdTemplate;
-  } catch (error) {
-    console.error('Failed to fetch ad template:', error);
+  } catch (_error) {
     throw new Error('広告テンプレートの取得に失敗しました');
   }
 }
@@ -96,16 +94,30 @@ export async function getAdTemplateByName(name: string): Promise<AdTemplate | nu
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as AdTemplate;
-  } catch (error) {
-    console.error('Failed to fetch ad template by name:', error);
+  } catch (_error) {
     throw new Error('広告テンプレートの取得に失敗しました');
   }
 }
 
+function normalizeHtml(html: string): string {
+  // HTML内容を正規化
+  return html
+    .trim() // 前後の空白を削除
+    .replace(/\s+/g, ' ') // 複数の空白を単一の空白に
+    .replace(/>\s+</g, '><') // タグ間の空白を削除
+    .replace(/"/g, '"') // 引用符を統一
+    .toLowerCase(); // 大文字小文字を統一
+}
+
 function isTemplateContentEqual(existing: AdTemplate, incoming: CreateAdTemplateRequest): boolean {
+  const normalizedExistingHtml = normalizeHtml(existing.html);
+  const normalizedIncomingHtml = normalizeHtml(incoming.html);
+  const existingDesc = (existing.description || '').trim();
+  const incomingDesc = (incoming.description || '').trim();
+
   return (
-    existing.html === incoming.html &&
-    existing.description === (incoming.description || '')
+    normalizedExistingHtml === normalizedIncomingHtml &&
+    existingDesc === incomingDesc
   );
 }
 
@@ -115,16 +127,16 @@ export async function createOrUpdateAdTemplate(data: CreateAdTemplateRequest): P
 }> {
   try {
     const validatedData = CreateAdTemplateSchema.parse(data);
-    
+
     // プレースホルダーの命名規則を検証
     const placeholderValidation = validateTemplatePlaceholders(validatedData.html);
     if (!placeholderValidation.isValid) {
       throw new Error(placeholderValidation.errors.join('\n'));
     }
-    
+
     // 既存のテンプレートを名前で検索
     const existingTemplate = await getAdTemplateByName(validatedData.name);
-    
+
     if (!existingTemplate) {
       // 存在しない場合は新規作成
       const newTemplate = await createAdTemplate(validatedData);
@@ -133,7 +145,7 @@ export async function createOrUpdateAdTemplate(data: CreateAdTemplateRequest): P
         action: 'created'
       };
     }
-    
+
     // 既存のテンプレートと内容を比較
     if (isTemplateContentEqual(existingTemplate, validatedData)) {
       // 内容が同じ場合はスキップ
@@ -142,24 +154,80 @@ export async function createOrUpdateAdTemplate(data: CreateAdTemplateRequest): P
         action: 'skipped'
       };
     }
-    
+
     // 内容が異なる場合は更新
     const updatedTemplate = await updateAdTemplate({
       id: existingTemplate.id,
       html: validatedData.html,
       description: validatedData.description
     });
-    
+
     return {
       template: updatedTemplate,
       action: 'updated'
     };
-    
+
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to create or update ad template:', error);
+    throw new Error('広告テンプレートの作成または更新に失敗しました');
+  }
+}
+
+/**
+ * IDベースでテンプレートを作成または更新
+ */
+export async function createOrUpdateAdTemplateById(id: number, data: CreateAdTemplateRequest): Promise<{
+  template: AdTemplate;
+  action: 'created' | 'updated' | 'skipped';
+}> {
+  try {
+    const validatedData = CreateAdTemplateSchema.parse(data);
+
+    // プレースホルダーの命名規則を検証
+    const placeholderValidation = validateTemplatePlaceholders(validatedData.html);
+    if (!placeholderValidation.isValid) {
+      throw new Error(placeholderValidation.errors.join('\n'));
+    }
+
+    // 指定されたIDのテンプレートを取得
+    const existingTemplate = await getAdTemplateById(id);
+
+    if (!existingTemplate) {
+      // 存在しない場合は新規作成（IDは無視して新規作成）
+      const newTemplate = await createAdTemplate(validatedData);
+      return {
+        template: newTemplate,
+        action: 'created'
+      };
+    }
+
+    // 既存のテンプレートと内容を比較
+    if (isTemplateContentEqual(existingTemplate, validatedData)) {
+      // 内容が同じ場合はスキップ
+      return {
+        template: existingTemplate,
+        action: 'skipped'
+      };
+    }
+
+    // 内容が異なる場合は更新
+    const updatedTemplate = await updateAdTemplate({
+      id: existingTemplate.id,
+      html: validatedData.html,
+      description: validatedData.description
+    });
+
+    return {
+      template: updatedTemplate,
+      action: 'updated'
+    };
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(error.issues[0].message);
+    }
     throw new Error('広告テンプレートの作成または更新に失敗しました');
   }
 }
@@ -200,7 +268,6 @@ export async function createAdTemplate(data: CreateAdTemplateRequest): Promise<A
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to create ad template:', error);
     throw new Error('広告テンプレートの作成に失敗しました');
   }
 }
@@ -238,9 +305,9 @@ export async function updateAdTemplateWithAnalysis(
       if (!currentTemplate) {
         throw new Error('テンプレートが見つかりません');
       }
-      
+
       const htmlChanged = currentTemplate.html !== updateFields.html;
-      
+
       // プレースホルダーの命名規則を検証
       const placeholderValidation = validateTemplatePlaceholders(updateFields.html);
       if (!placeholderValidation.isValid) {
@@ -255,8 +322,8 @@ export async function updateAdTemplateWithAnalysis(
             updateFields.html,
             updateFields.name
           );
-        } catch (analysisError) {
-          console.warn('Impact analysis failed:', analysisError);
+        } catch (_analysisError) {
+          // Impact analysis failed - continuing with template update
           // 影響分析が失敗してもテンプレート更新は続行
         }
       }
@@ -273,7 +340,6 @@ export async function updateAdTemplateWithAnalysis(
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to update template with analysis:', error);
     throw new Error('テンプレートの更新と影響分析に失敗しました');
   }
 }
@@ -324,7 +390,6 @@ export async function updateAdTemplate(data: UpdateAdTemplateRequest): Promise<A
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to update ad template:', error);
     throw new Error('広告テンプレートの更新に失敗しました');
   }
 }
@@ -342,8 +407,7 @@ export async function deleteAdTemplate(id: number): Promise<void> {
     }
 
     revalidatePath('/ad-templates');
-  } catch (error) {
-    console.error('Failed to delete ad template:', error);
+  } catch (_error) {
     throw new Error('広告テンプレートの削除に失敗しました');
   }
 }

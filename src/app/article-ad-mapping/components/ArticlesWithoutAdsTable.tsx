@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import type { WordPressArticle } from '@/lib/wordpress-sync-actions';
+import {formatDateOnlyJST} from '@/lib/date-utils';
 
 interface ArticlesWithoutAdsTableProps {
   articles: WordPressArticle[];
@@ -227,7 +228,7 @@ export default function ArticlesWithoutAdsTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(article.published_at).toLocaleDateString('ja-JP')}
+                      {formatDateOnlyJST(article.published_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <a

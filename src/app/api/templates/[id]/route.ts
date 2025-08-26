@@ -28,8 +28,8 @@ export async function GET(
     }
 
     return NextResponse.json(template);
-  } catch (error) {
-    console.error('Failed to fetch template:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: '広告テンプレートの取得に失敗しました'},
       {status: 500}
@@ -65,7 +65,7 @@ export async function PUT(
     const updatedTemplate = await updateAdTemplate(updateData);
     return NextResponse.json(updatedTemplate);
   } catch (error) {
-    console.error('Failed to update template:', error);
+    // Error handled - logging removed
     return NextResponse.json(
       {error: error instanceof Error ? error.message : '広告テンプレートの更新に失敗しました'},
       {status: 500}
@@ -98,7 +98,7 @@ export async function DELETE(
     await deleteAdTemplate(id);
     return NextResponse.json({message: '広告テンプレートを削除しました'});
   } catch (error) {
-    console.error('Failed to delete template:', error);
+    // Error handled - logging removed
     return NextResponse.json(
       {error: error instanceof Error ? error.message : '広告テンプレートの削除に失敗しました'},
       {status: 500}

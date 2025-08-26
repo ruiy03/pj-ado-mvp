@@ -40,8 +40,8 @@ export default async function EditTemplatePage({ params }: EditTemplatePageProps
         </div>
       </ProtectedPage>
     );
-  } catch (error) {
-    console.error('Failed to load template:', error);
+  } catch (_error) {
+    // Failed to load template - handled by notFound()
     notFound();
   }
 }

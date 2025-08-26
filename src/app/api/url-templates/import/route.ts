@@ -153,8 +153,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
 
-  } catch (error) {
-    console.error('Failed to import URL templates:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: 'URLテンプレートのインポートに失敗しました'},
       {status: 500}

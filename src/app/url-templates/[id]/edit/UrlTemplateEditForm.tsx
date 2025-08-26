@@ -78,8 +78,8 @@ export default function UrlTemplateEditForm({template}: UrlTemplateEditFormProps
         const error = await response.json();
         throw new Error(error.error || '影響分析に失敗しました');
       }
-    } catch (error) {
-      console.error('Analysis error:', error);
+    } catch (_error) {
+      // Analysis error - handled in confirm dialog
 
       const proceed = confirm(
         '影響分析に失敗しましたが、更新を続行しますか？\n\n' +
@@ -107,10 +107,10 @@ export default function UrlTemplateEditForm({template}: UrlTemplateEditFormProps
         });
 
         if (syncResponse.ok) {
-          const syncResult = await syncResponse.json();
-          console.log('URL template content sync completed:', syncResult);
+          const _syncResult = await syncResponse.json();
+          // URL template content sync completed successfully
         } else {
-          console.warn('URL template content sync failed, proceeding with template update');
+          // URL template content sync failed, proceeding with template update
         }
       }
 

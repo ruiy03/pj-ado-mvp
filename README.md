@@ -16,16 +16,28 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 ### 主な機能
 
 - **🔐 認証システム** - NextAuth.js v5 (beta) を使用したセキュアなログイン/ログアウト機能
-- **📊 ダッシュボード** - システム概要と活動フィード、リアルタイム整合性監視
-- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、改良されたCSV
+- **📊 ダッシュボード** - システム概要と活動フィード、リアルタイム整合性監視、折りたたみ可能なサイドバー（localStorage対応）
+- **📄 広告テンプレート管理** - Monaco Editorを使った高機能HTMLエディター付きテンプレート管理、高度な検索・フィルタリング機能、改良されたCSV
   インポート/エクスポート機能（詳細な結果表示、作成されたアイテム一覧付き）、作成・更新タイムスタンプ表示
-- **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、改良されたCSV インポート/エクスポート機能（詳細な結果表示付き）
-- **📢 広告コンテンツ管理** - 広告の作成・編集・画像アップロード・プレビュー機能、ステータス管理
+- **🔗 URLテンプレート管理** - トラッキングパラメータ付きURLテンプレート管理、独立した検索・フィルタリング機能、改良されたCSV
+  インポート/エクスポート機能（詳細な結果表示付き）
+- **📢 広告コンテンツ管理** - 広告の作成・編集・画像アップロード・プレビュー機能、ステータス管理、検索・フィルタリング機能、レスポンシブデザイン対応
 - **🚀 広告配信システム** - WordPress連携用ショートコード生成、外部サイト向け広告配信API、インプレッション・クリック追跡
-- **🔗 記事広告マッピング管理** - WordPress連携による記事と広告の紐付け管理、使用統計分析、同期機能、広告なし記事の検出・フィルタリング、タブUI付き管理画面
+- **🔗 記事広告マッピング管理** - WordPress連携による記事と広告の紐付け管理、使用統計分析、同期機能、広告なし記事の検出・フィルタリング、タブUI付き管理画面、URLパラメータによる初期タブ選択機能
 - **👥 アカウント管理** - 専用ページによるユーザーアカウント管理システム（作成・編集・削除）
 - **🗑️ 画像クリーンアップ機能** - 未使用画像の自動削除、Vercel Cron Jobs対応
 - **🔍 テンプレート整合性チェック機能** - テンプレート変更時の影響分析とデータ整合性監視
+- **🌍 国際化対応** - 日本時間（JST）での統一された日時表示、日本語インターフェース対応
+
+### 最新の機能強化 (2025年1月対応)
+
+- **🔍 高度な検索・フィルタリング機能**: 広告テンプレート・URLテンプレート・広告コンテンツ管理での独立した検索・フィルタ機能
+- **📱 レスポンシブデザイン強化**: モバイルおよびタブレット端末での最適化されたレイアウト表示
+- **⏰ 日本時間統一対応**: 全ての日時表示を日本時間（JST）に統一、タイムゾーン変換機能実装
+- **🎨 サイドバー改善**: 折りたたみ機能の実装、デザインとポジショニングの最適化
+- **📊 ID-based操作機能**: テンプレート作成・更新時のID指定による柔軟な操作対応
+- **🔗 URLパラメータ連携**: 記事広告マッピング管理でのタブ状態のURL連携
+- **💾 ローカルストレージ対応**: サイドバー状態の永続化による優れたUX
 
 ## 🚀 クイックスタート
 
@@ -39,7 +51,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
 1. **リポジトリのクローン**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:ruiy03/pj-ado-mvp.git
    cd pj-ado-mvp
    ```
 
@@ -56,7 +68,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    NEXTAUTH_SECRET=your_nextauth_secret_key_32_characters_long
    NEXTAUTH_URL=http://localhost:3000
    BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
-   CRON_SECRET=your_cron_secret_key
+   CRON_SECRET=your_cron_secret_key # optional for image cleanup
    WORDPRESS_API_URL=your_wordpress_site_url
    ```
 
@@ -64,7 +76,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    ```bash
    node scripts/seed.js
    ```
-   >
+
    このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブル、article_ad_mappingsテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
@@ -91,7 +103,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 - **React 19** - UI ライブラリ
 - **TypeScript** - 型安全性
 - **Tailwind CSS v4** - ユーティリティファーストCSS
-- **Monaco Editor** - HTMLコードエディター (VS Code エディター技術)
+- **@monaco-editor/react** - HTMLコードエディター (Monaco Editor React integration)
 - **Geist フォント** - タイポグラフィ
 
 ### バックエンド・認証
@@ -160,8 +172,15 @@ pj-ado-mvp/
 │   │   │   │   ├── AdContentCard.tsx # 広告コンテンツカード表示
 │   │   │   │   ├── AdContentForm.tsx # 広告コンテンツ作成・編集フォーム
 │   │   │   │   ├── AdContentClient.tsx # 広告コンテンツ管理UI
+│   │   │   │   ├── AdContentList.tsx # 広告コンテンツ一覧表示
 │   │   │   │   └── AdPreview.tsx # 広告プレビュー機能
-│   │   │   └── hooks/        # 広告コンテンツ管理hooks
+│   │   │   ├── [id]/edit/   # 広告コンテンツ編集ページ
+│   │   │   │   ├── page.tsx  # 編集画面
+│   │   │   │   └── AdContentEditForm.tsx # 編集フォーム
+│   │   │   ├── create/       # 広告コンテンツ作成ページ
+│   │   │   │   ├── page.tsx  # 作成画面
+│   │   │   │   └── AdContentCreateForm.tsx # 作成フォーム
+│   │   │   └── page.tsx      # 広告コンテンツメインページ
 │   │   ├── ad-templates/     # 広告テンプレート管理
 │   │   │   ├── components/   # テンプレート管理専用コンポーネント
 │   │   │   │   ├── TemplateForm.tsx # テンプレート作成・編集フォーム
@@ -169,15 +188,30 @@ pj-ado-mvp/
 │   │   │   │   ├── TemplatePreview.tsx # テンプレートプレビュー
 │   │   │   │   ├── ImportExportButtons.tsx # CSV機能UI（共通コンポーネント使用）
 │   │   │   │   └── ValidationGuide.tsx # バリデーションガイド
-│   │   │   └── hooks/        # テンプレート管理hooks
+│   │   │   ├── [id]/edit/   # テンプレート編集ページ
+│   │   │   │   ├── page.tsx  # 編集画面
+│   │   │   │   └── TemplateEditForm.tsx # 編集フォーム
+│   │   │   ├── create/       # テンプレート作成ページ
+│   │   │   │   ├── page.tsx  # 作成画面
+│   │   │   │   └── TemplateCreateForm.tsx # 作成フォーム
+│   │   │   ├── hooks/        # テンプレート管理hooks
+│   │   │   │   └── useTemplates.tsx # テンプレート状態管理
+│   │   │   └── page.tsx      # テンプレートメインページ
 │   │   ├── url-templates/    # URLテンプレート管理
 │   │   │   ├── components/   # URLテンプレート管理専用コンポーネント
 │   │   │   │   ├── UrlTemplateCard.tsx # URLテンプレートカード表示
 │   │   │   │   ├── UrlTemplateForm.tsx # URLテンプレート作成・編集フォーム
 │   │   │   │   ├── UrlTemplateClient.tsx # URLテンプレート管理UI
 │   │   │   │   └── ImportExportButtons.tsx # CSV機能UI（共通コンポーネント使用）
-│   │   │   └── hooks/        # URLテンプレート管理hooks
-│   │   │       └── useUrlTemplates.tsx # URLテンプレート状態管理
+│   │   │   ├── [id]/edit/   # URLテンプレート編集ページ
+│   │   │   │   ├── page.tsx  # 編集画面
+│   │   │   │   └── UrlTemplateEditForm.tsx # 編集フォーム
+│   │   │   ├── create/       # URLテンプレート作成ページ
+│   │   │   │   ├── page.tsx  # 作成画面
+│   │   │   │   └── UrlTemplateCreateForm.tsx # 作成フォーム
+│   │   │   ├── hooks/        # URLテンプレート管理hooks
+│   │   │   │   └── useUrlTemplates.tsx # URLテンプレート状態管理
+│   │   │   └── page.tsx      # URLテンプレートメインページ
 │   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
 │   │   │   ├── components/   # 記事広告マッピング専用コンポーネント
 │   │   │   │   ├── ArticleAdMappingClient.tsx # メイン管理インターフェース
@@ -205,14 +239,17 @@ pj-ado-mvp/
 │   │   ├── Button.tsx       # ボタンコンポーネント
 │   │   ├── ClientLayout.tsx # クライアントレイアウト
 │   │   ├── ClientProtectedPage.tsx # クライアントサイド認証保護ラッパー
+│   │   ├── DeliveryCodeModal.tsx # 配信コード生成モーダル
 │   │   ├── HTMLCodeEditor.tsx # Monaco Editor HTMLエディター
 │   │   ├── ImageUpload.tsx  # 画像アップロードコンポーネント
 │   │   ├── ImportExportButtons.tsx # CSV機能共通コンポーネント
 │   │   ├── LoginForm.tsx    # ログインフォーム
-│   │   ├── TemplateChangeWarning.tsx # テンプレート変更警告コンポーネント
 │   │   ├── ProtectedPage.tsx # サーバーサイド認証保護ラッパー
 │   │   ├── SessionProvider.tsx # セッションプロバイダー
-│   │   └── Sidebar.tsx      # サイドバーナビゲーション
+│   │   ├── Sidebar.tsx      # サイドバーナビゲーション
+│   │   ├── TemplateChangeWarning.tsx # テンプレート変更警告コンポーネント
+│   │   ├── UrlTemplateChangeWarning.tsx # URLテンプレート変更警告コンポーネント
+│   │   └── ui/              # UI基本コンポーネント
 │   ├── hooks/               # 共通カスタムフック
 │   │   └── useImportExport.tsx # CSV機能共通フック
 │   ├── lib/                 # ユーティリティ・設定
@@ -220,17 +257,23 @@ pj-ado-mvp/
 │   │   ├── ad-content-actions.ts # 広告コンテンツ管理アクション
 │   │   ├── authorization.ts # 認可ロジック
 │   │   ├── consistency-checker.ts # テンプレート整合性チェック機能
+│   │   ├── csv-utils.ts     # CSV処理ユーティリティ
+│   │   ├── date-utils.ts    # 日付処理ユーティリティ
+│   │   ├── db.ts            # データベース接続設定
 │   │   ├── definitions.ts   # TypeScript型定義
+│   │   ├── image-cleanup.ts # 画像クリーンアップユーティリティ
+│   │   ├── image-utils.ts   # 画像処理ヘルパー関数
+│   │   ├── logger.ts        # 構造化ロギングシステム
 │   │   ├── template-actions.ts # テンプレート管理アクション
-│   │   ├── template-utils.ts   # テンプレートユーティリティ
 │   │   ├── url-template-actions.ts # URLテンプレート管理アクション
+│   │   ├── user-actions.ts  # ユーザー管理アクション
 │   │   ├── wordpress-sync-actions.ts # WordPress API連携・マッピング同期
 │   │   ├── template-utils/  # テンプレート処理専用モジュール
 │   │   │   ├── validation.ts # HTMLとプレースホルダーのバリデーション
 │   │   │   ├── placeholder-extraction.ts # プレースホルダー抽出
 │   │   │   ├── link-processing.ts # SEO用nofollow処理
+│   │   │   ├── index.ts     # テンプレートユーティリティメインモジュール
 │   │   │   └── constants.ts # バリデーション規則定義
-│   │   └── user-actions.ts  # ユーザー管理アクション
 │   ├── auth.config.ts       # NextAuth.js設定詳細
 │   └── auth.ts              # NextAuth.js設定
 ├── scripts/               # ユーティリティスクリプト
@@ -277,17 +320,20 @@ pj-ado-mvp/
 
 ### 広告配信 API
 
-| エンドポイント                     | メソッド | 説明                     | 認証 |
-|-----------------------------|------|------------------------|----| 
-| `/api/delivery/[id]`        | GET  | 広告配信（インプレッション追跡付き）     | 不要 |
-| `/api/delivery/[id]/click`  | GET  | クリック追跡・リダイレクト          | 不要 |
+| エンドポイント                    | メソッド | 説明                 | 認証 |
+|----------------------------|------|--------------------|----|
+| `/api/delivery/[id]`       | GET  | 広告配信（インプレッション追跡付き） | 不要 |
+| `/api/delivery/[id]/click` | GET  | クリック追跡・リダイレクト      | 不要 |
 
 ### テンプレート整合性チェック API
 
-| エンドポイント                       | メソッド | 説明                  | 認証 |
-|------------------------------|------|---------------------|----| 
-| `/api/integrity-check`       | GET  | システム整合性状況取得       | 必須 |
-| `/api/templates/[id]/analyze-changes` | POST | テンプレート変更影響分析 | 必須 |
+| エンドポイント                                   | メソッド | 説明              | 認証 |
+|-------------------------------------------|------|-----------------|----|
+| `/api/integrity-check`                    | GET  | システム整合性状況取得     | 必須 |
+| `/api/templates/[id]/analyze-changes`     | POST | テンプレート変更影響分析    | 必須 |
+| `/api/templates/[id]/sync-content`        | POST | テンプレート変更同期      | 必須 |
+| `/api/url-templates/[id]/analyze-changes` | POST | URLテンプレート変更影響分析 | 必須 |
+| `/api/url-templates/[id]/sync-content`    | POST | URLテンプレート変更同期   | 必須 |
 
 ### 画像クリーンアップ API
 
@@ -297,12 +343,14 @@ pj-ado-mvp/
 
 ### 記事広告マッピング API
 
-| エンドポイント                   | メソッド | 説明                 | 認証 |
-|---------------------------|------|---------------------|----| 
-| `/api/article-mappings/export` | GET | 記事広告マッピングデータCSVエクスポート | 必須 |
-| WordPress API統合         | -    | -                   | -  |
-| `/wp-json/lmg-ad-manager/v1/shortcode-usage` | GET | WordPress側ショートコード使用状況取得 | WordPress認証 |
-| `/wp-json/wp/v2/posts` | GET | WordPress全記事取得（広告なし記事検出用） | WordPress認証 |
+| エンドポイント                                      | メソッド | 説明                        | 認証          |
+|----------------------------------------------|------|---------------------------|-------------|
+| `/api/article-mappings/export`               | GET  | 記事広告マッピングデータCSVエクスポート     | 必須          |
+| `/api/articles/without-ads`                  | GET  | 広告なし記事データ取得               | 必須          |
+| `/api/wordpress/sync`                        | POST | WordPress データ同期           | 必須          |
+| WordPress API統合                              | -    | -                         | -           |
+| `/wp-json/lmg-ad-manager/v1/shortcode-usage` | GET  | WordPress側ショートコード使用状況取得   | WordPress認証 |
+| `/wp-json/wp/v2/posts`                       | GET  | WordPress全記事取得（広告なし記事検出用） | WordPress認証 |
 
 ### 認証 API
 
@@ -373,20 +421,20 @@ pj-ado-mvp/
 
 ### ad_contents テーブル
 
-| カラム               | 型            | 説明              | 制約                           |
-|-------------------|--------------|-----------------|------------------------------|
-| `id`              | SERIAL       | プライマリキー         | PRIMARY KEY                  |
-| `name`            | VARCHAR(255) | 広告コンテンツ名        | NOT NULL                     |
-| `template_id`     | INTEGER      | 広告テンプレートID（FK）  | REFERENCES ad_templates(id)  |
-| `url_template_id` | INTEGER      | URLテンプレートID（FK） | REFERENCES url_templates(id) |
-| `content_data`    | JSON         | コンテンツデータ        |                              |
-| `status`          | VARCHAR(20)  | ステータス           | NOT NULL, DEFAULT 'draft'    |
-| `created_by`      | INTEGER      | 作成者ID（FK）       | REFERENCES users(id)         |
-| `impressions`     | INTEGER      | インプレッション数      | DEFAULT 0                    |
-| `clicks`          | INTEGER      | クリック数           | DEFAULT 0                    |
-| `last_accessed_at`| TIMESTAMP    | 最終アクセス日時       |                              |
-| `created_at`      | TIMESTAMP    | 作成日時            | DEFAULT NOW()                |
-| `updated_at`      | TIMESTAMP    | 更新日時            | DEFAULT NOW()                |
+| カラム                | 型            | 説明              | 制約                           |
+|--------------------|--------------|-----------------|------------------------------|
+| `id`               | SERIAL       | プライマリキー         | PRIMARY KEY                  |
+| `name`             | VARCHAR(255) | 広告コンテンツ名        | NOT NULL                     |
+| `template_id`      | INTEGER      | 広告テンプレートID（FK）  | REFERENCES ad_templates(id)  |
+| `url_template_id`  | INTEGER      | URLテンプレートID（FK） | REFERENCES url_templates(id) |
+| `content_data`     | JSON         | コンテンツデータ        |                              |
+| `status`           | VARCHAR(20)  | ステータス           | NOT NULL, DEFAULT 'draft'    |
+| `created_by`       | INTEGER      | 作成者ID（FK）       | REFERENCES users(id)         |
+| `impressions`      | INTEGER      | インプレッション数       | DEFAULT 0                    |
+| `clicks`           | INTEGER      | クリック数           | DEFAULT 0                    |
+| `last_accessed_at` | TIMESTAMP    | 最終アクセス日時        |                              |
+| `created_at`       | TIMESTAMP    | 作成日時            | DEFAULT NOW()                |
+| `updated_at`       | TIMESTAMP    | 更新日時            | DEFAULT NOW()                |
 
 ### ad_images テーブル
 
@@ -420,6 +468,19 @@ pj-ado-mvp/
 | `created_at`    | TIMESTAMP    | 作成日時       | DEFAULT NOW()          |
 | `updated_at`    | TIMESTAMP    | 更新日時       | DEFAULT NOW()          |
 
+### article_ad_mappings テーブル
+
+| カラム          | 型            | 説明            | 制約                         |
+|--------------|--------------|---------------|----------------------------|
+| `id`         | SERIAL       | プライマリキー       | PRIMARY KEY                |
+| `post_id`    | INTEGER      | WordPress記事ID | NOT NULL                   |
+| `post_title` | VARCHAR(500) | 記事タイトル        | NOT NULL                   |
+| `post_url`   | TEXT         | 記事URL         | NOT NULL                   |
+| `ad_id`      | INTEGER      | 広告ID（FK）      | REFERENCES ad_contents(id) |
+| `synced_at`  | TIMESTAMP    | 同期日時          |                            |
+| `created_at` | TIMESTAMP    | 作成日時          | DEFAULT NOW()              |
+| `updated_at` | TIMESTAMP    | 更新日時          | DEFAULT NOW()              |
+
 ## テンプレートシステム
 
 ### 主要機能
@@ -429,8 +490,10 @@ pj-ado-mvp/
 - **バリデーション**: HTMLとプレースホルダーの整合性チェック
 - **SEO対応**: 自動 `rel="nofollow"` 属性追加・削除機能
 - **改良されたCSV インポート/エクスポート**: テンプレートの一括管理機能、詳細な結果表示と作成済みアイテム一覧表示
-- **タイムスタンプ表示**: テンプレート作成・更新日時のリアルタイム表示
+- **高度な検索・フィルタリング**: テンプレート名・説明・プレースホルダーでの独立した検索機能
+- **タイムスタンプ表示**: テンプレート作成・更新日時のリアルタイム表示（日本時間対応）
 - **テンプレート整合性監視**: テンプレート変更時の影響分析と既存コンテンツとの整合性チェック
+- **レスポンシブレイアウト**: 全デバイス対応の最適化されたカードレイアウト
 
 ### HTMLコードエディター機能
 
@@ -468,6 +531,7 @@ pj-ado-mvp/
 - **テンプレート有効化**: ブール値フラグによるURLテンプレートの有効・無効制御
 - **URL生成**: ベースURLとパラメータの組み合わせによる完全なトラッキングURL生成
 - **バリデーション**: URL形式とパラメータ整合性の検証機能
+- **独立した検索・フィルタリング**: URLテンプレート名・説明・パラメータでの専用検索機能
 - **改良されたCSV インポート/エクスポート**: URLテンプレートの一括管理機能、詳細な結果表示と作成済みアイテム一覧表示
 
 ### URLテンプレート管理機能

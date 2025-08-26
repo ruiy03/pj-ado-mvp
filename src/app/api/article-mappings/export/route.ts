@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-  } catch (error) {
-    console.error('CSVエクスポートエラー:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: 'サーバーエラーが発生しました'},
       {status: 500}

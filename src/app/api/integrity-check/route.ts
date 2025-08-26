@@ -38,8 +38,7 @@ export async function GET(request: Request) {
     const systemStatus = await getSystemIntegrityStatus();
     return NextResponse.json(systemStatus);
 
-  } catch (error) {
-    console.error('Integrity check failed:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: '整合性チェックに失敗しました' },
       { status: 500 }
@@ -77,8 +76,7 @@ export async function POST(request: Request) {
     
     return NextResponse.json(analysisResult);
 
-  } catch (error) {
-    console.error('Template change analysis failed:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'テンプレート変更の影響分析に失敗しました' },
       { status: 500 }

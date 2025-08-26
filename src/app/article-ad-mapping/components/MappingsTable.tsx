@@ -4,6 +4,7 @@ import React, {useState} from 'react';
 import {ExternalLink, Search, Eye} from 'lucide-react';
 import Link from 'next/link';
 import type {ArticleAdMapping} from '@/lib/wordpress-sync-actions';
+import {formatDateTimeJST} from '@/lib/date-utils';
 
 interface MappingsTableProps {
   mappings: ArticleAdMapping[];
@@ -29,9 +30,6 @@ export default function MappingsTable({mappings, lastSyncTime}: MappingsTablePro
   // 広告IDの一覧を取得（フィルター用）
   const uniqueAdIds = Array.from(new Set(mappings.map(m => m.ad_id))).sort();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('ja-JP');
-  };
 
   return (
     <div className="space-y-4">
@@ -48,7 +46,7 @@ export default function MappingsTable({mappings, lastSyncTime}: MappingsTablePro
           </span>
           {lastSyncTime && (
             <span>
-              <strong>最終同期:</strong> {formatDate(lastSyncTime)}
+              <strong>最終同期:</strong> {formatDateTimeJST(lastSyncTime)}
             </span>
           )}
         </div>
@@ -169,7 +167,7 @@ export default function MappingsTable({mappings, lastSyncTime}: MappingsTablePro
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(mapping.synced_at)}
+                    {formatDateTimeJST(mapping.synced_at)}
                   </td>
                 </tr>
               ))}

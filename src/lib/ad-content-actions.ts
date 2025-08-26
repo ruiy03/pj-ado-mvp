@@ -133,8 +133,8 @@ export async function getAdContents(): Promise<AdContent[]> {
     }
 
     return contents;
-  } catch (error) {
-    console.error('Failed to fetch ad contents:', error);
+  } catch (_error) {
+    // Failed to fetch ad contents - error will be thrown
     throw new Error('広告コンテンツの取得に失敗しました');
   }
 }
@@ -210,8 +210,8 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
     content.images = await getAdImagesByContentId(content.id);
 
     return content;
-  } catch (error) {
-    console.error('Failed to fetch ad content:', error);
+  } catch (_error) {
+    // Failed to fetch ad content - error will be thrown
     throw new Error('広告コンテンツの取得に失敗しました');
   }
 }
@@ -269,7 +269,7 @@ export async function createAdContent(data: CreateAdContentRequest): Promise<AdC
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to create ad content:', error);
+    // Failed to create ad content - error will be thrown
     throw new Error('広告コンテンツの作成に失敗しました');
   }
 }
@@ -325,7 +325,7 @@ export async function updateAdContent(data: UpdateAdContentRequest): Promise<AdC
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to update ad content:', error);
+    // Failed to update ad content - error will be thrown
     throw new Error('広告コンテンツの更新に失敗しました');
   }
 }
@@ -360,8 +360,8 @@ export async function deleteAdContent(id: number): Promise<void> {
         `;
 
         logger.info(`Successfully deleted image: ${image.blob_url}`);
-      } catch (imageError) {
-        console.error(`Failed to delete image ${image.blob_url}:`, imageError);
+      } catch (_imageError) {
+        // Failed to delete image - continuing with content deletion
         // 個別の画像削除失敗は全体の削除を阻止しない
       }
     });
@@ -370,8 +370,8 @@ export async function deleteAdContent(id: number): Promise<void> {
     await Promise.allSettled(imageDeletePromises);
 
     revalidatePath('/ads');
-  } catch (error) {
-    console.error('Failed to delete ad content:', error);
+  } catch (_error) {
+    // Failed to delete ad content - error will be thrown
     throw new Error('広告コンテンツの削除に失敗しました');
   }
 }
@@ -398,8 +398,8 @@ export async function getAdImagesByContentId(contentId: number): Promise<AdImage
       ...row,
       created_at: row.created_at?.toISOString(),
     })) as AdImage[];
-  } catch (error) {
-    console.error('Failed to fetch ad images:', error);
+  } catch (_error) {
+    // Failed to fetch ad images - error will be thrown
     return [];
   }
 }
@@ -446,7 +446,7 @@ export async function createAdImage(data: CreateAdImageRequest): Promise<AdImage
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to create ad image:', error);
+    // Failed to create ad image - error will be thrown
     throw new Error('画像の登録に失敗しました');
   }
 }
@@ -483,8 +483,8 @@ export async function updateAdImage(data: UpdateAdImageRequest): Promise<AdImage
 
     revalidatePath('/ads');
     return updatedImage;
-  } catch (error) {
-    console.error('Failed to update ad image:', error);
+  } catch (_error) {
+    // Failed to update ad image - error will be thrown
     throw new Error('画像の更新に失敗しました');
   }
 }
@@ -502,8 +502,8 @@ export async function deleteAdImage(id: number): Promise<void> {
     }
 
     revalidatePath('/ads');
-  } catch (error) {
-    console.error('Failed to delete ad image:', error);
+  } catch (_error) {
+    // Failed to delete ad image - error will be thrown
     throw new Error('画像の削除に失敗しました');
   }
 }
@@ -544,8 +544,8 @@ export async function associateImagesWithAdContent(
     }
 
     revalidatePath('/ads');
-  } catch (error) {
-    console.error('Failed to associate images with ad content:', error);
+  } catch (_error) {
+    // Failed to associate images with ad content - error will be thrown
     throw new Error('画像の関連付けに失敗しました');
   }
 }
@@ -563,10 +563,10 @@ export async function trackImpression(id: number): Promise<void> {
     `;
     
     if (result.length === 0) {
-      console.warn(`Impression not tracked for content ${id}: content not found or not active`);
+      // Impression not tracked - content not found or not active
     }
-  } catch (error) {
-    console.error(`Failed to track impression for content ${id}:`, error);
+  } catch (_error) {
+    // Failed to track impression - continuing
     // エラーでも配信は継続する
   }
 }
@@ -581,8 +581,8 @@ export async function trackClick(id: number): Promise<void> {
             updated_at = NOW()
         WHERE id = ${id} AND status = 'active'
     `;
-  } catch (error) {
-    console.error('Failed to track click:', error);
+  } catch (_error) {
+    // Failed to track click - continuing
     // エラーでもリダイレクトは継続する
   }
 }

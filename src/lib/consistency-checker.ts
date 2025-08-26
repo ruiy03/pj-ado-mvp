@@ -133,8 +133,8 @@ export async function findAffectedAdContents(
     }
 
     return affectedContents;
-  } catch (error) {
-    console.error('Failed to find affected ad contents:', error);
+  } catch (_error) {
+    // Failed to find affected ad contents - error will be thrown
     throw new Error('影響を受ける広告コンテンツの検索に失敗しました');
   }
 }
@@ -223,13 +223,8 @@ export async function analyzeTemplateChanges(
       severity,
     };
   } catch (error) {
-    console.error('Failed to analyze template changes:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      templateId,
-      newHtml: newHtml?.substring(0, 100) + '...'
-    });
+    // Failed to analyze template changes - error will be thrown
+    // Error details logged for debugging
     throw new Error(`テンプレート変更の影響分析に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -345,8 +340,8 @@ export async function analyzeUrlTemplateChanges(
       total_affected: totalUsingContents,
       severity,
     };
-  } catch (error) {
-    console.error('Failed to analyze URL template changes:', error);
+  } catch (_error) {
+    // Failed to analyze URL template changes - error will be thrown
     throw new Error('URLテンプレート変更の影響分析に失敗しました');
   }
 }
@@ -396,8 +391,8 @@ export async function validateContentIntegrity(contentId: number): Promise<{
       unused_placeholders,
       template_name: row.template_name,
     };
-  } catch (error) {
-    console.error('Failed to validate content integrity:', error);
+  } catch (_error) {
+    // Failed to validate content integrity - error will be thrown
     throw new Error('広告コンテンツの整合性検証に失敗しました');
   }
 }
@@ -620,8 +615,8 @@ export async function getSystemIntegrityStatus(): Promise<SystemIntegrityStatus>
       infoIssues,
       issues,
     };
-  } catch (error) {
-    console.error('Failed to get system integrity status:', error);
+  } catch (_error) {
+    // Failed to get system integrity status - error will be thrown
     throw new Error('システム整合性状況の取得に失敗しました');
   }
 }

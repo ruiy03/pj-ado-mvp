@@ -109,10 +109,10 @@ export default function AdContentClient({
         const data = await response.json();
         setContents(data);
       } else {
-        console.error('Failed to fetch ad contents');
+        // Failed to fetch ad contents - handled by UI state
       }
-    } catch (error) {
-      console.error('Error fetching ad contents:', error);
+    } catch (_error) {
+      // Error fetching ad contents - handled by loading state
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ export default function AdContentClient({
 
       await refreshContents();
     } catch (error) {
-      console.error('Delete error:', error);
+      // Delete error - handled in alert message
       alert(error instanceof Error ? error.message : '削除に失敗しました');
     }
   };
@@ -158,7 +158,7 @@ export default function AdContentClient({
 
       await refreshContents();
     } catch (error) {
-      console.error('Status change error:', error);
+      // Status change error - handled in alert message
       alert(error instanceof Error ? error.message : 'ステータス変更に失敗しました');
     }
   };

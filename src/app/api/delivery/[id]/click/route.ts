@@ -20,15 +20,15 @@ export async function OPTIONS() {
 // クリック追跡とリダイレクト
 export async function GET(
   request: NextRequest,
-  {params}: {params: Promise<Params>}
+  {params}: { params: Promise<Params> }
 ) {
   try {
     const {id} = await params;
     const {searchParams} = new URL(request.url);
     const redirectUrl = searchParams.get('url');
     const contentId = parseInt(id);
-    
-    
+
+
     if (isNaN(contentId)) {
       return NextResponse.json(
         {error: '無効な配信IDです'},
@@ -51,20 +51,21 @@ export async function GET(
     }
 
     // クリック数を増加（非同期で実行、エラーでもリダイレクトは継続）
-    trackClick(contentId).catch(console.error);
+    trackClick(contentId).catch(() => {
+    }); // Error handled, redirect continues
 
     // リダイレクト実行
     return NextResponse.redirect(redirectUrl);
-  } catch (error) {
-    console.error('Click tracking error:', error);
-    
+  } catch (_error) {
+    // Click tracking error - continuing with redirect
+
     // エラーが発生してもリダイレクトは実行
     const {searchParams} = new URL(request.url);
     const redirectUrl = searchParams.get('url');
     if (redirectUrl) {
       return NextResponse.redirect(redirectUrl);
     }
-    
+
     return NextResponse.json(
       {error: 'クリック追跡エラーが発生しました'},
       {status: 500}

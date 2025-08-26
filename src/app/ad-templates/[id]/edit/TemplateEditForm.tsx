@@ -100,7 +100,7 @@ export default function TemplateEditForm({ template }: TemplateEditFormProps) {
         throw new Error(error.error || '影響分析に失敗しました');
       }
     } catch (error) {
-      console.error('Analysis error:', error);
+      // Analysis error - handled in error message display
       const errorMessage = error instanceof Error ? error.message : '影響分析に失敗しました';
       
       // プレースホルダー検証エラーの場合は詳細なメッセージを表示
@@ -138,10 +138,10 @@ export default function TemplateEditForm({ template }: TemplateEditFormProps) {
         });
         
         if (syncResponse.ok) {
-          const syncResult = await syncResponse.json();
-          console.log('Content sync completed:', syncResult);
+          const _syncResult = await syncResponse.json();
+          // Content sync completed successfully
         } else {
-          console.warn('Content sync failed, proceeding with template update');
+          // Content sync failed, proceeding with template update
         }
       }
       
@@ -159,7 +159,7 @@ export default function TemplateEditForm({ template }: TemplateEditFormProps) {
       const redirectPath = returnTo === 'dashboard' ? '/dashboard' : '/ad-templates';
       router.push(redirectPath);
     } catch (error) {
-      console.error('Template update error:', error);
+      // Template update error - handled in error message display
       const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました';
       
       // プレースホルダー検証エラーの場合は詳細なメッセージを表示

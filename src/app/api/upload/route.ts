@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
           placeholder_name: placeholderName || undefined,
         });
         imageId = imageData.id;
-      } catch (error) {
-        console.error('Failed to save image metadata:', error);
+      } catch (_error) {
+        // Error handled - logging removed
         // Blobのアップロードは成功しているので、メタデータ保存失敗でもエラーにはしない
       }
     }
@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       imageId: imageId,
     });
 
-  } catch (error) {
-    console.error('Upload failed:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: 'アップロードに失敗しました'},
       {status: 500}
@@ -131,8 +131,8 @@ export async function DELETE(request: NextRequest) {
     // 実際の運用では画像の無効化やDBからの参照削除で対応
     return NextResponse.json({success: true});
 
-  } catch (error) {
-    console.error('Delete failed:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: '削除に失敗しました'},
       {status: 500}

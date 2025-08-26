@@ -38,8 +38,8 @@ export default function ExportButtons() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-    } catch (error) {
-      console.error('エクスポートエラー:', error);
+    } catch (_error) {
+      // エクスポートエラー - handled in alert message
       alert('エクスポートに失敗しました');
     } finally {
       setIsExporting(null);

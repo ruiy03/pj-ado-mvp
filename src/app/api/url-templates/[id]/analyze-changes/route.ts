@@ -46,13 +46,7 @@ export async function POST(
 
     return NextResponse.json(analysisResult);
   } catch (error) {
-    console.error('Failed to analyze URL template changes:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      newUrlTemplate,
-      newName
-    });
+    // Error handled - logging removed
     return NextResponse.json(
       {error: `URL影響分析に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`},
       {status: 500}

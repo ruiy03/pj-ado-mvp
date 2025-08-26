@@ -15,8 +15,8 @@ export async function GET() {
 
     const contents = await getAdContents();
     return NextResponse.json(contents);
-  } catch (error) {
-    console.error('Failed to fetch ad contents:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: '広告コンテンツの取得に失敗しました'},
       {status: 500}
@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
       if (Object.keys(imageUrls).length > 0) {
         try {
           await associateImagesWithAdContent(newContent.id, imageUrls);
-        } catch (error) {
-          console.error('Failed to associate images:', error);
+        } catch (_error) {
+          // Error handled - logging removed
           // 画像の関連付けに失敗してもadContentの作成は成功扱いとする
         }
       }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newContent, {status: 201});
   } catch (error) {
-    console.error('Failed to create ad content:', error);
+    // Error handled - logging removed
     return NextResponse.json(
       {error: error instanceof Error ? error.message : '広告コンテンツの作成に失敗しました'},
       {status: 500}

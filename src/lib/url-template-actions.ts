@@ -36,8 +36,8 @@ export async function getUrlTemplates(): Promise<UrlTemplate[]> {
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     })) as UrlTemplate[];
-  } catch (error) {
-    console.error('Failed to fetch URL templates:', error);
+  } catch (_error) {
+    // Failed to fetch URL templates - error will be thrown
     throw new Error('URLテンプレートの取得に失敗しました');
   }
 }
@@ -65,8 +65,8 @@ export async function getUrlTemplateById(id: number): Promise<UrlTemplate | null
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as UrlTemplate;
-  } catch (error) {
-    console.error('Failed to fetch URL template:', error);
+  } catch (_error) {
+    // Failed to fetch URL template - error will be thrown
     throw new Error('URLテンプレートの取得に失敗しました');
   }
 }
@@ -94,8 +94,8 @@ export async function getUrlTemplateByName(name: string): Promise<UrlTemplate | 
       created_at: row.created_at?.toISOString(),
       updated_at: row.updated_at?.toISOString(),
     } as UrlTemplate;
-  } catch (error) {
-    console.error('Failed to fetch URL template by name:', error);
+  } catch (_error) {
+    // Failed to fetch URL template by name - error will be thrown
     throw new Error('URLテンプレートの取得に失敗しました');
   }
 }
@@ -151,7 +151,7 @@ export async function createOrUpdateUrlTemplate(data: CreateUrlTemplateRequest):
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to create or update URL template:', error);
+    // Failed to create or update URL template - error will be thrown
     throw new Error('URLテンプレートの作成または更新に失敗しました');
   }
 }
@@ -186,7 +186,7 @@ export async function createUrlTemplate(data: CreateUrlTemplateRequest): Promise
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to create URL template:', error);
+    // Failed to create URL template - error will be thrown
     throw new Error('URLテンプレートの作成に失敗しました');
   }
 }
@@ -228,7 +228,7 @@ export async function updateUrlTemplate(data: UpdateUrlTemplateRequest): Promise
     if (error instanceof z.ZodError) {
       throw new Error(error.issues[0].message);
     }
-    console.error('Failed to update URL template:', error);
+    // Failed to update URL template - error will be thrown
     throw new Error('URLテンプレートの更新に失敗しました');
   }
 }
@@ -246,8 +246,8 @@ export async function deleteUrlTemplate(id: number): Promise<void> {
     }
 
     revalidatePath('/url-templates');
-  } catch (error) {
-    console.error('Failed to delete URL template:', error);
+  } catch (_error) {
+    // Failed to delete URL template - error will be thrown
     throw new Error('URLテンプレートの削除に失敗しました');
   }
 }

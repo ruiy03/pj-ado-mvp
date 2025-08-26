@@ -9,14 +9,29 @@ import {useSession} from 'next-auth/react';
 export default function Sidebar() {
   const pathname = usePathname();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const {data: session} = useSession();
 
   useEffect(() => {
     setIsHydrated(true);
+    // localStorage からサイドバーの状態を復元
+    const savedCollapsedState = localStorage.getItem('sidebar-collapsed');
+    if (savedCollapsedState !== null) {
+      setIsCollapsed(JSON.parse(savedCollapsedState));
+    }
   }, []);
 
+  // サイドバーの開閉状態をlocalStorageに保存
+  const toggleSidebar = () => {
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    localStorage.setItem('sidebar-collapsed', JSON.stringify(newCollapsedState));
+    // カスタムイベントを発火してClientLayoutに通知
+    window.dispatchEvent(new CustomEvent('sidebar-toggle', {detail: newCollapsedState}));
+  };
+
   // 役割に応じたメニューフィルタリング
-  const getMenuItems = () => {
+  const getMainMenuItems = () => {
     const baseItems = [
       {href: '/dashboard', label: 'ダッシュボード', icon: '📊'},
     ];
@@ -31,14 +46,20 @@ export default function Sidebar() {
       );
     }
 
+    return baseItems;
+  };
+
+  const getAccountMenuItems = () => {
+    const accountItems = [];
+
     // 管理者のみアクセス可能なメニュー
     if (session?.user?.role === 'admin') {
-      baseItems.push(
+      accountItems.push(
         {href: '/accounts', label: 'アカウント管理', icon: '👥'}
       );
     }
 
-    return baseItems;
+    return accountItems;
   };
 
   const getRoleDisplayName = (role?: string) => {
@@ -47,43 +68,91 @@ export default function Sidebar() {
     return '不明';
   };
 
-  const menuItems = getMenuItems();
+  const mainMenuItems = getMainMenuItems();
+  const accountMenuItems = getAccountMenuItems();
 
   return (
-    <aside className="w-64 bg-gray-900 text-white h-screen fixed left-0 top-0">
-      <div className="p-6 flex flex-col h-full">
-        <div className="mb-8">
-          <h1 className="text-xl font-bold">広告管理システム</h1>
-          <div className="text-sm text-gray-400 mt-2">
-            {session?.user?.name} ({getRoleDisplayName(session?.user?.role)})
+    <aside
+      className={`${isCollapsed ? 'w-16' : 'w-64'} bg-gray-900 text-white h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out z-50`}>
+      <div className="flex flex-col h-full">
+        {/* Header with toggle button */}
+        <div className={`${isCollapsed ? 'p-4' : 'p-6'} border-b border-gray-800`}>
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+            {!isCollapsed && (
+              <div>
+                <h1 className="text-xl font-bold">広告管理システム</h1>
+                <div className="text-sm text-gray-400 mt-2">
+                  {session?.user?.name} ({getRoleDisplayName(session?.user?.role)})
+                </div>
+              </div>
+            )}
+            <button
+              onClick={toggleSidebar}
+              className="p-2.5 min-h-[40px] min-w-[40px] rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+              title={isCollapsed ? 'サイドバーを展開' : 'サイドバーを折りたたむ'}
+            >
+              <span className="text-xl font-medium">
+                {isCollapsed ? '☰' : '‹'}
+              </span>
+            </button>
           </div>
         </div>
-        <nav className="flex-1">
+
+        {/* Main navigation */}
+        <nav className="flex-1 px-3 py-4">
           <ul className="space-y-2">
-            {menuItems.map((item) => (
+            {mainMenuItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                  className={`flex items-center ${isCollapsed ? 'justify-center p-3' : 'gap-3 p-3'} rounded-lg transition-colors group ${
                     isHydrated && pathname === item.href
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   }`}
+                  title={isCollapsed ? item.label : ''}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <span className="text-lg flex-shrink-0">{item.icon}</span>
+                  {!isCollapsed && <span className="truncate">{item.label}</span>}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="mt-auto pt-4">
+        {/* Account management section */}
+        {accountMenuItems.length > 0 && (
+          <div className="px-3 py-2 border-t border-gray-800">
+            <ul className="space-y-2">
+              {accountMenuItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center ${isCollapsed ? 'justify-center p-3' : 'gap-3 p-3'} rounded-lg transition-colors group ${
+                      isHydrated && pathname === item.href
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }`}
+                    title={isCollapsed ? item.label : ''}
+                  >
+                    <span className="text-lg flex-shrink-0">{item.icon}</span>
+                    {!isCollapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Logout button */}
+        <div className="px-3 py-4 border-t border-gray-800">
           <form action={logout}>
             <button
-              className="flex items-center gap-3 p-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white w-full cursor-pointer">
-              <span className="text-lg">🚪</span>
-              <span>ログアウト</span>
+              className={`flex items-center ${isCollapsed ? 'justify-center p-3' : 'gap-3 p-3'} rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white w-full cursor-pointer`}
+              title={isCollapsed ? 'ログアウト' : ''}
+            >
+              <span className="text-lg flex-shrink-0">🚪</span>
+              {!isCollapsed && <span className="truncate">ログアウト</span>}
             </button>
           </form>
         </div>

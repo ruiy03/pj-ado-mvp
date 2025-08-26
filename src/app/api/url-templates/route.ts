@@ -12,8 +12,8 @@ export async function GET() {
 
     const templates = await getUrlTemplates();
     return NextResponse.json({templates});
-  } catch (error) {
-    console.error('Error fetching URL templates:', error);
+  } catch (_error) {
+    // Error handled - logging removed
     return NextResponse.json(
       {error: 'URLテンプレートの取得に失敗しました'},
       {status: 500}
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     
     return NextResponse.json({template}, {status: 201});
   } catch (error) {
-    console.error('Error creating URL template:', error);
+    // Error handled - logging removed
     
     if (error instanceof Error && error.message.includes('必須です')) {
       return NextResponse.json({error: error.message}, {status: 400});
