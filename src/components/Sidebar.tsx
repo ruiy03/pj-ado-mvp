@@ -77,7 +77,7 @@ export default function Sidebar() {
       <div className="flex flex-col h-full">
         {/* Header with toggle button */}
         <div className={`${isCollapsed ? 'p-4' : 'p-6'} border-b border-gray-800`}>
-          <div className="flex items-center justify-between">
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             {!isCollapsed && (
               <div>
                 <h1 className="text-xl font-bold">広告管理システム</h1>
@@ -88,10 +88,10 @@ export default function Sidebar() {
             )}
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer"
+              className="p-2.5 min-h-[40px] min-w-[40px] rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
               title={isCollapsed ? 'サイドバーを展開' : 'サイドバーを折りたたむ'}
             >
-              <span className="text-lg">
+              <span className="text-xl font-medium">
                 {isCollapsed ? '☰' : '‹'}
               </span>
             </button>
