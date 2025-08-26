@@ -25,13 +25,11 @@ export default function UrlTemplateList({nameFilter, descriptionFilter, urlParam
       return false;
     }
 
-    // URLパラメータフィルター（URLテンプレートとパラメーターJSONの両方を検索）
+    // URLパラメータフィルター（URLテンプレート内を検索）
     if (urlParameterFilter) {
       const urlParameterLower = urlParameterFilter.toLowerCase();
       const urlTemplateMatch = template.url_template.toLowerCase().includes(urlParameterLower);
-      const parametersMatch = template.parameters && 
-        JSON.stringify(template.parameters).toLowerCase().includes(urlParameterLower);
-      if (!urlTemplateMatch && !parametersMatch) {
+      if (!urlTemplateMatch) {
         return false;
       }
     }

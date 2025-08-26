@@ -75,13 +75,11 @@ export default function IntegrityMonitor() {
   const [integrityStatus, setIntegrityStatus] = useState<SystemIntegrityStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFromCache, setIsFromCache] = useState(false);
 
   const fetchIntegrityStatus = async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
-      setIsFromCache(false);
       
       // キャッシュをクリア（強制更新の場合）
       if (forceRefresh) {
@@ -111,7 +109,6 @@ export default function IntegrityMonitor() {
     const cachedData = getCachedData();
     if (cachedData) {
       setIntegrityStatus(cachedData);
-      setIsFromCache(true);
       return true;
     }
     return false;
