@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import {formatDateTimeJST} from '@/lib/date-utils';
 
 interface IntegrityIssue {
   type: 'placeholder_mismatch' | 'missing_template' | 'orphaned_content';
@@ -236,7 +237,7 @@ export default function IntegrityMonitor() {
               }
             </h4>
             <p className="text-sm">
-              最終チェック: {new Date(integrityStatus.lastChecked).toLocaleString('ja-JP')}
+              最終チェック: {formatDateTimeJST(integrityStatus.lastChecked)}
             </p>
           </div>
         </div>

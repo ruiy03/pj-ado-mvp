@@ -6,6 +6,7 @@ import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import type {AdTemplate, UrlTemplate, AdContent} from '@/lib/definitions';
 import IntegrityMonitor from './components/IntegrityMonitor';
+import {formatDateOnlyJST} from '@/lib/date-utils';
 
 interface DashboardStats {
   totalAds: number;
@@ -83,7 +84,7 @@ export default function Dashboard() {
         .map((template: AdTemplate, index: number) => ({
           id: index + 1,
           message: `広告テンプレート「${template.name}」が作成されました`,
-          date: template.created_at ? new Date(template.created_at).toLocaleDateString('ja-JP') : '最近',
+          date: formatDateOnlyJST(template.created_at) || '最近',
           type: 'create' as const,
           created_at: template.created_at,
         }));
@@ -93,7 +94,7 @@ export default function Dashboard() {
         .map((template: UrlTemplate, index: number) => ({
           id: templates.length + index + 1,
           message: `URLテンプレート「${template.name}」が作成されました`,
-          date: template.created_at ? new Date(template.created_at).toLocaleDateString('ja-JP') : '最近',
+          date: formatDateOnlyJST(template.created_at) || '最近',
           type: 'create' as const,
           created_at: template.created_at,
         }));
@@ -103,7 +104,7 @@ export default function Dashboard() {
         .map((content: AdContent, index: number) => ({
           id: templates.length + urlTemplates.length + index + 1,
           message: `広告コンテンツ「${content.name}」が作成されました`,
-          date: content.created_at ? new Date(content.created_at).toLocaleDateString('ja-JP') : '最近',
+          date: formatDateOnlyJST(content.created_at) || '最近',
           type: 'create' as const,
           created_at: content.created_at,
         }));

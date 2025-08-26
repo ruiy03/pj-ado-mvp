@@ -4,6 +4,7 @@ import {useState} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type {AdContent} from '@/lib/definitions';
+import {formatDateJST} from '@/lib/date-utils';
 import DeliveryCodeModal from '@/components/DeliveryCodeModal';
 
 interface AdContentCardProps {
@@ -50,17 +51,6 @@ export default function AdContentCard({
     }
   };
 
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const generatePreview = (): string => {
     if (!content.template?.html) return '';
@@ -204,9 +194,9 @@ export default function AdContentCard({
             作成者: {content.created_by_user?.name || '不明'}
           </div>
           <div className="text-left sm:text-right">
-            <div>作成: {formatDate(content.created_at)}</div>
+            <div>作成: {formatDateJST(content.created_at) || '-'}</div>
             {content.updated_at && content.updated_at !== content.created_at && (
-              <div>更新: {formatDate(content.updated_at)}</div>
+              <div>更新: {formatDateJST(content.updated_at) || '-'}</div>
             )}
           </div>
         </div>
