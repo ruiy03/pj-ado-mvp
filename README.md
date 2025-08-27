@@ -49,9 +49,15 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
 ### セットアップ手順
 
-1. **リポジトリのクローン**
+1. **リポジトリのForkとクローン**
+
+   GitHubでリポジトリをFork：
+    - このリポジトリページにアクセスし、右上の「Fork」ボタンをクリック
+    - 自分のGitHubアカウントにリポジトリがコピーされます
+
+   Forkしたリポジトリをローカルにクローン：
    ```bash
-   git clone git@github.com:ruiy03/pj-ado-mvp.git
+   git clone git@github.com:<your-github-username>/pj-ado-mvp.git
    cd pj-ado-mvp
    ```
 
@@ -62,14 +68,36 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
 3. **環境変数の設定**
 
-   `.env.local`ファイルを作成し、以下の環境変数を設定：
-   ```env
-   DATABASE_URL=your_neon_database_url
-   NEXTAUTH_SECRET=your_nextauth_secret_key_32_characters_long
-   NEXTAUTH_URL=http://localhost:3000
-   BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
-   CRON_SECRET=your_cron_secret_key # optional for image cleanup
-   WORDPRESS_API_URL=your_wordpress_site_url
+   Vercelでプロジェクトを作成し、以下の手順で環境変数を設定：
+
+   **Vercelでのデータベース・ストレージ設定**
+    - Vercel Storageから「Neon Database」と「Vercel Blob」を追加
+    - Settings → Cron JobsをONにする
+    - DATABASE_URLとBLOB_READ_WRITE_TOKENが自動設定されます
+
+   **AUTH_SECRETの生成と設定**
+   ```bash
+   # ローカルで32文字のシークレットを生成
+   openssl rand -base64 32
+   ```
+    - Vercel Environment VariablesにAUTH_SECRETとして追加
+
+   **ローカル環境への同期**
+   ```bash
+   vercel env pull
+   ```
+
+   **WordPress Localサーバーの起動**
+    - GitHub ReleasesからWordPress環境をダウンロード
+    - Localアプリにインポート
+    - Localアプリを開いて、インポートしたWordPressサイトを起動
+    - 「Start site」ボタンをクリック（通常 http://localhost:10005 でアクセス可能）
+
+   **WordPress環境の設定**
+    - .env.localファイルに追加（※下記のポート番号10005は、ご自身のLocalアプリで割り当てられたWordPressサイトのポート番号に置き換えてください）：
+   ```bash
+   # ※ ポート番号10005は例です。Localアプリで実際に割り当てられているポート番号を確認して設定してください。
+   echo "WORDPRESS_API_URL=http://localhost:10005" >> .env.local
    ```
 
 4. **データベースの初期化**
