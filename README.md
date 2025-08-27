@@ -80,7 +80,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    # ローカルで32文字のシークレットを生成
    openssl rand -base64 32
    ```
-    - Vercel Environment VariablesにNEXTAUTH_SECRETとして追加
+    - Vercel Environment VariablesにAUTH_SECRETとして追加
 
    **ローカル環境への同期**
    ```bash
