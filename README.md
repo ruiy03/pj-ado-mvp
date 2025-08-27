@@ -57,7 +57,7 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
 
    Forkしたリポジトリをローカルにクローン：
    ```bash
-   git clone git@github.com:YOUR_USERNAME/pj-ado-mvp.git
+   git clone git@github.com:<your-github-username>/pj-ado-mvp.git
    cd pj-ado-mvp
    ```
 
