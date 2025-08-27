@@ -90,8 +90,9 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    **WordPress環境の設定**
     - GitHub ReleasesからWordPress環境をダウンロード
     - Localアプリにインポート
-    - .env.localファイルに追加：
+    - .env.localファイルに追加（※下記のポート番号10005は、ご自身のLocalアプリで割り当てられたWordPressサイトのポート番号に置き換えてください）：
    ```bash
+   # ※ ポート番号10005は例です。Localアプリで実際に割り当てられているポート番号を確認して設定してください。
    echo "WORDPRESS_API_URL=http://localhost:10005" >> .env.local
    ```
 
