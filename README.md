@@ -87,9 +87,13 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    vercel env pull
    ```
 
-   **WordPress環境の設定**
+   **WordPress Localサーバーの起動**
     - GitHub ReleasesからWordPress環境をダウンロード
     - Localアプリにインポート
+    - Localアプリを開いて、インポートしたWordPressサイトを起動
+    - 「Start site」ボタンをクリック（通常 http://localhost:10005 でアクセス可能）
+
+   **WordPress環境の設定**
     - .env.localファイルに追加（※下記のポート番号10005は、ご自身のLocalアプリで割り当てられたWordPressサイトのポート番号に置き換えてください）：
    ```bash
    # ※ ポート番号10005は例です。Localアプリで実際に割り当てられているポート番号を確認して設定してください。
@@ -104,12 +108,6 @@ CSS、NextAuth.jsを使用して構築された日本語の広告管理システ
    このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブル、article_ad_mappingsテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
-
-   **WordPress Localサーバーの起動**
-    - Localアプリを開いて、インポートしたWordPressサイトを起動
-    - 「Start site」ボタンをクリック（通常 http://localhost:10005 でアクセス可能）
-
-   **Next.js開発サーバーの起動**
    ```bash
    npm run dev
    ```
