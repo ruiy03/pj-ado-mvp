@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Jetbrains
 .idea
+
+# Serena MCP
+.serena
