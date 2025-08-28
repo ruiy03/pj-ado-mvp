@@ -25,8 +25,8 @@ NextAuth.js for authentication.
 
 The application uses NextAuth.js v5 (beta) with credential-based authentication and role-based authorization:
 
-- **Authentication config**: `auth.config.ts` and `auth.ts` handle NextAuth setup
-- **Middleware**: `middleware.ts` protects routes except public files and login
+- **Authentication config**: `src/auth.config.ts` and `src/auth.ts` handle NextAuth setup
+- **Middleware**: `src/middleware.ts` protects routes except public files and login
 - **Database**: Uses Neon PostgreSQL with bcrypt for password hashing
 - **WordPress sync actions**: `src/lib/wordpress-sync-actions.ts` handles WordPress API integration and mapping data
   synchronization
@@ -67,8 +67,8 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/lib/image-utils.ts` - Common helper functions for image processing and content_data manipulation
 - `src/lib/consistency-checker.ts` - Template consistency analysis and integrity monitoring system
 - `src/lib/logger.ts` - Structured logging system with environment-aware configuration
-- `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
-- `middleware.ts` - Route protection middleware
+- `src/auth.ts` & `src/auth.config.ts` - NextAuth.js configuration with Credentials provider
+- `src/middleware.ts` - Route protection middleware
 
 ### Database Schema
 

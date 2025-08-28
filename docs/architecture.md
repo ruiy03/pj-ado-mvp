@@ -38,10 +38,10 @@ pj-ado-mvp/
 │   ├── hooks/               # 共通カスタムフック
 │   ├── lib/                 # ユーティリティ・設定
 │   ├── auth.config.ts       # NextAuth.js設定詳細
-│   └── auth.ts              # NextAuth.js設定
-├── scripts/               # ユーティリティスクリプト
-│   └── seed.js           # データベース初期化
-└── middleware.ts         # ルート保護ミドルウェア
+│   ├── auth.ts              # NextAuth.js設定
+│   └── middleware.ts        # ルート保護ミドルウェア
+└── scripts/               # ユーティリティスクリプト
+    └── seed.js           # データベース初期化
 ```
 
 ## 認証・認可システム
