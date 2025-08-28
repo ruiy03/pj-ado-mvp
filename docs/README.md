@@ -21,6 +21,10 @@
 - [**features/ad-management.md**](./features/ad-management.md) - 広告管理・配信システム（コンテンツ・配信・画像）
 - [**features/wordpress-integration.md**](./features/wordpress-integration.md) - WordPress連携・記事広告マッピング
 
+### WordPress統合
+
+- [**wordpress-plugin-implementation.md**](./wordpress-plugin-implementation.md) - WordPress プラグイン実装ガイド
+
 ## クイックナビゲーション
 
 | 目的                  | ドキュメント                                                                   |
