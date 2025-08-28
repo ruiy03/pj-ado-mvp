@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { BarChart3, ExternalLink } from 'lucide-react';
 

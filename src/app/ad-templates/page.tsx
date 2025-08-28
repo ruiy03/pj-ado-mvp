@@ -5,7 +5,7 @@ import {useState, useRef} from 'react';
 import type {AdTemplate, CreateAdTemplateRequest} from '@/lib/definitions';
 
 import {useTemplates} from './hooks/useTemplates';
-import ImportExportButtons from './components/ImportExportButtons';
+import ImportExportButtons from '@/components/ImportExportButtons';
 import {ImportFormSection} from '@/components/ImportExportButtons';
 import TemplateForm from './components/TemplateForm';
 import TemplatePreview from './components/TemplatePreview';
@@ -284,6 +284,15 @@ export default function AdTemplates() {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold text-gray-900">広告テンプレート管理</h1>
               <ImportExportButtons
+                title=""
+                itemType="テンプレート"
+                csvFormat={{
+                  header: "name,html,placeholders,description",
+                  example: '"サンプル広告","<a href={{linkUrl}}><div>{{title}}</div></a>","title,linkUrl","サンプルの説明"',
+                  description: "placeholders列には、プレースホルダーをカンマで区切って記載してください"
+                }}
+                createButtonText="新しいテンプレートを作成"
+                createButtonHref="/ad-templates/create"
                 onImport={handleImportClick}
                 onExport={handleExport}
                 onCreateClick={handleCreateClick}

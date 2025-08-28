@@ -2,7 +2,7 @@
 
 import ClientProtectedPage from '@/components/ClientProtectedPage';
 import UrlTemplateList from './components/UrlTemplateList';
-import ImportExportButtons from './components/ImportExportButtons';
+import ImportExportButtons from '@/components/ImportExportButtons';
 import {ImportFormSection} from '@/components/ImportExportButtons';
 import {useState} from 'react';
 import type {ImportResult} from '@/lib/definitions';
@@ -117,6 +117,15 @@ export default function UrlTemplates() {
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold text-gray-900">URLテンプレート管理</h1>
             <ImportExportButtons
+              title=""
+              itemType="URLテンプレート"
+              csvFormat={{
+                header: "name,url_template,parameters,description",
+                example: '"Google Analytics","https://example.com?utm_source={{source}}","{\"utm_source\":\"website\",\"utm_medium\":\"banner\"}","サンプルURL"',
+                description: "parameters列には、JSONオブジェクトを文字列として記載してください"
+              }}
+              createButtonText="新しいテンプレートを作成"
+              createButtonHref="/url-templates/create"
               onImport={handleImportClick}
               onExport={handleExport}
               onCreateClick={handleCreateClick}

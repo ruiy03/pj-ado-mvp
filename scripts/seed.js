@@ -2,10 +2,8 @@ const {neon} = require('@neondatabase/serverless');
 const bcrypt = require('bcrypt');
 const path = require('path');
 
-// .env.local ファイルを優先して読み込む
+// Load environment variables
 require('dotenv').config({path: path.resolve(process.cwd(), '.env.local')});
-// .env ファイルも読み込む（.env.localに無い変数のため）
-require('dotenv').config();
 
 const sql = neon(process.env.DATABASE_URL);
 
