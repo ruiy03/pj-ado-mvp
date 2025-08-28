@@ -1,5 +1,3 @@
-'use client';
-
 import type { CreateUrlTemplateRequest } from '@/lib/definitions';
 
 interface UrlTemplatePreviewProps {
