@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {useUrlTemplates} from '../hooks/useUrlTemplates';
 import UrlTemplateForm from './UrlTemplateForm';
 import UrlTemplateCard from './UrlTemplateCard';
-import ImportExportButtons from './ImportExportButtons';
+import ImportExportButtons from '@/components/ImportExportButtons';
 import type {UrlTemplate, CreateUrlTemplateRequest, ImportResult} from '@/lib/definitions';
 
 export default function UrlTemplateClient() {
@@ -147,6 +147,15 @@ export default function UrlTemplateClient() {
   return (
     <div className="space-y-6">
       <ImportExportButtons
+        title=""
+        itemType="URLテンプレート"
+        csvFormat={{
+          header: "name,url_template,parameters,description",
+          example: '"Google Analytics","https://example.com?utm_source={{source}}","{\"utm_source\":\"website\",\"utm_medium\":\"banner\"}","サンプルURL"',
+          description: "parameters列には、JSONオブジェクトを文字列として記載してください"
+        }}
+        createButtonText="新しいテンプレートを作成"
+        createButtonHref="/url-templates/create"
         onImport={handleImportClick}
         onExport={handleExport}
         onCreateClick={handleCreateClick}

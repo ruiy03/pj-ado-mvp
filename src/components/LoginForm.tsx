@@ -1,6 +1,5 @@
 'use client';
 
-import {Button} from './Button';
 import {signIn, useSession} from 'next-auth/react';
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
@@ -10,7 +9,7 @@ export default function LoginForm() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const router = useRouter();
-  const { update } = useSession();
+  const {update} = useSession();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,7 +32,7 @@ export default function LoginForm() {
     } else if (result?.ok) {
       // 認証成功時はリダイレクト状態に変更（ローディング継続）
       setIsRedirecting(true);
-      
+
       // セッションを強制更新してからリダイレクト
       await update();
       router.push('/dashboard');
@@ -48,114 +47,118 @@ export default function LoginForm() {
     <div className="relative">
       <form onSubmit={handleSubmit} className="space-y-6" role="form">
         <div className="flex-1 rounded-xl bg-white px-10 pb-10 pt-12 border border-gray-200 shadow-lg">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            ログイン
-          </h1>
-          <p className="text-gray-600 mt-2">アカウントにアクセスしてください</p>
-        </div>
-        {errorMessage && (
-          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"/>
-              </svg>
-              <p className="text-sm font-medium text-red-800">{errorMessage}</p>
-            </div>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">
+              ログイン
+            </h1>
+            <p className="text-gray-600 mt-2">アカウントにアクセスしてください</p>
           </div>
-        )}
-        <div className="space-y-6">
-          <div>
-            <label
-              className="block text-sm font-medium text-gray-700 mb-2"
-              htmlFor="email"
-            >
-              メールアドレス
-            </label>
-            <div className="relative">
-              <input
-                className="block w-full rounded-lg border border-gray-300 py-3 pl-12 pr-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors placeholder:text-gray-400"
-                id="email"
-                type="email"
-                name="email"
-                placeholder="example@company.com"
-                required
-              />
-              <svg
-                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-              </svg>
+          {errorMessage && (
+            <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"/>
+                </svg>
+                <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+              </div>
             </div>
-          </div>
-          <div>
-            <label
-              className="block text-sm font-medium text-gray-700 mb-2"
-              htmlFor="password"
-            >
-              パスワード
-            </label>
-            <div className="relative">
-              <input
-                className="block w-full rounded-lg border border-gray-300 py-3 pl-12 pr-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors placeholder:text-gray-400"
-                id="password"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                required
-                minLength={8}
-              />
-              <svg
-                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-        <Button type="submit" className="mt-8 w-full py-4 text-base font-medium justify-center"
-                aria-disabled={isPending || isRedirecting}>
-          {isPending || isRedirecting ? (
-            <div className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
-                   viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor"
-                      d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {isRedirecting ? 'ダッシュボードに移動中...' : 'ログイン中...'}
-            </div>
-          ) : (
-            "ログイン"
           )}
-        </Button>
-      </div>
-    </form>
-    
-    {/* ログイン成功後のリダイレクト中はオーバーレイを表示 */}
-    {isRedirecting && (
-      <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-xl z-10">
-        <div className="flex items-center justify-center flex-col">
-          <svg className="animate-spin h-8 w-8 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none"
-               viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor"
-                  d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p className="text-blue-600 font-medium">ダッシュボードに移動中...</p>
+          <div className="space-y-6">
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="email"
+              >
+                メールアドレス
+              </label>
+              <div className="relative">
+                <input
+                  className="block w-full rounded-lg border border-gray-300 py-3 pl-12 pr-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors placeholder:text-gray-400"
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="example@company.com"
+                  required
+                />
+                <svg
+                  className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="password"
+              >
+                パスワード
+              </label>
+              <div className="relative">
+                <input
+                  className="block w-full rounded-lg border border-gray-300 py-3 pl-12 pr-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors placeholder:text-gray-400"
+                  id="password"
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                />
+                <svg
+                  className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="mt-8 w-full py-4 text-base font-medium justify-center flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:bg-blue-800 cursor-pointer aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+            aria-disabled={isPending || isRedirecting}
+          >
+            {isPending || isRedirecting ? (
+              <div className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor"
+                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {isRedirecting ? 'ダッシュボードに移動中...' : 'ログイン中...'}
+              </div>
+            ) : (
+              "ログイン"
+            )}
+          </button>
         </div>
-      </div>
-    )}
-  </div>
+      </form>
+
+      {/* ログイン成功後のリダイレクト中はオーバーレイを表示 */}
+      {isRedirecting && (
+        <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-xl z-10">
+          <div className="flex items-center justify-center flex-col">
+            <svg className="animate-spin h-8 w-8 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor"
+                    d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-blue-600 font-medium">ダッシュボードに移動中...</p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

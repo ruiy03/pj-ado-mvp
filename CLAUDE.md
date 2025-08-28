@@ -276,7 +276,7 @@ The application includes a sophisticated template consistency monitoring system 
 - **Dashboard integration**: `IntegrityMonitor.tsx` component provides real-time consistency status in the dashboard
 - **Template change warnings**: `TemplateChangeWarning.tsx` and `UrlTemplateChangeWarning.tsx` alert users of potential
   breaking changes before template updates
-- **Shared components**: `ImportExportButtons.tsx` provides consistent import/export UI across features
+- **Shared components**: `src/components/ImportExportButtons.tsx` provides consistent import/export UI across features
 - **Delivery integration**: `DeliveryCodeModal.tsx` generates WordPress shortcodes for ad delivery
 
 The consistency system categorizes issues by severity (critical, warning, info) and provides detailed impact analysis
@@ -298,8 +298,10 @@ The application includes a WordPress integration system for managing article-adv
 - **Data visualization**: `MappingsTable.tsx` displays post-advertisement relationships, `UsageStatsCard.tsx` shows
   usage analytics
 - **Sync functionality**: `SyncButton.tsx` triggers manual WordPress data synchronization with progress feedback
-- **Data export**: `ExportButtons.tsx` enables CSV export of mapping data for analysis
-- **Articles without ads tracking**: `ArticlesWithoutAdsTable.tsx` displays WordPress articles that don't have associated advertisements with filtering and sorting capabilities
+- **Data export**: `src/app/article-ad-mapping/components/ExportButtons.tsx` enables CSV export of mapping data for
+  analysis
+- **Articles without ads tracking**: `ArticlesWithoutAdsTable.tsx` displays WordPress articles that don't have
+  associated advertisements with filtering and sorting capabilities
 - **Enhanced usage statistics**: Usage stats now include ad names and enhanced UI for better data visualization
 - **WordPress API integration**: Custom endpoint `/wp-json/lmg-ad-manager/v1/shortcode-usage` for retrieving shortcode
   usage data, plus `/wp-json/wp/v2/posts` for comprehensive article retrieval
