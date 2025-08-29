@@ -161,7 +161,6 @@ node scripts/seed.js
 - [**システム設計書**](./docs/architecture.md) - アーキテクチャとプロジェクト構造
 - [**API仕様書**](./docs/api-reference.md) - API エンドポイント一覧
 - [**データベース設計**](./docs/database-schema.md) - テーブル構造とスキーマ
-- [**開発者ガイド**](./docs/development.md) - 環境構築とデプロイ手順
 - [**機能詳細**](./docs/features/) - 各機能の技術仕様
 
 📖 [ドキュメント一覧を見る](./docs/README.md)
@@ -171,5 +170,3 @@ node scripts/seed.js
 Vercelを使用したデプロイが推奨されます：
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
-
-詳細な手順は [開発者ガイド](./docs/development.md) を参照してください。

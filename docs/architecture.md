@@ -1,7 +1,7 @@
 # システムアーキテクチャ
 
 > **関連ドキュメント
-**: [開発ガイド](./development.md) | [要件定義](./requirements.md) | [API仕様](./api-reference.md) | [データベース設計](./database-schema.md)
+**: [要件定義](./requirements.md) | [API仕様](./api-reference.md) | [データベース設計](./database-schema.md)
 
 ## プロジェクト構造
 
@@ -277,5 +277,4 @@ sequenceDiagram
 
 ### 運用・開発ガイド
 
-- **[開発ガイド](./development.md)**: 開発環境セットアップと運用
 - **[トラブルシューティング](./troubleshooting.md)**: 問題解決ガイド

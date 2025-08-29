@@ -454,7 +454,6 @@ wp_remote_post($api_endpoint, [
 
 ## 関連ドキュメント
 
-- **[開発ガイド](./development.md)**: 開発環境セットアップとトラブルシューティング
 - **[WordPress統合システム](./features/wordpress-integration.md)**: システム概要とアーキテクチャ
 - **[API仕様書](./api-reference.md)**: エンドポイント詳細仕様
 
