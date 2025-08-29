@@ -64,30 +64,6 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_token
 CRON_SECRET=your-cron-secret
 ```
 
-### WordPress連携環境変数の詳細
-
-#### WORDPRESS_API_URL
-
-- **用途**: WordPress側のREST APIベースURL
-- **例**: `https://portcareer.jp`（プロトコルを含む完全なURL）
-- **必要な権限**: WordPressのREST API読み取り権限
-- **使用箇所**:
-    - `src/lib/wordpress-sync-actions.ts`でのAPI呼び出し
-    - 記事広告マッピングの同期処理
-
-#### 設定例
-
-```bash
-# 本番環境
-WORDPRESS_API_URL=https://portcareer.jp
-
-# ステージング環境  
-WORDPRESS_API_URL=https://staging.portcareer.jp
-
-# ローカル開発環境
-WORDPRESS_API_URL=http://localhost:8080
-```
-
 ## デプロイ
 
 Vercelを使用したデプロイが推奨されます：
@@ -136,209 +112,78 @@ Vercelを使用したデプロイが推奨されます：
 
 環境変数`CRON_SECRET`でCron認証を設定。
 
-## WordPress統合開発環境セットアップ
+## WordPress統合テスト
 
-### 1. WordPress開発環境の構築
+WordPress連携機能をテストするための基本手順：
 
-#### Docker を使用する場合（推奨）
+### 1. WordPress環境の準備
 
 ```bash
-# WordPress + MySQL環境を起動
+# Docker環境（推奨）
 docker-compose up -d
-
-# コンテナ構成例
-# - wordpress:8080 (WordPress)
-# - mysql:3306 (データベース)
+# WordPress: http://localhost:8080
+# 環境変数: WORDPRESS_API_URL=http://localhost:8080
 ```
 
-#### `docker-compose.yml` の例：
+### 2. プラグイン設定
 
-```yaml
-version: '3.8'
-services:
-  wordpress:
-    image: wordpress:latest
-    ports:
-      - "8080:80"
-    environment:
-      WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: password
-      WORDPRESS_DB_NAME: wordpress
-    volumes:
-      - ./wordpress:/var/www/html
-    depends_on:
-      - db
+1. LMG Ad Managerプラグインを有効化
+2. 設定でAPIエンドポイントを設定: `http://localhost:3000/api/delivery`
+3. 記事に `[lmg_ad id="123"]` を追加してテスト
 
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: password
-    volumes:
-      - db_data:/var/lib/mysql
+## よくある問題と解決策
 
-volumes:
-  db_data:
-```
+### データベース接続エラー
 
-### 2. LMG Ad Manager プラグインの設定
+**症状**: `DATABASE_URL` 関連のエラー
 
-#### プラグインファイルの配置
+**解決方法**:
 
-```bash
-# WordPressボリュームディレクトリに移動
-cd ./wordpress/wp-content/plugins/
+- `DATABASE_URL`環境変数を確認
+- `vercel env pull` でローカル環境変数を同期
 
-# プラグインディレクトリを作成
-mkdir lmg-ad-manager
+### NextAuth.js エラー
 
-# プラグインファイルを配置（実際のコードはWordPress環境から取得）
-```
+**症状**: 認証エラー・セッションエラー
 
-#### WordPress側の初期設定
+**解決方法**:
 
-1. **WordPress管理画面にアクセス**: http://localhost:8080/wp-admin
-2. **プラグインを有効化**: プラグイン > LMG Ad Manager > 有効化
-3. **API設定**: 設定 > LMG Ad Manager
-   ```
-   APIエンドポイント: http://localhost:3000/api/delivery
-   APIタイムアウト: 5秒
-   デフォルトキャッシュ時間: 3600秒
-   ```
+- `NEXTAUTH_SECRET` が32文字以上であることを確認
+- `NEXTAUTH_URL` の設定確認（本番: 正しいドメイン、ローカル: `http://localhost:3000`）
 
-### 3. 環境変数の設定
+### Vercel Blob アップロードエラー
 
-#### Next.js側 (`.env.local`)
+**症状**: 画像アップロード失敗
 
-```bash
-# WordPress統合
-WORDPRESS_API_URL=http://localhost:8080
+**解決方法**:
 
-# その他の環境変数...
-DATABASE_URL=postgresql://...
-NEXTAUTH_SECRET=...
-```
+- `BLOB_READ_WRITE_TOKEN` の設定確認
+- ファイルサイズ制限（10MB）以内であることを確認
 
-#### WordPress側のREST API確認
+### WordPress連携エラー
 
-```bash
-# ショートコード使用状況API
-curl http://localhost:8080/wp-json/lmg-ad-manager/v1/shortcode-usage
+**症状**: ショートコードが表示されない
 
-# 全記事取得API
-curl http://localhost:8080/wp-json/lmg-ad-manager/v1/all-articles?per_page=10
-```
+**解決方法**:
 
-### 4. 連携テストの手順
+- プラグインが有効化されているか確認
+- APIエンドポイントの疎通確認: `curl -X GET "https://your-app.vercel.app/api/delivery/123"`
 
-#### Step 1: 基本的な広告表示テスト
+### CORS エラー
 
-1. Next.js で広告コンテンツを作成（ID: 123）
-2. WordPress記事で `[lmg_ad id="123"]` を使用
-3. フロントエンドで広告が表示されることを確認
+**症状**: WordPressサイトから広告が読み込めない
 
-#### Step 2: API統合テスト
+**解決方法**:
 
-```bash
-# Next.js側から WordPress API を呼び出し
-curl http://localhost:3000/api/wordpress/sync
+- `/api/delivery/[id]/route.ts` でCORSヘッダー設定を確認
+- WordPressドメインが許可されているか確認
 
-# レスポンス例
-{
-  "success": true,
-  "inserted": 5,
-  "updated": 3,
-  "deleted": 0,
-  "errors": []
-}
-```
+### パフォーマンス問題
 
-#### Step 3: 統計データ同期テスト
+**症状**: 管理画面が3秒以上かかる
 
-1. WordPress で複数の記事に広告ショートコードを配置
-2. Next.js管理画面で「記事広告マッピング」を確認
-3. 「WordPress同期」ボタンで手動同期を実行
-4. マッピング結果が正しく表示されることを確認
+**診断手順**:
 
-### 5. トラブルシューティング
-
-#### CORS エラーが発生する場合
-
-WordPress側で CORS ヘッダーを追加：
-
-```php
-// functions.php または プラグインに追加
-add_action('rest_api_init', function () {
-    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-    add_filter('rest_pre_serve_request', function ($value) {
-        header('Access-Control-Allow-Origin: http://localhost:3000');
-        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization');
-        return $value;
-    });
-});
-```
-
-#### API接続エラーが発生する場合
-
-1. **ネットワーク接続を確認**:
-   ```bash
-   # WordPress APIが応答するか確認
-   curl -I http://localhost:8080/wp-json/
-   ```
-
-2. **WordPress REST API が有効か確認**:
-    - プラグインで REST API が無効化されていないか
-    - .htaccess で API アクセスがブロックされていないか
-
-3. **環境変数を再確認**:
-   ```bash
-   echo $WORDPRESS_API_URL
-   ```
-
-#### デバッグ情報の確認
-
-Next.js側でのデバッグ:
-
-```bash
-# WordPress API呼び出しログを確認
-tail -f .next/trace
-
-# コンソールでネットワークタブを確認
-# API リクエスト・レスポンスの詳細を検査
-```
-
-WordPress側でのデバッグ:
-
-```php
-// wp-config.php でデバッグを有効化
-define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-
-// デバッグログを確認
-tail -f wp-content/debug.log
-```
-
-### 6. 本番環境への移行
-
-#### 本番用設定の調整
-
-1. **セキュリティ設定**:
-    - WordPress管理者アカウントの強化
-    - API アクセス制限の設定
-    - HTTPS の強制
-
-2. **パフォーマンス最適化**:
-    - WordPressキャッシュプラグインの設定
-    - CDN の設定
-    - データベースのインデックス最適化
-
-3. **監視設定**:
-    - API応答時間の監視
-    - エラーログの監視設定
-    - アップタイム監視
-
-この開発環境設定により、WordPress統合機能の完全な開発・テストが可能になります。
+- Network タブでAPIレスポンス時間を確認
+- データベースクエリの実行時間をチェック
+- 画像ファイルのサイズと数を確認
