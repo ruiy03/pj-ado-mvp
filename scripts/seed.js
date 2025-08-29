@@ -112,40 +112,34 @@ async function seed() {
         CREATE TABLE ad_contents
         (
             id
-            SERIAL
-            PRIMARY
-            KEY,
+                            SERIAL
+                PRIMARY
+                    KEY,
             name
-            VARCHAR
-        (
-            255
-        ) NOT NULL,
-            template_id INTEGER REFERENCES ad_templates
-        (
-            id
-        ) ON DELETE CASCADE,
+                            VARCHAR(255) NOT NULL,
+            template_id     INTEGER REFERENCES ad_templates
+                (
+                 id
+                    ) ON DELETE CASCADE,
             url_template_id INTEGER REFERENCES url_templates
-        (
-            id
-        )
-          ON DELETE CASCADE,
-            content_data JSON DEFAULT '{}',
-            status VARCHAR
-        (
-            20
-        ) DEFAULT 'draft',
-            created_by INTEGER REFERENCES users
-        (
-            id
-        )
-          ON DELETE SET NULL,
-            created_at TIMESTAMP DEFAULT NOW
-        (
-        ),
-            updated_at TIMESTAMP DEFAULT NOW
-        (
-        )
-            );
+                (
+                 id
+                    )
+                ON DELETE CASCADE,
+            content_data    JSON        DEFAULT '{}',
+            status          VARCHAR(20) DEFAULT 'draft',
+            created_by      INTEGER      REFERENCES users
+                (
+                 id
+                    )
+                                             ON DELETE SET NULL,
+            created_at      TIMESTAMP   DEFAULT NOW
+                                                (
+                                                ),
+            updated_at      TIMESTAMP   DEFAULT NOW
+                                                (
+                                                )
+        );
     `;
 
     console.log('Creating ad_images table...');
@@ -158,51 +152,35 @@ async function seed() {
         CREATE TABLE ad_images
         (
             id
-            SERIAL
-            PRIMARY
-            KEY,
+                              SERIAL
+                PRIMARY
+                    KEY,
             ad_content_id
-            INTEGER
-            REFERENCES
-            ad_contents
-        (
-            id
-        ) ON DELETE CASCADE,
-            blob_url VARCHAR
-        (
-            500
-        ) NOT NULL,
-            original_filename VARCHAR
-        (
-            255
-        ),
-            file_size INTEGER,
-            mime_type VARCHAR
-        (
-            100
-        ),
-            alt_text VARCHAR
-        (
-            255
-        ),
-            placeholder_name VARCHAR
-        (
-            100
-        ), -- テンプレートのプレースホルダー名
-            created_at TIMESTAMP DEFAULT NOW
-        (
-        )
-            );
+                              INTEGER
+                REFERENCES
+                    ad_contents
+                        (
+                         id
+                            ) ON DELETE CASCADE,
+            blob_url          VARCHAR(500) NOT NULL,
+            original_filename VARCHAR(255),
+            file_size         INTEGER,
+            mime_type         VARCHAR(100),
+            alt_text          VARCHAR(255),
+            placeholder_name  VARCHAR(100), -- テンプレートのプレースホルダー名
+            created_at        TIMESTAMP DEFAULT NOW
+                                                (
+                                                )
+        );
     `;
 
     console.log('Adding delivery tracking columns to ad_contents...');
 
     // Add delivery tracking columns to ad_contents table
     await sql`
-        ALTER TABLE ad_contents 
-        ADD COLUMN IF NOT EXISTS impressions INTEGER DEFAULT 0,
-        ADD COLUMN IF NOT EXISTS clicks INTEGER DEFAULT 0,
-        ADD COLUMN IF NOT EXISTS last_accessed_at TIMESTAMP
+        ALTER TABLE ad_contents
+            ADD COLUMN IF NOT EXISTS impressions INTEGER DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS clicks INTEGER DEFAULT 0
     `;
 
     // Create indexes for performance
@@ -226,17 +204,41 @@ async function seed() {
 
     // Create article_ad_mappings table
     await sql`
-        CREATE TABLE IF NOT EXISTS article_ad_mappings (
-            id SERIAL PRIMARY KEY,
-            post_id INTEGER NOT NULL,
-            post_title VARCHAR(255),
+        CREATE TABLE IF NOT EXISTS article_ad_mappings
+        (
+            id
+            SERIAL
+            PRIMARY
+            KEY,
+            post_id
+            INTEGER
+            NOT
+            NULL,
+            post_title
+            VARCHAR
+        (
+            255
+        ),
             post_url TEXT,
-            ad_id VARCHAR(50) NOT NULL,
-            synced_at TIMESTAMP DEFAULT NOW(),
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW(),
-            UNIQUE(post_id, ad_id)
+            ad_id VARCHAR
+        (
+            50
+        ) NOT NULL,
+            synced_at TIMESTAMP DEFAULT NOW
+        (
+        ),
+            created_at TIMESTAMP DEFAULT NOW
+        (
+        ),
+            updated_at TIMESTAMP DEFAULT NOW
+        (
+        ),
+            UNIQUE
+        (
+            post_id,
+            ad_id
         )
+            )
     `;
 
     // Create indexes for article_ad_mappings

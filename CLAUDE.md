@@ -82,7 +82,7 @@ Uses Neon PostgreSQL with the following structure:
   `updated_at`
 - **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON),
   `status` (enum), `created_by` (FK), `impressions` (INTEGER DEFAULT 0), `clicks` (INTEGER DEFAULT 0),
-  `last_accessed_at` (TIMESTAMP), `created_at`, `updated_at`
+  `created_at`, `updated_at`
 - **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`,
   `alt_text`, `placeholder_name`, `created_at`
 - **article_ad_mappings table**: `id` (serial), `post_id`, `post_title`, `post_url`, `ad_id`, `synced_at`, `created_at`,
@@ -250,8 +250,8 @@ sites using custom shortcodes.
 
 - **Impression tracking**: Automatic view counting on ad delivery with database persistence
 - **Click tracking**: Transparent redirect tracking for all external links with referrer preservation
-- **Performance metrics**: Track impressions, clicks, and last access times for comprehensive analytics
-- **Database fields**: `impressions`, `clicks`, `last_accessed_at` columns in ad_contents table for tracking
+- **Performance metrics**: Track impressions and clicks for comprehensive analytics
+- **Database fields**: `impressions`, `clicks` columns in ad_contents table for tracking
 
 ### Template Synchronization System
 

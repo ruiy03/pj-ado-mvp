@@ -102,7 +102,6 @@ export interface AdContent {
   updated_at?: string;
   impressions?: number;
   clicks?: number;
-  last_accessed_at?: string;
   // 関連データ
   template?: AdTemplate;
   url_template?: UrlTemplate;
