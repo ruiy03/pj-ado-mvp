@@ -25,8 +25,8 @@ NextAuth.js for authentication.
 
 The application uses NextAuth.js v5 (beta) with credential-based authentication and role-based authorization:
 
-- **Authentication config**: `auth.config.ts` and `auth.ts` handle NextAuth setup
-- **Middleware**: `middleware.ts` protects routes except public files and login
+- **Authentication config**: `src/auth.config.ts` and `src/auth.ts` handle NextAuth setup
+- **Middleware**: `src/middleware.ts` protects routes except public files and login
 - **Database**: Uses Neon PostgreSQL with bcrypt for password hashing
 - **WordPress sync actions**: `src/lib/wordpress-sync-actions.ts` handles WordPress API integration and mapping data
   synchronization
@@ -67,8 +67,8 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/lib/image-utils.ts` - Common helper functions for image processing and content_data manipulation
 - `src/lib/consistency-checker.ts` - Template consistency analysis and integrity monitoring system
 - `src/lib/logger.ts` - Structured logging system with environment-aware configuration
-- `auth.ts` & `auth.config.ts` - NextAuth.js configuration with Credentials provider
-- `middleware.ts` - Route protection middleware
+- `src/auth.ts` & `src/auth.config.ts` - NextAuth.js configuration with Credentials provider
+- `src/middleware.ts` - Route protection middleware
 
 ### Database Schema
 
@@ -82,7 +82,7 @@ Uses Neon PostgreSQL with the following structure:
   `updated_at`
 - **ad_contents table**: `id` (serial), `name`, `template_id` (FK), `url_template_id` (FK), `content_data` (JSON),
   `status` (enum), `created_by` (FK), `impressions` (INTEGER DEFAULT 0), `clicks` (INTEGER DEFAULT 0),
-  `last_accessed_at` (TIMESTAMP), `created_at`, `updated_at`
+  `created_at`, `updated_at`
 - **ad_images table**: `id` (serial), `ad_content_id` (FK), `blob_url`, `original_filename`, `file_size`, `mime_type`,
   `alt_text`, `placeholder_name`, `created_at`
 - **article_ad_mappings table**: `id` (serial), `post_id`, `post_title`, `post_url`, `ad_id`, `synced_at`, `created_at`,
@@ -250,8 +250,8 @@ sites using custom shortcodes.
 
 - **Impression tracking**: Automatic view counting on ad delivery with database persistence
 - **Click tracking**: Transparent redirect tracking for all external links with referrer preservation
-- **Performance metrics**: Track impressions, clicks, and last access times for comprehensive analytics
-- **Database fields**: `impressions`, `clicks`, `last_accessed_at` columns in ad_contents table for tracking
+- **Performance metrics**: Track impressions and clicks for comprehensive analytics
+- **Database fields**: `impressions`, `clicks` columns in ad_contents table for tracking
 
 ### Template Synchronization System
 

@@ -78,7 +78,6 @@ export async function getAdContents(): Promise<AdContent[]> {
                ac.updated_at,
                ac.impressions,
                ac.clicks,
-               ac.last_accessed_at,
                -- テンプレート情報
                at.name         as template_name,
                at.html         as template_html,
@@ -108,7 +107,6 @@ export async function getAdContents(): Promise<AdContent[]> {
       updated_at: row.updated_at?.toISOString(),
       impressions: row.impressions || 0,
       clicks: row.clicks || 0,
-      last_accessed_at: row.last_accessed_at?.toISOString(),
       template: row.template_id ? {
         id: row.template_id,
         name: row.template_name,
@@ -153,7 +151,6 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
                ac.updated_at,
                ac.impressions,
                ac.clicks,
-               ac.last_accessed_at,
                -- テンプレート情報
                at.name         as template_name,
                at.html         as template_html,
@@ -188,7 +185,6 @@ export async function getAdContentById(id: number): Promise<AdContent | null> {
       updated_at: row.updated_at?.toISOString(),
       impressions: row.impressions || 0,
       clicks: row.clicks || 0,
-      last_accessed_at: row.last_accessed_at?.toISOString(),
       template: row.template_id ? {
         id: row.template_id,
         name: row.template_name,
@@ -556,7 +552,6 @@ export async function trackImpression(id: number): Promise<void> {
     const result = await sql`
         UPDATE ad_contents
         SET impressions = COALESCE(impressions, 0) + 1,
-            last_accessed_at = NOW(),
             updated_at = NOW()
         WHERE id = ${id} AND status = 'active'
         RETURNING impressions, status
@@ -577,7 +572,6 @@ export async function trackClick(id: number): Promise<void> {
     await sql`
         UPDATE ad_contents
         SET clicks = COALESCE(clicks, 0) + 1,
-            last_accessed_at = NOW(),
             updated_at = NOW()
         WHERE id = ${id} AND status = 'active'
     `;

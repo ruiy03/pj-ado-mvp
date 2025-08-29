@@ -70,82 +70,45 @@
 
 ### WordPress 側エンドポイント（Next.js からのアクセス用）
 
-#### 1. ショートコード使用状況API
+| エンドポイント                                      | 説明                  |
+|----------------------------------------------|---------------------|
+| `/wp-json/lmg-ad-manager/v1/shortcode-usage` | ショートコード使用状況を取得      |
+| `/wp-json/lmg-ad-manager/v1/all-articles`    | 記事一覧を取得（ページネーション対応） |
 
-**エンドポイント**: `GET /wp-json/lmg-ad-manager/v1/shortcode-usage`
+## エラーレスポンス
 
-**機能**: WordPress投稿内の `[lmg_ad]` ショートコード使用状況を解析して返す
-
-**レスポンス例**:
-
-```json
-{
-  "shortcodes": [
-    {
-      "ad_id": "123",
-      "count": 8,
-      "posts": [
-        {
-          "id": 456,
-          "title": "記事タイトル",
-          "url": "https://example.com/post/456"
-        }
-      ]
-    }
-  ]
-}
-```
-
-**実装詳細**:
-
-- 全公開投稿をスキャン
-- 正規表現でショートコードを抽出
-- `id` と `code` 属性の両方に対応（互換性維持）
-- 投稿の重複を防ぐロジック実装
-
-#### 2. 全記事取得API
-
-**エンドポイント**: `GET /wp-json/lmg-ad-manager/v1/all-articles`
-
-**パラメータ**:
-| パラメータ | 型 | デフォルト | 制限 | 説明 |
-|------------|-----|-----------|------|------|
-| `page` | integer | 1 | - | ページ番号 |
-| `per_page` | integer | 100 | 最大100 | 1ページあたりの記事数 |
-
-**レスポンス例**:
+全APIで共通のエラーフォーマット：
 
 ```json
 {
-  "articles": [
-    {
-      "id": "789",
-      "title": "記事タイトル",
-      "url": "https://example.com/article",
-      "published_at": "2025-08-25",
-      "category": "ニュース",
-      "has_ad": true,
-      "ad_ids": [
-        "123",
-        "456"
-      ]
-    }
-  ],
-  "total": 500,
-  "page": 1,
-  "per_page": 100
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "エラーメッセージ"
+  }
 }
 ```
 
-**機能**:
+#### 主要エラーコード
 
-- ページネーション対応の効率的な記事取得
-- カテゴリ情報も含む包括的なデータ
-- 各記事の広告使用状況を自動解析
-- 記事毎の広告ID一覧を提供
+| エラーコード                | HTTPステータス | 説明              |
+|-----------------------|-----------|-----------------|
+| `UNAUTHORIZED`        | 401       | 認証が必要です         |
+| `FORBIDDEN`           | 403       | 権限が不足しています      |
+| `NOT_FOUND`           | 404       | リソースが見つかりません    |
+| `VALIDATION_ERROR`    | 422       | 入力値が無効です        |
+| `TEMPLATE_NOT_FOUND`  | 404       | テンプレートが存在しません   |
+| `CONTENT_NOT_FOUND`   | 404       | 広告コンテンツが存在しません  |
+| `IMAGE_UPLOAD_FAILED` | 500       | 画像アップロードに失敗しました |
 
 ## 認証 API
 
 | エンドポイント                   | メソッド     | 説明                  |
 |---------------------------|----------|---------------------|
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth.js 認証ハンドラー |
+
+### 認証フロー
+
+1. **ログイン**: `POST /api/auth/callback/credentials`
+2. **セッション確認**: `GET /api/auth/session`
+3. **ログアウト**: `POST /api/auth/signout`

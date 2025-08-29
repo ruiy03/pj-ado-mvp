@@ -37,7 +37,6 @@
 | `created_by`       | INTEGER      | 作成者ID（FK）       | REFERENCES users(id)         |
 | `impressions`      | INTEGER      | インプレッション数       | DEFAULT 0                    |
 | `clicks`           | INTEGER      | クリック数           | DEFAULT 0                    |
-| `last_accessed_at` | TIMESTAMP    | 最終アクセス日時        |                              |
 | `created_at`       | TIMESTAMP    | 作成日時            | DEFAULT NOW()                |
 | `updated_at`       | TIMESTAMP    | 更新日時            | DEFAULT NOW()                |
 

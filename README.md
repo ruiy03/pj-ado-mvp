@@ -34,8 +34,13 @@ Next.js、TypeScript、Tailwind CSS、NextAuth.jsを使用して構築された�
 
 ### セットアップ手順
 
-1. **リポジトリのクローン**
+1. **リポジトリのForkとクローン**
 
+   GitHubでリポジトリをFork：
+    - このリポジトリページにアクセスし、右上の「Fork」ボタンをクリック
+    - 自分のGitHubアカウントにリポジトリがコピーされます
+
+   Forkしたリポジトリをローカルにクローン：
    ```bash
    git clone git@github.com:<your-github-username>/pj-ado-mvp.git
    cd pj-ado-mvp
@@ -67,10 +72,25 @@ Next.js、TypeScript、Tailwind CSS、NextAuth.jsを使用して構築された�
    vercel env pull
    ```
 
+   **WordPress Localサーバーの起動**
+    - GitHub ReleasesからWordPress環境をダウンロード
+    - Localアプリにインポート
+    - Localアプリを開いて、インポートしたWordPressサイトを起動
+    - 「Start site」ボタンをクリック（通常 http://localhost:10005 でアクセス可能）
+
+   **WordPress環境の設定**
+    - .env.localファイルに追加（※下記のポート番号10005は、ご自身のLocalアプリで割り当てられたWordPressサイトのポート番号に置き換えてください）：
+   ```bash
+   # ※ ポート番号10005は例です。Localアプリで実際に割り当てられているポート番号を確認して設定してください。
+   echo "WORDPRESS_API_URL=http://localhost:10005" >> .env.local
+   ```
+
 4. **データベースの初期化**
    ```bash
    node scripts/seed.js
    ```
+
+   このコマンドにより、usersテーブル、ad_templatesテーブル、url_templatesテーブル、ad_contentsテーブル、ad_imagesテーブル、article_ad_mappingsテーブルが作成され、テストユーザーとサンプルテンプレートがシードされます。
 
 5. **開発サーバーの起動**
    ```bash
@@ -90,13 +110,27 @@ Next.js、TypeScript、Tailwind CSS、NextAuth.jsを使用して構築された�
 
 ## 技術スタック
 
+### フロントエンド
+
 - **Next.js 15.4.5** - React フレームワーク (App Router)
 - **React 19** - UI ライブラリ
 - **TypeScript** - 型安全性
 - **Tailwind CSS v4** - ユーティリティファーストCSS
-- **NextAuth.js 5.0.0-beta** - 認証システム
+- **@monaco-editor/react** - HTMLコードエディター (Monaco Editor React integration)
+- **Geist フォント** - タイポグラフィ
+
+### バックエンド・認証
+
+- **NextAuth.js 5.0.0-beta.29** - 認証システム (Credentials provider)
 - **Neon Database** - PostgreSQL サーバーレスデータベース
 - **Vercel Blob** - 画像ファイルストレージサービス
+- **bcrypt** - パスワードハッシュ化
+- **Zod 4.0.15** - スキーマバリデーション
+
+### 開発・ビルド
+
+- **ESLint** - コード品質管理
+- **Turbopack** - 高速ビルドツール
 
 ## 開発コマンド
 
@@ -127,7 +161,6 @@ node scripts/seed.js
 - [**システム設計書**](./docs/architecture.md) - アーキテクチャとプロジェクト構造
 - [**API仕様書**](./docs/api-reference.md) - API エンドポイント一覧
 - [**データベース設計**](./docs/database-schema.md) - テーブル構造とスキーマ
-- [**開発者ガイド**](./docs/development.md) - 環境構築とデプロイ手順
 - [**機能詳細**](./docs/features/) - 各機能の技術仕様
 
 📖 [ドキュメント一覧を見る](./docs/README.md)
@@ -137,5 +170,3 @@ node scripts/seed.js
 Vercelを使用したデプロイが推奨されます：
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
-
-詳細な手順は [開発者ガイド](./docs/development.md) を参照してください。
