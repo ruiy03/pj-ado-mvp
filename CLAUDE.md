@@ -58,7 +58,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/components/LoginForm.tsx` - Authentication form component
 - `src/components/HTMLCodeEditor.tsx` - Monaco-based HTML code editor with validation
 - `src/lib/definitions.ts` - TypeScript interfaces (User model with role field, AdTemplate models)
-- `src/lib/actions.ts` - Server actions for authentication operations
+- `src/lib/auth-actions.ts` - Server actions for authentication operations (logout)
 - `src/lib/user-actions.ts` - Server actions for user CRUD operations with role-based authorization
 - `src/lib/template-actions.ts` - Server actions for ad template CRUD operations with validation
 - `src/lib/authorization.ts` - Role checking utilities and permission helpers
