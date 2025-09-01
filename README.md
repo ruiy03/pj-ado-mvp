@@ -4,9 +4,9 @@
 ![React](https://img.shields.io/badge/React-19.1.0-blue?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
-![NextAuth.js](https://img.shields.io/badge/NextAuth.js-5.0.0--beta-purple?style=flat-square)
+![NextAuth.js](https://img.shields.io/badge/NextAuth.js-5.0.0--beta.29-purple?style=flat-square)
 
-LMG向けの内部メディア（PORTキャリアなど）の広告管理システムMVPです。
+LMG向けの内部メディア（PORTキャリアなど）の広告管理システムMVPです。包括的な広告テンプレート管理、コンテンツ作成、配信機能を備えた本格的なWebアプリケーションです。
 
 ## プロジェクト概要
 
@@ -113,24 +113,28 @@ Next.js、TypeScript、Tailwind CSS、NextAuth.jsを使用して構築された�
 ### フロントエンド
 
 - **Next.js 15.4.5** - React フレームワーク (App Router)
-- **React 19** - UI ライブラリ
-- **TypeScript** - 型安全性
+- **React 19.1.0** - UI ライブラリ
+- **TypeScript 5** - 型安全性
 - **Tailwind CSS v4** - ユーティリティファーストCSS
-- **@monaco-editor/react** - HTMLコードエディター (Monaco Editor React integration)
+- **@monaco-editor/react 4.7.0** - HTMLコードエディター (Monaco Editor React integration)
+- **@heroicons/react 2.2.0** - Hero icons ライブラリ
+- **lucide-react 0.540.0** - 追加アイコンライブラリ
 - **Geist フォント** - タイポグラフィ
 
-### バックエンド・認証
+### バックエンド・認証・データベース
 
 - **NextAuth.js 5.0.0-beta.29** - 認証システム (Credentials provider)
-- **Neon Database** - PostgreSQL サーバーレスデータベース
-- **Vercel Blob** - 画像ファイルストレージサービス
-- **bcrypt** - パスワードハッシュ化
+- **@neondatabase/serverless** - PostgreSQL サーバーレスデータベース
+- **Vercel Blob 1.1.1** - 画像ファイルストレージサービス
+- **bcrypt 6.0.0** - パスワードハッシュ化
 - **Zod 4.0.15** - スキーマバリデーション
+- **mime-types 3.0.1** - MIMEタイプ検出
 
 ### 開発・ビルド
 
-- **ESLint** - コード品質管理
-- **Turbopack** - 高速ビルドツール
+- **ESLint 9** - コード品質管理 (Next.js TypeScript ルール)
+- **Turbopack** - 高速開発ビルドツール
+- **PostCSS** - CSS後処理とTailwind CSS統合
 
 ## 開発コマンド
 
