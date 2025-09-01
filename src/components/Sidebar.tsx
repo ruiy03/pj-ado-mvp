@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useEffect, useState} from 'react';
-import {logout} from '@/lib/actions';
+import {logout} from '@/lib/auth-actions';
 import {useSession} from 'next-auth/react';
 
 export default function Sidebar() {

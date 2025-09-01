@@ -58,7 +58,7 @@ The application uses NextAuth.js v5 (beta) with credential-based authentication 
 - `src/components/LoginForm.tsx` - Authentication form component
 - `src/components/HTMLCodeEditor.tsx` - Monaco-based HTML code editor with validation
 - `src/lib/definitions.ts` - TypeScript interfaces (User model with role field, AdTemplate models)
-- `src/lib/actions.ts` - Server actions for authentication operations
+- `src/lib/auth-actions.ts` - Server actions for authentication operations (logout)
 - `src/lib/user-actions.ts` - Server actions for user CRUD operations with role-based authorization
 - `src/lib/template-actions.ts` - Server actions for ad template CRUD operations with validation
 - `src/lib/authorization.ts` - Role checking utilities and permission helpers
@@ -122,7 +122,10 @@ Each main feature has its own page directory under `src/app/`:
 - `/api/delivery/[id]/click` - Click tracking and redirect API (GET)
 - `/api/templates/[id]/sync-content` - Template change synchronization API (POST)
 - `/api/url-templates/[id]/sync-content` - URL template change synchronization API (POST)
+- `/api/url-templates/[id]/analyze-changes` - URL template change impact analysis API (POST)
 - `/api/article-mappings/export` - Article-ad mapping data export API (GET)
+- `/api/articles/without-ads` - Articles without associated ads API (GET)
+- `/api/wordpress/sync` - WordPress data synchronization API (POST)
 
 Most pages are implemented with full functionality. Some protected pages show placeholder/empty state UI with Japanese
 text and icons.
@@ -176,7 +179,6 @@ The application features comprehensive CSV import/export functionality for batch
 
 - **CSV utilities**: `src/lib/csv-utils.ts` provides robust CSV parsing with support for quoted fields and multiline
   values
-- **Import/export hooks**: `src/hooks/useImportExport.tsx` manages import/export state and operations
 - **Shared components**: `src/components/ImportExportButtons.tsx` provides consistent UI for import/export operations
 - **Result handling**: `ImportResult` interface provides detailed feedback including success count, errors, and
   item-level results

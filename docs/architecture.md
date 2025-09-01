@@ -38,7 +38,6 @@ pj-ado-mvp/
 │   │   ├── layout.tsx       # ルートレイアウト
 │   │   └── page.tsx         # ホームページ
 │   ├── components/           # 共通コンポーネント
-│   ├── hooks/               # 共通カスタムフック
 │   ├── lib/                 # ユーティリティ・設定
 │   ├── auth.config.ts       # NextAuth.js設定詳細
 │   ├── auth.ts              # NextAuth.js設定
