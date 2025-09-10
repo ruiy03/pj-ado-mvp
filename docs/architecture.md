@@ -8,43 +8,66 @@
 ```
 pj-ado-mvp/
 ├── src/
-│   ├── app/                    # App Router ページ
-│   │   ├── api/              # API ルート
-│   │   │   ├── auth/[...nextauth]/ # NextAuth API ルート
-│   │   │   ├── ad-contents/  # 広告コンテンツ API
-│   │   │   │   ├── route.ts  # GET, POST (全広告コンテンツ)
-│   │   │   │   └── [id]/route.ts # GET, PUT, DELETE (個別)
-│   │   │   ├── templates/    # 広告テンプレート API
-│   │   │   │   ├── route.ts  # GET, POST (全テンプレート)
-│   │   │   │   ├── [id]/route.ts # GET, PUT, DELETE (個別)
-│   │   │   │   ├── import/route.ts # POST (CSVインポート)
-│   │   │   │   └── export/route.ts # GET (CSVエクスポート)
-│   │   │   ├── upload/       # ファイルアップロード API
-│   │   │   │   └── route.ts  # POST (画像アップロード)
-│   │   │   ├── integrity-check/ # 整合性チェック API
-│   │   │   │   └── route.ts  # GET (システム整合性状況取得)
-│   │   │   └── url-templates/ # URLテンプレート API
-│   │   │       ├── route.ts  # GET, POST (全URLテンプレート)
-│   │   │       ├── [id]/route.ts # GET, PUT, DELETE (個別)
-│   │   │       ├── import/route.ts # POST (CSVインポート)
-│   │   │       └── export/route.ts # GET (CSVエクスポート)
-│   │   ├── dashboard/         # ダッシュボード
-│   │   ├── ads/              # 広告コンテンツ管理
-│   │   ├── ad-templates/     # 広告テンプレート管理
-│   │   ├── url-templates/    # URLテンプレート管理
-│   │   ├── article-ad-mapping/ # 記事・広告紐付け管理
-│   │   ├── accounts/         # アカウント管理
-│   │   ├── login/           # ログインページ
-│   │   ├── layout.tsx       # ルートレイアウト
-│   │   └── page.tsx         # ホームページ
-│   ├── components/           # 共通コンポーネント
-│   ├── lib/                 # ユーティリティ・設定
-│   ├── auth.config.ts       # NextAuth.js設定詳細
-│   ├── auth.ts              # NextAuth.js設定
-│   └── middleware.ts        # ルート保護ミドルウェア
-└── scripts/               # ユーティリティスクリプト
-    └── seed.js           # データベース初期化
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/               # Route Handlers (REST API)
+│   │   │   ├── auth/[...nextauth]/route.ts  # /api/auth/* (NextAuth認証)
+│   │   │   ├── ad-contents/   # /api/ad-contents (広告コンテンツAPI)
+│   │   │   ├── templates/     # /api/templates (CRUD, import/export)
+│   │   │   ├── url-templates/ # /api/url-templates
+│   │   │   ├── delivery/[id]/ # /api/delivery/123 (配信・クリック追跡)
+│   │   │   ├── wordpress/sync/# /api/wordpress/sync
+│   │   │   ├── upload/        # /api/upload (Vercel Blob)
+│   │   │   ├── admin/         # /api/admin/* (管理者専用)
+│   │   │   └── integrity-check/ # /api/integrity-check
+│   │   │
+│   │   ├── dashboard/         # /dashboard (ダッシュボード)
+│   │   │   ├── page.tsx
+│   │   │   └── components/
+│   │   │
+│   │   ├── ads/              # /ads (広告管理)
+│   │   │   ├── page.tsx      # /ads (一覧)
+│   │   │   ├── create/page.tsx # /ads/create
+│   │   │   └── [id]/edit/page.tsx # /ads/123/edit
+│   │   │
+│   │   ├── ad-templates/     # /ad-templates (同上のCRUD構造)
+│   │   ├── url-templates/    # /url-templates
+│   │   ├── article-ad-mapping/ # /article-ad-mapping
+│   │   ├── accounts/         # /accounts (管理者専用)
+│   │   ├── login/            # /login (公開ページ)
+│   │   │
+│   │   ├── layout.tsx        # 全ページ共通レイアウト
+│   │   └── page.tsx          # / (ホーム、/dashboardへリダイレクト)
+│   │
+│   ├── components/           # 共有コンポーネント
+│   │   ├── layout/          # Sidebar, ClientLayout, Header
+│   │   ├── auth/            # SessionProvider, ProtectedPage
+│   │   ├── ui/              # Button, Card, Modal
+│   │   ├── forms/           # ImageUpload, HTMLCodeEditor
+│   │   └── shared/          # ImportExportButtons, DeliveryCodeModal
+│   │
+│   ├── lib/                  # ビジネスロジック
+│   │   ├── actions/         # Server Actions (認証, CRUD操作)
+│   │   ├── utils/           # ユーティリティ (CSV, 画像, テンプレート処理)
+│   │   ├── services/        # consistency-checker, logger
+│   │   ├── authorization.ts # 認可ヘルパー
+│   │   └── definitions.ts   # TypeScript型定義
+│   │
+│   ├── auth.ts & auth.config.ts  # NextAuth設定
+│   └── middleware.ts             # ルート保護
+│
+├── scripts/seed.js          # DB初期化
+└── 設定ファイル (next.config.ts, tailwind.config.ts, tsconfig.json)
 ```
+
+### App Router の主要機能
+
+- **Route Handlers**: `route.ts`ファイルでAPIエンドポイント定義
+- **Server Components**: デフォルトでサーバーサイドレンダリング
+- **Client Components**: `'use client'`ディレクティブで明示的に指定
+- **ネストルーティング**: フォルダ構造がURLパスに対応
+- **動的ルート**: `[id]`形式でパラメータ処理
+- **レイアウト共有**: `layout.tsx`で子ページ間でUI共有
+- **Middleware**: `middleware.ts`でルート保護・認証処理
 
 ## 認証・認可システム
 
